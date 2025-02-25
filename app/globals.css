@@ -2,20 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 36 100% 97.6%;
+    /* #fffaf2 */
+    --foreground: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+
+    --card: 36 100% 97.6%;
+    /* #fffaf2 */
+    --card-foreground: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+
+    --popover: 36 100% 97.6%;
+    /* #fffaf2 */
+    --popover-foreground: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+
+    --primary: 0 100% 86.3%;
+    /* #ffbcbc */
+    --primary-foreground: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+
+    --secondary: 144 25.4% 60.8%;
+    /* #7caa89 */
+    --secondary-foreground: 0 0% 9%;
+    /* Mantendo a mesma cor */
+
+    --muted: 36 100% 97.6%;
+    /* #fffaf2 */
+    --muted-foreground: 0 0% 45.1%;
+    /* Mantendo a mesma cor */
+
+    --accent: 36 100% 97.6%;
+    /* #fffaf2 */
+    --accent-foreground: 0 0% 9%;
+    /* Mantendo a mesma cor */
+
+    --destructive: 0 84.2% 60.2%;
+    /* Mantendo a mesma cor */
+    --destructive-foreground: 0 0% 98%;
+    /* Mantendo a mesma cor */
+
+    --border: 36 100% 89.8%;
+    /* Ajustando para combinar com a nova paleta */
+    --input: 36 100% 89.8%;
+    /* Ajustando para combinar com a nova paleta */
+
+    --ring: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+
+    --chart-1: 12 76% 61%;
+    /* Mantendo a mesma cor */
+    --chart-2: 173 58% 39%;
+    /* Mantendo a mesma cor */
+    --chart-3: 197 37% 24%;
+    /* Mantendo a mesma cor */
+    --chart-4: 43 74% 66%;
+    /* Mantendo a mesma cor */
+    --chart-5: 27 87% 67%;
+    /* Mantendo a mesma cor */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+    --foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --card: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+    --card-foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --popover: 0 0% 3.9%;
+    /* Mantendo a mesma cor */
+    --popover-foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --primary: 36 100% 97.6%;
+    /* #fffaf2 */
+    --primary-foreground: 0 100% 86.3%;
+    /* #ffbcbc */
+
+    --secondary: 0 0% 14.9%;
+    /* Mantendo a mesma cor */
+    --secondary-foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --muted: 0 0% 14.9%;
+    /* Mantendo a mesma cor */
+    --muted-foreground: 0 0% 63.9%;
+    /* Mantendo a mesma cor */
+
+    --accent: 0 0% 14.9%;
+    /* Mantendo a mesma cor */
+    --accent-foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --destructive: 0 62.8% 30.6%;
+    /* Mantendo a mesma cor */
+    --destructive-foreground: 36 100% 97.6%;
+    /* #fffaf2 */
+
+    --border: 0 0% 14.9%;
+    /* Mantendo a mesma cor */
+    --input: 0 0% 14.9%;
+    /* Mantendo a mesma cor */
+
+    --ring: 0 0% 83.1%;
+    /* Mantendo a mesma cor */
+
+    --chart-1: 220 70% 50%;
+    /* Mantendo a mesma cor */
+    --chart-2: 160 60% 45%;
+    /* Mantendo a mesma cor */
+    --chart-3: 30 80% 55%;
+    /* Mantendo a mesma cor */
+    --chart-4: 280 65% 60%;
+    /* Mantendo a mesma cor */
+    --chart-5: 340 75% 55%;
+    /* Mantendo a mesma cor */
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
