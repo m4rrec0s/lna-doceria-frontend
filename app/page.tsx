@@ -3,7 +3,7 @@
 import "./globals.css";
 import Banner from "./components/banner";
 import Header from "./components/header";
-import ContainerProductList from "./containers/ContainerProductList";
+import ContainerProductList from "./containers/containerProductList";
 import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useApi } from "../hooks/useApi";
-import ProductList from "../components/productsList";
+import ProductList from "../components/productList";
 
 const ContainerProductList = () => {
   const { getProducts, error, loading, products } = useApi();
