@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
-import { useApi } from "../hooks/useApi";
-import { formatCurrency } from "../helpers/formatCurrency";
-import Image from "next/image";
+import ProductItem from "./productItem";
+import { Product } from "../types/product";
+import LoadingDots from "./LoadingDots";
+import { motion } from "framer-motion";
+import { containerAnimation, fadeInUp } from "../utils/animations";
 
-const ProductList = () => {
-  const { getProducts, error, loading, products } = useApi();
+interface ProductListProps {
+  products: Product[];
+  loading: boolean;
+  error: string | null;
+}
 
-  useEffect(() => {
-    getProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+const ProductList = ({ products, loading, error }: ProductListProps) => {
   if (loading) {
-    return <section>Loading...</section>;
+    return (
+      <section className="flex justify-center items-center h-full">
+        <LoadingDots />
+      </section>
+    );
   }
 
   if (error) {
@@ -22,35 +26,29 @@ const ProductList = () => {
   }
 
   return (
-    <section className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Tradicionais</h1>
-      <div className="flex gap-6 overflow-x-auto pb-4">
+    <section className="">
+      <motion.h1
+        className="text-2xl font-bold mb-6"
+        variants={fadeInUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        Tradicionais
+      </motion.h1>
+      <motion.div
+        className="flex gap-6 pb-4"
+        variants={containerAnimation}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
         <ul className="flex gap-6">
           {products.map((product) => (
-            <li
-              key={product.id}
-              className="min-w-[280px] flex-shrink-0 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="w-full h-[280px] relative">
-                <Image
-                  src={product.imageUrl}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <h2 className="font-semibold text-lg mb-2 truncate">
-                  {product.name}
-                </h2>
-                <p className="text-xl font-bold text-primary">
-                  {formatCurrency(product.price)}
-                </p>
-              </div>
-            </li>
+            <ProductItem key={product.id} product={product} />
           ))}
         </ul>
-      </div>
+      </motion.div>
     </section>
   );
 };
