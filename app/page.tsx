@@ -3,16 +3,41 @@
 import "./globals.css";
 import Banner from "./components/banner";
 import Header from "./components/header";
-import ContainerProductList from "@/app/containers/containerProductList";
+import { useEffect, useState } from "react";
+import { Product } from "./types/product";
+import { useApi } from "./hooks/useApi";
 import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
+import ProductList from "./components/productList";
 
 export default function Home() {
+  const { getProducts } = useApi();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsData = await getProducts();
+        setProducts(Array.isArray(productsData) ? productsData : []);
+        setLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+        setError(error as string);
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <main className="w-screen">
+    <main className="w-full overflow-x-hidden">
       <Header />
       <section className="mt-[100px]">
-        <div className="px-8">
+        <div className="px-4 md:px-8">
           <motion.div
             className="mb-8"
             initial="hidden"
@@ -64,8 +89,20 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      <div className="px-8 mt-6 overflow-x-auto">
-        <ContainerProductList />
+      <div className="px-4 md:px-8 mt-6">
+        <div className="py-6">
+          {loading ? (
+            <div className="w-full py-8 flex justify-center">
+              <p>Carregando produtos...</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="w-full py-8 text-center">
+              <p>Nenhum produto disponível no momento.</p>
+            </div>
+          ) : (
+            <ProductList products={products} loading={loading} error={error} />
+          )}
+        </div>
       </div>
     </main>
   );

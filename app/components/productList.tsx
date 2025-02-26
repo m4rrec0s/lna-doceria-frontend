@@ -26,7 +26,7 @@ const ProductList = ({ products, loading, error }: ProductListProps) => {
   }
 
   return (
-    <section className="">
+    <section className="w-full">
       <motion.h1
         className="text-2xl font-bold mb-6"
         variants={fadeInUp}
@@ -37,13 +37,13 @@ const ProductList = ({ products, loading, error }: ProductListProps) => {
         Tradicionais
       </motion.h1>
       <motion.div
-        className="flex gap-6 pb-4"
+        className="overflow-x-auto pb-4"
         variants={containerAnimation}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
-        <ul className="flex gap-6">
+        <ul className="flex gap-6 min-w-max">
           {products.map((product) => (
             <ProductItem key={product.id} product={product} />
           ))}
