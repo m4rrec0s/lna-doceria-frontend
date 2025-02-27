@@ -3,22 +3,55 @@ import { Product } from "../types/product";
 import { Category } from "../types/category";
 import axiosClient from "../services/axiosClient";
 
+interface PaginationParams {
+  page?: number;
+  per_page?: number;
+  categoryId?: string;
+  name?: string;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    per_page: number;
+    total_pages: number;
+  };
+}
+
 export const useApi = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    per_page: 50,
+    total_pages: 1,
+  });
 
-  // Funções para Produtos
-  const getProducts = async () => {
+  const getProducts = async (params: PaginationParams = {}) => {
+    setLoading(true);
+    setError("");
     try {
-      setLoading(true);
-      const response = await axiosClient.get("/products");
-      setProducts(response.data);
-      return response.data;
-    } catch (error: unknown) {
-      setError("Error fetching products - " + (error as Error).message);
-      throw error;
+      const { data } = await axiosClient.get<PaginatedResponse<Product>>(
+        "/products",
+        {
+          params,
+        }
+      );
+      setProducts(data.data);
+      setPagination(data.pagination);
+      return data.data;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erro desconhecido ao buscar produtos";
+      setError(errorMessage);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -174,6 +207,7 @@ export const useApi = () => {
     categories,
     error,
     loading,
+    pagination,
     getProducts,
     getProductById,
     createProduct,

@@ -28,12 +28,20 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Trash2 } from "lucide-react";
 // import ProductDisplaySettings from "../components/dashboard/ProductDisplaySettings";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 
 const DashBoard = () => {
   const { user } = useAuth();
   const {
     products,
     categories,
+    pagination,
     loading,
     error,
     getProducts,
@@ -49,13 +57,26 @@ const DashBoard = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    getProducts();
     getCategories();
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const params = {
+      page: currentPage,
+      name: searchTerm || undefined,
+      categoryId:
+        filterCategory && filterCategory !== "all" ? filterCategory : undefined,
+    };
+
+    getProducts(params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, searchTerm, filterCategory]);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -92,14 +113,32 @@ const DashBoard = () => {
     }
   };
 
-  const handleProductUpdated = () => {
-    getProducts();
-  };
+  // const handleProductUpdated = () => {
+  //   getProducts();
+  // };
 
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir este produto?")) {
       await deleteProduct(id);
     }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset para primeira página ao pesquisar
+
+    const params = {
+      page: 1,
+      name: searchTerm || undefined,
+      categoryId:
+        filterCategory && filterCategory !== "all" ? filterCategory : undefined,
+    };
+
+    getProducts(params);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (!user) {
@@ -127,7 +166,7 @@ const DashBoard = () => {
               </h2>
               <ProductForm
                 categories={categories}
-                onSubmitSuccess={handleProductUpdated}
+                onSubmitSuccess={() => getProducts({ page: 1 })}
               />
             </div>
 
@@ -135,12 +174,49 @@ const DashBoard = () => {
               <h2 className="text-xl font-semibold mb-4">
                 Produtos Cadastrados
               </h2>
+
+              <form
+                onSubmit={handleSearch}
+                className="flex flex-col md:flex-row gap-4 mb-6"
+              >
+                <div className="flex-grow">
+                  <Input
+                    type="text"
+                    placeholder="Buscar produtos por nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <div className="w-full md:w-48">
+                  <Select
+                    value={filterCategory}
+                    onValueChange={setFilterCategory}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit">Buscar</Button>
+              </form>
+
               <ProductList
                 products={products}
                 loading={loading}
                 error={error}
                 onEdit={handleEditProduct}
                 onDelete={handleDeleteProduct}
+                pagination={pagination}
+                onPageChange={handlePageChange}
               />
             </div>
 
@@ -149,7 +225,7 @@ const DashBoard = () => {
               categories={categories}
               open={isEditDialogOpen}
               onOpenChange={setIsEditDialogOpen}
-              onSuccess={handleProductUpdated}
+              onSuccess={() => getProducts({ page: currentPage })}
             />
           </TabsContent>
 

@@ -61,18 +61,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
       const { token, user } = response.data;
 
-      // Definir cookie para o middleware
       document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Strict`;
 
-      // Armazenar no localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Atualizar estados
       setToken(token);
       setUser(user);
 
-      // Garantir que o redirecionamento ocorra após a atualização do estado
       setTimeout(() => {
         router.push("/dashboard");
       }, 100);
@@ -98,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   if (!isInitialized) {
     return (
       <section className="flex justify-center items-center h-full">
-        <LoadingDots />
+        <LoadingDots title="LNA Doceria está carregando..." />
       </section>
     );
   }

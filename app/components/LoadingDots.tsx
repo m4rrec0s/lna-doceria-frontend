@@ -2,7 +2,11 @@
 
 import { motion } from "framer-motion";
 
-const LoadingDots = () => {
+interface LoadingDotsProps {
+  title?: string;
+}
+
+const LoadingDots = ({ title }: LoadingDotsProps) => {
   // Cores que remetem a doces e chocolates
   const colors = ["#8B4513", "#D2691E", "#A0522D", "#CD853F"];
 
@@ -26,9 +30,7 @@ const LoadingDots = () => {
           />
         ))}
       </div>
-      <p className="text-lg text-brown-600 font-medium">
-        Carregando delícias...
-      </p>
+      <p className="text-lg text-brown-600 font-medium">{title}</p>
     </div>
   );
 };

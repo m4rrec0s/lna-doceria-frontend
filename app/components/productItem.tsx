@@ -13,7 +13,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
   return (
     <li
       key={product.id}
-      className="min-w-[200px] flex-shrink-0 bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow text-black"
+      className="min-w-[200px] max-w-[300px] flex-shrink-0 bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow text-black"
     >
       <div className="w-full h-[200px] relative p-4">
         <Image

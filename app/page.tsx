@@ -9,17 +9,53 @@ import { useApi } from "./hooks/useApi";
 import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
 import ProductList from "./components/productList";
+import { Category } from "./types/category";
+import { Input } from "./components/ui/input";
+import { Button } from "./components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
+import { Search } from "lucide-react";
 
 export default function Home() {
-  const { getProducts } = useApi();
+  const { getProducts, getCategories, pagination } = useApi();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categoriesData = await getCategories();
+      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+    };
+
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const productsData = await getProducts();
+        const params = {
+          page: currentPage,
+          per_page: 50,
+          name: searchTerm || undefined,
+          categoryId:
+            selectedCategory && selectedCategory !== "all"
+              ? selectedCategory
+              : undefined,
+        };
+
+        const productsData = await getProducts(params);
         setProducts(Array.isArray(productsData) ? productsData : []);
         setLoading(false);
       } catch (error) {
@@ -31,7 +67,17 @@ export default function Home() {
 
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage, searchTerm, selectedCategory]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset para a primeira página ao fazer uma nova busca
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <main className="w-full overflow-x-hidden">
@@ -84,24 +130,57 @@ export default function Home() {
               imageUrl="/bannerImage.png"
               title="Confira Aqui"
               description="Brigadeiros"
-              route="/products"
+              route="#"
             />
           </motion.div>
         </div>
       </section>
       <div className="px-4 md:px-8 mt-6">
+        <div className="bg-white/10 p-4 rounded-lg mb-6 backdrop-blur-sm">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col md:flex-row gap-4"
+          >
+            <div className="flex-grow">
+              <Input
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full md:w-48">
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as categorias</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="shrink-0">
+              <Search className="mr-2 h-4 w-4" /> Buscar
+            </Button>
+          </form>
+        </div>
         <div className="py-6">
-          {loading ? (
-            <div className="w-full py-8 flex justify-center">
-              <p>Carregando produtos...</p>
-            </div>
-          ) : products.length === 0 ? (
-            <div className="w-full py-8 text-center">
-              <p>Nenhum produto disponível no momento.</p>
-            </div>
-          ) : (
-            <ProductList products={products} loading={loading} error={error} />
-          )}
+          <ProductList
+            products={products}
+            loading={loading}
+            error={error}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+          />
         </div>
       </div>
     </main>
