@@ -27,7 +27,7 @@ import { Category } from "../types/category";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Trash2 } from "lucide-react";
-// import ProductDisplaySettings from "../components/dashboard/ProductDisplaySettings";
+import ProductDisplaySettings from "../components/dashboard/ProductDisplaySettings";
 import {
   Select,
   SelectContent,
@@ -284,10 +284,12 @@ const DashBoard = () => {
               <h2 className="text-xl font-semibold mb-4">
                 Configurar Exibição de Produtos
               </h2>
-              {/* <ProductDisplaySettings 
-                categories={categories} 
+              {/* Passando key para forçar remontagem apenas quando necessário */}
+              <ProductDisplaySettings
+                key="display-settings"
+                categories={categories}
                 products={products}
-              /> */}
+              />
             </div>
           </TabsContent>
         </Tabs>

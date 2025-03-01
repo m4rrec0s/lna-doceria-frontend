@@ -11,7 +11,7 @@ interface BannerProps {
 
 const Banner = ({ imageUrl, title, description, route }: BannerProps) => {
   return (
-    <div className="relative w-full h-[420px] mx-auto rounded-3xl overflow-hidden shadow-lg cursor-pointer group bg-pink-100">
+    <div className="relative w-full h-[350px] max-w-md mx-auto rounded-3xl overflow-hidden shadow-lg cursor-pointer group bg-pink-100">
       <Link href={route} className="flex">
         <Image
           src={`${imageUrl}`}

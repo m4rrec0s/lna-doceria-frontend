@@ -20,6 +20,13 @@ interface PaginatedResponse<T> {
   };
 }
 
+interface DisplaySettings {
+  [key: string]: unknown;
+}
+
+// Adicionando uma nova interface que pode ser um array ou um objeto com índice de string
+type FlexibleDisplaySettings = DisplaySettings | unknown[];
+
 export const useApi = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -192,13 +199,33 @@ export const useApi = () => {
     try {
       setLoading(true);
       await axiosClient.delete(`/categories/${id}`);
-      await getCategories(); // Recarregar categorias após exclusão
+      await getCategories();
       return true;
     } catch (error: unknown) {
       setError("Error deleting category - " + (error as Error).message);
       throw error;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getDisplaySettings = async () => {
+    try {
+      const response = await axiosClient.get("/display-settings");
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error fetching display settings - " + (error as Error).message);
+      throw error;
+    }
+  };
+
+  const saveDisplaySettings = async (settings: FlexibleDisplaySettings) => {
+    try {
+      const response = await axiosClient.post("/display-settings", settings);
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error saving display settings - " + (error as Error).message);
+      throw error;
     }
   };
 
@@ -217,5 +244,7 @@ export const useApi = () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    getDisplaySettings,
+    saveDisplaySettings,
   };
 };

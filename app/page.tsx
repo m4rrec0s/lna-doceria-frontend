@@ -9,81 +9,81 @@ import { useApi } from "./hooks/useApi";
 import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
 import ProductList from "./components/productList";
-import { Category } from "./types/category";
-import { Input } from "./components/ui/input";
-import { Button } from "./components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/ui/select";
-import { Search } from "lucide-react";
+import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 
 export default function Home() {
-  const { getProducts, getCategories, pagination } = useApi();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const { getProducts, getDisplaySettings } = useApi();
+  const [displaySections, setDisplaySections] = useState<ProductSection[]>([]);
+  const [sectionProducts, setSectionProducts] = useState<
+    Record<string, Product[]>
+  >({});
+  const [loadingSections, setLoadingSections] = useState(true);
 
+  // Carrega configurações iniciais
   useEffect(() => {
-    const fetchCategories = async () => {
-      const categoriesData = await getCategories();
-      setCategories(Array.isArray(categoriesData) ? categoriesData : []);
-    };
-
-    fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
+    const fetchInitialData = async () => {
       try {
-        const params = {
-          page: currentPage,
-          per_page: 50,
-          name: searchTerm || undefined,
-          categoryId:
-            selectedCategory && selectedCategory !== "all"
-              ? selectedCategory
-              : undefined,
-        };
-
-        const productsData = await getProducts(params);
-        setProducts(Array.isArray(productsData) ? productsData : []);
-        setLoading(false);
+        const settings = await getDisplaySettings();
+        if (settings && Array.isArray(settings)) {
+          const activeSettings = settings.filter((section) => section.active);
+          setDisplaySections(activeSettings);
+        }
       } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
-        setError(error as string);
-        setLoading(false);
+        console.error("Erro ao carregar dados iniciais:", error);
       }
     };
 
-    fetchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, searchTerm, selectedCategory]);
+    fetchInitialData();
+  }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1); // Reset para a primeira página ao fazer uma nova busca
-  };
+  // Carrega produtos das seções
+  useEffect(() => {
+    if (!displaySections.length) return;
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo(0, 0);
-  };
+    const loadSectionProducts = async () => {
+      setLoadingSections(true);
+      const sectionsData: Record<string, Product[]> = {};
+
+      for (const section of displaySections) {
+        try {
+          if (section.type === "category" && section.categoryId) {
+            const products = await getProducts({
+              categoryId: section.categoryId,
+              per_page: 10,
+            });
+            sectionsData[section.id] = Array.isArray(products) ? products : [];
+          } else if (
+            (section.type === "custom" || section.type === "featured") &&
+            section.productIds?.length
+          ) {
+            const products = await getProducts({
+              per_page: section.productIds.length,
+            });
+            sectionsData[section.id] = Array.isArray(products)
+              ? products.filter((p) => section.productIds?.includes(p.id))
+              : [];
+          }
+        } catch (error) {
+          console.error(
+            `Erro ao carregar produtos da seção ${section.id}:`,
+            error
+          );
+          sectionsData[section.id] = [];
+        }
+      }
+
+      setSectionProducts(sectionsData);
+      setLoadingSections(false);
+    };
+
+    loadSectionProducts();
+  }, [displaySections]);
 
   return (
     <main className="w-full overflow-x-hidden">
       <Header />
       <section className="mt-[100px]">
-        <div className="px-4 md:px-8">
+        <div className="px-8">
           <motion.div
             className="mb-8"
             initial="hidden"
@@ -135,53 +135,16 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      <div className="px-4 md:px-8 mt-6">
-        <div className="bg-white/10 p-4 rounded-lg mb-6 backdrop-blur-sm">
-          <form
-            onSubmit={handleSearch}
-            className="flex flex-col md:flex-row gap-4"
-          >
-            <div className="flex-grow">
-              <Input
-                type="text"
-                placeholder="Buscar produtos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div className="w-full md:w-48">
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as categorias</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="shrink-0">
-              <Search className="mr-2 h-4 w-4" /> Buscar
-            </Button>
-          </form>
-        </div>
-        <div className="py-6">
+      <div className="space-y-8 py-8 px-8">
+        {displaySections.map((section) => (
           <ProductList
-            products={products}
-            loading={loading}
-            error={error}
-            pagination={pagination}
-            onPageChange={handlePageChange}
+            key={section.id}
+            title={section.title}
+            products={sectionProducts[section.id] || []}
+            loading={loadingSections}
+            error={null}
           />
-        </div>
+        ))}
       </div>
     </main>
   );
