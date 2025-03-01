@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -39,7 +40,6 @@ export default function SearchPage() {
       setLoading(false);
     };
     searchProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, selectedCategory]);
 
   return (

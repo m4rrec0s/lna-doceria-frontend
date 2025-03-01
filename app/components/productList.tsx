@@ -25,10 +25,7 @@ const ProductList = ({
   products,
   loading,
   error,
-  pagination,
-  onPageChange,
 }: ProductListProps) => {
-  // Não renderizar nada se não houver produtos e não estiver carregando
   if (!loading && !error && (!products || products.length === 0)) {
     return null;
   }
