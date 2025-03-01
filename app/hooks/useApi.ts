@@ -8,6 +8,7 @@ interface PaginationParams {
   per_page?: number;
   categoryId?: string;
   name?: string;
+  ids?: string[]; // Adicionando suporte para filtrar por IDs específicos
 }
 
 interface PaginatedResponse<T> {

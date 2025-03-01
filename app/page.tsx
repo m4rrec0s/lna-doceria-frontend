@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import "./globals.css";
@@ -19,7 +20,6 @@ export default function Home() {
   >({});
   const [loadingSections, setLoadingSections] = useState(true);
 
-  // Carrega configurações iniciais
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -36,7 +36,6 @@ export default function Home() {
     fetchInitialData();
   }, []);
 
-  // Carrega produtos das seções
   useEffect(() => {
     if (!displaySections.length) return;
 
@@ -57,7 +56,8 @@ export default function Home() {
             section.productIds?.length
           ) {
             const products = await getProducts({
-              per_page: section.productIds.length,
+              ids: section.productIds, // Adicionando os IDs específicos na query
+              per_page: 100, // Aumentando o limite para garantir que todos os produtos sejam carregados
             });
             sectionsData[section.id] = Array.isArray(products)
               ? products.filter((p) => section.productIds?.includes(p.id))
