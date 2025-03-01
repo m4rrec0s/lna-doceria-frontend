@@ -68,7 +68,7 @@ export const useApi = () => {
   const getProductById = async (id: string) => {
     try {
       setLoading(true);
-      const response = await axiosClient.get(`/products/${id}`);
+      const response = await axiosClient.get(`/products?id=${id}`);
       return response.data;
     } catch (error: unknown) {
       setError("Error fetching product - " + (error as Error).message);

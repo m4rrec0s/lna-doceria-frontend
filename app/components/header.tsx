@@ -14,6 +14,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { useCart } from "../context/CartContext";
+import CartItem from "./cart/CartItem";
+import CartSummary from "./cart/CartSummary";
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -24,6 +27,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(showSearch);
   const [searchTerm, setSearchTerm] = useState("");
+  const { items, itemCount } = useCart();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,18 +84,43 @@ const Header = ({ showSearch = false }: HeaderProps) => {
           </Button>
         )}
 
-        {pathname === "/" && !isSearchOpen && (
+        {(pathname === "/" || pathname !== "/dashboard") && !isSearchOpen && (
           <Sheet>
-            <SheetTrigger>
+            <SheetTrigger className="relative">
               <ShoppingBasket size={24} />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className="w-full max-w-md sm:max-w-lg h-screen">
               <SheetHeader>
-                <SheetTitle>Meu Carrinho</SheetTitle>
-                <SheetDescription>
-                  Seu carrinho está vazio. Adicione delícias para continuar.
-                </SheetDescription>
+                <SheetTitle className="flex items-center gap-2">
+                  <ShoppingBasket size={20} />
+                  Meu Carrinho
+                  {itemCount > 0 && (
+                    <span className="text-sm text-gray-400">
+                      ({itemCount} {itemCount === 1 ? "item" : "itens"})
+                    </span>
+                  )}
+                </SheetTitle>
+                {items.length === 0 ? (
+                  <SheetDescription className="text-center py-10">
+                    Seu carrinho está vazio. Adicione delícias para continuar.
+                  </SheetDescription>
+                ) : null}
               </SheetHeader>
+              <div className="relative flex flex-col h-full divide-gray-700 overflow-y-auto">
+                <div className="space-y-2 ">
+                  {items.map((item) => (
+                    <CartItem key={item.id} item={item} />
+                  ))}
+                </div>
+                <div className="absolute bottom-8 left-0 w-full bg-background p-2">
+                  <CartSummary />
+                </div>
+              </div>
             </SheetContent>
           </Sheet>
         )}
