@@ -94,33 +94,39 @@ const Header = ({ showSearch = false }: HeaderProps) => {
                 </span>
               )}
             </SheetTrigger>
-            <SheetContent className="w-full max-w-md sm:max-w-lg h-screen">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <ShoppingBasket size={20} />
-                  Meu Carrinho
-                  {itemCount > 0 && (
-                    <span className="text-sm text-gray-400">
-                      ({itemCount} {itemCount === 1 ? "item" : "itens"})
-                    </span>
+            <SheetContent className="w-full max-w-md sm:max-w-lg flex flex-col h-full p-0">
+              <div className="p-6">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <ShoppingBasket size={20} />
+                    Meu Carrinho
+                    {itemCount > 0 && (
+                      <span className="text-sm text-gray-400">
+                        ({itemCount} {itemCount === 1 ? "item" : "itens"})
+                      </span>
+                    )}
+                  </SheetTitle>
+                  {items.length === 0 && (
+                    <SheetDescription className="text-center py-10">
+                      Seu carrinho está vazio. Adicione delícias para continuar.
+                    </SheetDescription>
                   )}
-                </SheetTitle>
-                {items.length === 0 ? (
-                  <SheetDescription className="text-center py-10">
-                    Seu carrinho está vazio. Adicione delícias para continuar.
-                  </SheetDescription>
-                ) : null}
-              </SheetHeader>
-              <div className="relative flex flex-col h-full divide-gray-700 overflow-y-auto">
-                <div className="space-y-2 ">
+                </SheetHeader>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-6 pb-4">
+                <div className="space-y-2">
                   {items.map((item) => (
                     <CartItem key={item.id} item={item} />
                   ))}
                 </div>
-                <div className="absolute bottom-8 left-0 w-full bg-background p-2">
+              </div>
+
+              {items.length > 0 && (
+                <div className="mt-auto border-t border-gray-700 p-6 bg-background">
                   <CartSummary />
                 </div>
-              </div>
+              )}
             </SheetContent>
           </Sheet>
         )}

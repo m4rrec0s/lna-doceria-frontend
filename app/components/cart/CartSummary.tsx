@@ -50,7 +50,7 @@ const CartSummary: React.FC = () => {
     const encodedMessage = encodeURIComponent(message);
 
     // Abrir link do WhatsApp
-    window.open(`https://whatsss.link/krbtpl?text=${encodedMessage}`, "_blank");
+    window.open(`https://wa.me/558388511950?text=${encodedMessage}`, "_blank");
   };
 
   return (
