@@ -4,6 +4,7 @@ import { Category } from "../../types/category";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Input } from "../ui/input";
 
 interface ProductFormProps {
   categories: Category[];
@@ -141,14 +142,14 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
             <label htmlFor="name" className="block text-sm font-medium mb-1">
               Nome do Produto *
             </label>
-            <input
+            <Input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+              className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
             />
           </div>
 
@@ -166,7 +167,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               onChange={handleChange}
               required
               rows={4}
-              className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+              className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
             />
           </div>
 
@@ -175,7 +176,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               <label htmlFor="price" className="block text-sm font-medium mb-1">
                 Preço (R$) *
               </label>
-              <input
+              <Input
                 type="number"
                 id="price"
                 name="price"
@@ -184,7 +185,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                 required
                 step="0.01"
                 min="0"
-                className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
               />
             </div>
 
@@ -195,7 +196,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               >
                 Desconto (%)
               </label>
-              <input
+              <Input
                 type="number"
                 id="discount"
                 name="discount"
@@ -203,7 +204,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                 onChange={handleChange}
                 min="0"
                 max="100"
-                className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
               />
             </div>
           </div>
@@ -217,18 +218,18 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
             >
               Imagem do Produto *
             </label>
-            <input
+            <Input
               type="file"
               id="imageFile"
               name="imageFile"
               accept="image/*"
               onChange={handleImageFileChange}
               required
-              className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+              className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
             />
           </div>
 
-          <div className="flex justify-center items-center border rounded-md h-40 bg-zinc-800">
+          <div className="flex justify-center items-center border rounded-md h-40 bg-zinc-200 dark:bg-zinc-800">
             {imagePreview ? (
               <div className="relative w-full h-full">
                 <Image

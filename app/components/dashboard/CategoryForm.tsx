@@ -3,6 +3,7 @@ import { useApi } from "../../hooks/useApi";
 import { Category } from "../../types/category";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Input } from "../ui/input";
 
 interface CategoryFormProps {
   category?: Category;
@@ -80,14 +81,14 @@ const CategoryForm = ({
         <label htmlFor="name" className="block text-sm font-medium mb-1">
           Nome da Categoria *
         </label>
-        <input
+        <Input
           type="text"
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full px-3 py-2 border rounded-md bg-zinc-800"
+          className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
         />
       </div>
 

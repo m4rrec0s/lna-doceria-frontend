@@ -10,8 +10,11 @@ import {
 
 interface EasterThemeContextType {
   isEasterTheme: boolean;
+  isDarkTheme: boolean;
   toggleEasterTheme: () => void;
+  toggleDarkTheme: () => void;
   forceApplyTheme: () => void;
+  isDashboardPage: boolean;
 }
 
 const EasterThemeContext = createContext<EasterThemeContextType | undefined>(
@@ -20,7 +23,52 @@ const EasterThemeContext = createContext<EasterThemeContextType | undefined>(
 
 export function EasterThemeProvider({ children }: { children: ReactNode }) {
   const [isEasterTheme, setIsEasterTheme] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isDashboardPage, setIsDashboardPage] = useState(false);
+
+  // Verificar URL atual
+  useEffect(() => {
+    const checkIfDashboard = () => {
+      if (typeof window !== "undefined") {
+        const path = window.location.pathname;
+        const dashboardCheck =
+          path === "/dashboard" || path.startsWith("/dashboard/");
+        console.log("Current path:", path, "isDashboard:", dashboardCheck);
+        setIsDashboardPage(dashboardCheck);
+      }
+    };
+
+    checkIfDashboard();
+
+    // Usar tanto popstate quanto Next.js router events quando disponível
+    const handleRouteChange = () => {
+      checkIfDashboard();
+    };
+
+    window.addEventListener("popstate", handleRouteChange);
+
+    // Para Next.js router (se disponível)
+    if (typeof window !== "undefined") {
+      // @ts-expect-error - Verificando a existência do router do Next.js
+      if (window.next && window.next.router) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        window.next.router.events.on("routeChangeComplete", handleRouteChange);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("popstate", handleRouteChange);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      if (typeof window !== "undefined" && window.next && window.next.router) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        window.next.router.events.off("routeChangeComplete", handleRouteChange);
+      }
+    };
+  }, []);
 
   // Carregar a preferência no cliente
   useEffect(() => {
@@ -30,14 +78,25 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
     const isEasterSeason = month === 3 || month === 4;
 
     // Verificar se há preferência salva
-    const savedPreference = localStorage.getItem("easterTheme");
+    const savedEasterPreference = localStorage.getItem("easterTheme");
+    const savedDarkPreference = localStorage.getItem("darkTheme");
 
     // Determinar o estado inicial
-    if (savedPreference !== null) {
-      setIsEasterTheme(savedPreference === "true");
+    let initialEasterTheme = false;
+    if (savedEasterPreference !== null) {
+      initialEasterTheme = savedEasterPreference === "true";
     } else {
       // Se não há preferência salva, usar regra sazonal
-      setIsEasterTheme(isEasterSeason);
+      initialEasterTheme = isEasterSeason;
+    }
+    setIsEasterTheme(initialEasterTheme);
+    console.log("Tema de Páscoa inicial:", initialEasterTheme);
+
+    if (savedDarkPreference !== null) {
+      setIsDarkTheme(savedDarkPreference === "true");
+    } else {
+      // Valor padrão para o tema escuro
+      setIsDarkTheme(false);
     }
 
     setIsInitialized(true);
@@ -47,32 +106,63 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isInitialized) return;
 
-    if (isEasterTheme) {
+    // Debug
+    console.log("Aplicando tema:", {
+      isEasterTheme,
+      isDarkTheme,
+      isDashboardPage,
+      classToAdd:
+        isDashboardPage && isDarkTheme
+          ? "dark"
+          : !isDashboardPage && isEasterTheme
+          ? "easter"
+          : "none",
+    });
+
+    // Remover todas as classes de tema primeiro
+    document.documentElement.classList.remove("easter", "dark");
+
+    // Aplicar o tema adequado
+    if (isDashboardPage && isDarkTheme) {
+      document.documentElement.classList.add("dark");
+    } else if (!isDashboardPage && isEasterTheme) {
       document.documentElement.classList.add("easter");
-    } else {
-      document.documentElement.classList.remove("easter");
     }
 
-    // Salvar a preferência
+    // Salvar as preferências
     localStorage.setItem("easterTheme", isEasterTheme.toString());
-  }, [isEasterTheme, isInitialized]);
+    localStorage.setItem("darkTheme", isDarkTheme.toString());
+  }, [isEasterTheme, isDarkTheme, isInitialized, isDashboardPage]);
 
   const toggleEasterTheme = () => {
+    console.log("Alternando tema de Páscoa:", !isEasterTheme);
     setIsEasterTheme((prev) => !prev);
   };
 
+  const toggleDarkTheme = () => {
+    setIsDarkTheme((prev) => !prev);
+  };
+
   const forceApplyTheme = () => {
-    if (isEasterTheme) {
-      document.documentElement.classList.remove("dark");
+    document.documentElement.classList.remove("easter", "dark");
+
+    if (isDashboardPage && isDarkTheme) {
+      document.documentElement.classList.add("dark");
+    } else if (!isDashboardPage && isEasterTheme) {
       document.documentElement.classList.add("easter");
-    } else {
-      document.documentElement.classList.remove("easter");
     }
   };
 
   return (
     <EasterThemeContext.Provider
-      value={{ isEasterTheme, toggleEasterTheme, forceApplyTheme }}
+      value={{
+        isEasterTheme,
+        isDarkTheme,
+        toggleEasterTheme,
+        toggleDarkTheme,
+        forceApplyTheme,
+        isDashboardPage,
+      }}
     >
       {children}
     </EasterThemeContext.Provider>
