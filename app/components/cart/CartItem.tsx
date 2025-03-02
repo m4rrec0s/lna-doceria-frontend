@@ -13,8 +13,8 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateItemQuantity, removeItem } = useCart();
   const itemTotal = item.price * item.quantity;
-  const discountedTotal = item.discount_percent
-    ? itemTotal - (itemTotal * item.discount_percent) / 100
+  const discountedTotal = item.discount
+    ? itemTotal - (itemTotal * item.discount) / 100
     : itemTotal;
 
   return (
@@ -32,7 +32,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <div className="flex justify-between text-base font-medium">
           <h3 className="line-clamp-1">{item.name}</h3>
           <div className="text-right">
-            {item.discount_percent ? (
+            {item.discount ? (
               <div className="flex flex-col">
                 <span className="text-gray-400 line-through text-xs">
                   {formatCurrency(itemTotal)}
@@ -50,9 +50,9 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <div className="flex items-center justify-between text-sm mt-2">
           <div className="text-gray-400">
             {formatCurrency(item.price)} cada
-            {item.discount_percent ? (
+            {item.discount ? (
               <span className="ml-2 text-xs text-pink-400">
-                ({item.discount_percent}% off)
+                ({item.discount}% off)
               </span>
             ) : null}
           </div>

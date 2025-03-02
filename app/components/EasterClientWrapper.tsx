@@ -8,7 +8,6 @@ import { useEffect } from "react";
 export default function EasterClientWrapper() {
   const { isEasterTheme, isDashboardPage, forceApplyTheme } = useEasterTheme();
 
-  // Força a aplicação do tema quando o componente monta
   useEffect(() => {
     forceApplyTheme();
     console.log("EasterClientWrapper montado:", {

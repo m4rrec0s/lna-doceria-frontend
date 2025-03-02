@@ -77,7 +77,7 @@ const ProductInfo = ({
           <span className="text-lg">📝</span>
           <span className="font-medium">Descrição</span>
         </div>
-        <p className="text-zinc-300">{description}</p>
+        <p className="opacity-60">{description}</p>
       </motion.div>
 
       <motion.div variants={fadeInUp} className="flex items-center gap-2">

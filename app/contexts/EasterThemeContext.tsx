@@ -27,7 +27,6 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isDashboardPage, setIsDashboardPage] = useState(false);
 
-  // Verificar URL atual
   useEffect(() => {
     const checkIfDashboard = () => {
       if (typeof window !== "undefined") {
@@ -41,14 +40,12 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
 
     checkIfDashboard();
 
-    // Usar tanto popstate quanto Next.js router events quando disponível
     const handleRouteChange = () => {
       checkIfDashboard();
     };
 
     window.addEventListener("popstate", handleRouteChange);
 
-    // Para Next.js router (se disponível)
     if (typeof window !== "undefined") {
       // @ts-expect-error - Verificando a existência do router do Next.js
       if (window.next && window.next.router) {
@@ -70,23 +67,18 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Carregar a preferência no cliente
   useEffect(() => {
-    // Verificar se é época de Páscoa (março/abril)
     const date = new Date();
-    const month = date.getMonth() + 1; // getMonth é baseado em zero
+    const month = date.getMonth() + 1;
     const isEasterSeason = month === 3 || month === 4;
 
-    // Verificar se há preferência salva
     const savedEasterPreference = localStorage.getItem("easterTheme");
     const savedDarkPreference = localStorage.getItem("darkTheme");
 
-    // Determinar o estado inicial
     let initialEasterTheme = false;
     if (savedEasterPreference !== null) {
       initialEasterTheme = savedEasterPreference === "true";
     } else {
-      // Se não há preferência salva, usar regra sazonal
       initialEasterTheme = isEasterSeason;
     }
     setIsEasterTheme(initialEasterTheme);
@@ -95,18 +87,15 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
     if (savedDarkPreference !== null) {
       setIsDarkTheme(savedDarkPreference === "true");
     } else {
-      // Valor padrão para o tema escuro
       setIsDarkTheme(false);
     }
 
     setIsInitialized(true);
   }, []);
 
-  // Aplicar a classe no documento quando o tema muda
   useEffect(() => {
     if (!isInitialized) return;
 
-    // Debug
     console.log("Aplicando tema:", {
       isEasterTheme,
       isDarkTheme,
@@ -119,17 +108,14 @@ export function EasterThemeProvider({ children }: { children: ReactNode }) {
           : "none",
     });
 
-    // Remover todas as classes de tema primeiro
     document.documentElement.classList.remove("easter", "dark");
 
-    // Aplicar o tema adequado
     if (isDashboardPage && isDarkTheme) {
       document.documentElement.classList.add("dark");
     } else if (!isDashboardPage && isEasterTheme) {
       document.documentElement.classList.add("easter");
     }
 
-    // Salvar as preferências
     localStorage.setItem("easterTheme", isEasterTheme.toString());
     localStorage.setItem("darkTheme", isDarkTheme.toString());
   }, [isEasterTheme, isDarkTheme, isInitialized, isDashboardPage]);

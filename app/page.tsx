@@ -13,11 +13,9 @@ import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 import BannerContainer from "./components/bannerContainer";
 import { useEasterTheme } from "./contexts/EasterThemeContext";
 
-// Componente para garantir aplicação do tema na página principal com prioridade alta
 function EnsureTheme() {
   const { isEasterTheme } = useEasterTheme();
 
-  // Aplicar o tema imediatamente quando o componente monta
   useEffect(() => {
     const applyTheme = () => {
       if (isEasterTheme) {
@@ -31,11 +29,8 @@ function EnsureTheme() {
       }
     };
 
-    // Aplicar tema imediatamente
     applyTheme();
 
-    // E também aplicar após um pequeno delay para garantir
-    // que seja aplicado após qualquer transição de página
     const timer = setTimeout(applyTheme, 50);
 
     return () => clearTimeout(timer);
@@ -56,7 +51,7 @@ export default function Home() {
     imageUrl: string;
     title: string;
     description: string;
-    route: string;
+    categoryId: string;
     variant: "blue" | "green" | "pink" | "purple" | "default";
     brightness?: boolean;
   }[] = [
@@ -65,25 +60,25 @@ export default function Home() {
         "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
       title: "Para sua Páscoa",
       description: "Ovos de páscoa recheados",
-      route: "#",
+      categoryId: "",
       variant: "purple",
       brightness: true,
     },
     {
       imageUrl:
-        "https://i.pinimg.com/736x/e2/5f/d9/e25fd9779ef23538a029863efef3452e.jpg",
-      title: "Novidades",
-      description: "Doces Especiais",
-      route: "#",
+        "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
+      title: "Trufas",
+      description: "As melhores",
+      categoryId: "Trufas ",
       variant: "blue",
       brightness: true,
     },
     {
       imageUrl:
         "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
-      title: "Exclusivos",
-      description: "Chocolate Premium",
-      route: "#",
+      title: "Especiais",
+      description: "Aqui temos os melhores",
+      categoryId: "Brigadeiros especiais ",
       variant: "purple",
       brightness: true,
     },
@@ -92,7 +87,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
       title: "Tradicionais",
       description: "Melhores Brigadeiros",
-      route: "#",
+      categoryId: "Brigadeiros tradicionais ",
       variant: "pink",
       brightness: true,
     },
@@ -134,8 +129,8 @@ export default function Home() {
             section.productIds?.length
           ) {
             const products = await getProducts({
-              ids: section.productIds, // Adicionando os IDs específicos na query
-              per_page: 100, // Aumentando o limite para garantir que todos os produtos sejam carregados
+              ids: section.productIds,
+              per_page: 100,
             });
             sectionsData[section.id] = Array.isArray(products)
               ? products.filter((p) => section.productIds?.includes(p.id))
@@ -181,16 +176,16 @@ export default function Home() {
               className="text-3xl md:text-4xl font-light mb-2"
               variants={fadeInUp}
             >
-              Experimente e Aprecie
+              Celebre a Páscoa
             </motion.h1>
             <motion.h2
               className="text-3xl md:text-4xl font-bold flex items-center gap-2"
               variants={fadeInUp}
             >
-              Doces de Qualidade{" "}
+              Com os Melhores Doces{" "}
               <motion.span
                 role="img"
-                aria-label="cake"
+                aria-label="easter egg"
                 initial={{ rotate: -10 }}
                 animate={{ rotate: [0, 10, 0, -10, 0] }}
                 transition={{
@@ -200,7 +195,7 @@ export default function Home() {
                   repeatDelay: 5,
                 }}
               >
-                🍰
+                🐰
               </motion.span>
             </motion.h2>
           </motion.div>

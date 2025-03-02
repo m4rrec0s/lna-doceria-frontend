@@ -58,7 +58,7 @@ const ProductPage = ({ params }: ProductPageProps) => {
 
     fetchProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]); // Adicionando id como dependência para recarregar quando mudar
+  }, [id]);
 
   const handleAddToCart = () => {
     console.log(

@@ -9,7 +9,6 @@ import { Category } from "../types/category";
 import Header from "../components/header";
 import ProductList from "../components/productList";
 import { Badge } from "../components/ui/badge";
-// import { motion } from "framer-motion";
 
 export default function SearchPage() {
   const searchParams = useSearchParams();

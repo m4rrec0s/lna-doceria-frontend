@@ -6,16 +6,43 @@ export interface BannerProps {
   imageUrl: string;
   title: string;
   description: string;
-  route: string;
+  categoryId: string;
   variant?: "default" | "pink" | "blue" | "green" | "purple";
   brightness?: boolean;
 }
+
+const CategoryIds = [
+  {
+    id: "2dc3b178-6e52-4a07-adae-39f96b226a38",
+    name: "Cento de brigadeiros ",
+  },
+  {
+    id: "37c5879f-2add-43f5-80c2-e76c87a91d3a",
+    name: "Trufas ",
+  },
+  {
+    id: "1bd14a27-1c91-4fdb-b46f-ed6fbccfc8ee",
+    name: "Cento, doces finos ",
+  },
+  {
+    id: "00126359-cc95-4e74-8ee4-8d5515ef3008",
+    name: "Copinho de chocolate recheado ",
+  },
+  {
+    id: "fe7f6e52-c374-4264-a3ea-54ba5a3279ba",
+    name: "Brigadeiros tradicionais ",
+  },
+  {
+    id: "037d557f-ea8b-4957-ba0b-fae49ed3e13e",
+    name: "Brigadeiros especiais ",
+  },
+];
 
 const Banner = ({
   imageUrl,
   title,
   description,
-  route,
+  categoryId,
   variant = "default",
   brightness = false,
 }: BannerProps) => {
@@ -49,11 +76,16 @@ const Banner = ({
 
   const style = variantStyles[variant];
 
+  categoryId =
+    CategoryIds.find((category) => category.name === categoryId)?.id ?? "";
+
+  const linkHref = categoryId ? `/category/${categoryId}` : "#";
+
   return (
     <div
       className={`relative w-full h-[350px] max-w-lg mx-auto rounded-3xl overflow-hidden shadow-lg cursor-pointer group ${style.bg} flex-shrink-0`}
     >
-      <Link href={route} className="flex">
+      <Link href={linkHref} className="flex">
         <Image
           src={`${imageUrl}`}
           alt={"Banner Image"}

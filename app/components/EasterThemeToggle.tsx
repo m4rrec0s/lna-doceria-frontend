@@ -13,7 +13,6 @@ export default function EasterThemeToggle() {
     isDashboardPage,
   } = useEasterTheme();
 
-  // Debug quando o componente monta
   useEffect(() => {
     console.log("EasterThemeToggle montado:", {
       isEasterTheme,
@@ -23,7 +22,6 @@ export default function EasterThemeToggle() {
     });
   }, [isEasterTheme, isDarkTheme, isDashboardPage]);
 
-  // Função que decide qual toggle chamar com base na página atual
   const handleToggle = () => {
     console.log(
       "Toggle clicado na página:",
@@ -36,7 +34,6 @@ export default function EasterThemeToggle() {
     }
   };
 
-  // Conteúdo do botão baseado na página e estado do tema
   const getButtonContent = () => {
     if (isDashboardPage) {
       return isDarkTheme ? "🌙" : "☀️";
@@ -45,7 +42,6 @@ export default function EasterThemeToggle() {
     }
   };
 
-  // Título do botão baseado na página e estado do tema
   const getButtonTitle = () => {
     if (isDashboardPage) {
       return isDarkTheme ? "Mudar para tema claro" : "Mudar para tema escuro";

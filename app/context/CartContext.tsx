@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export interface CartItem extends Product {
   quantity: number;
-  discount_percent?: number;
+  discount?: number;
 }
 
 interface CartContextType {
@@ -32,7 +32,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
 
-  // Carregar carrinho do localStorage ao iniciar
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
@@ -40,11 +39,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  // Atualizar localStorage quando o carrinho mudar
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
 
-    // Calcular valores
     const count = items.reduce((acc, item) => acc + item.quantity, 0);
     setItemCount(count);
 
@@ -55,8 +52,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setSubtotal(subTotal);
 
     const discount = items.reduce((acc, item) => {
-      const itemDiscount = item.discount_percent
-        ? (item.price * item.quantity * item.discount_percent) / 100
+      const itemDiscount = item.discount
+        ? (item.price * item.quantity * item.discount) / 100
         : 0;
       return acc + itemDiscount;
     }, 0);

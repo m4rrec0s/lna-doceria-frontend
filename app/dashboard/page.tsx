@@ -113,10 +113,6 @@ const DashBoard = () => {
     }
   };
 
-  // const handleProductUpdated = () => {
-  //   getProducts();
-  // };
-
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir este produto?")) {
       await deleteProduct(id);
@@ -125,7 +121,7 @@ const DashBoard = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setCurrentPage(1); // Reset para primeira página ao pesquisar
+    setCurrentPage(1);
 
     const params = {
       page: 1,

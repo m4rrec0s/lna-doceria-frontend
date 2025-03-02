@@ -47,7 +47,6 @@ const CategoryForm = ({
         await createCategory(categoryData);
       }
 
-      // Reset form after successful submission
       setFormData({
         name: "",
       });

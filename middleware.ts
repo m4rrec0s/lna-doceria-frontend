@@ -2,30 +2,38 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  // Obtém o token do cookie
-  const token = request.cookies.get("token")?.value || "";
+  const token = request.cookies.get("token")?.value;
 
-  // Verifica se o usuário está acessando a rota protegida
-  if (request.nextUrl.pathname.startsWith("/dashboard")) {
-    // Se não houver token, redireciona para a página de login
-    if (!token) {
-      const loginUrl = new URL("/login", request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
+  const url = request.nextUrl.clone();
+  const loginUrl = new URL("/login", request.url);
+  const dashboardUrl = new URL("/dashboard", request.url);
 
-  // Adiciona verificação para página de login com autenticação existente
-  if (request.nextUrl.pathname === "/login") {
-    // Se já tiver token, redireciona para o dashboard
+  if (url.pathname.startsWith("/login")) {
     if (token) {
-      const dashboardUrl = new URL("/dashboard", request.url);
+      console.log(
+        "Usuário autenticado tentando acessar login, redirecionando para dashboard"
+      );
       return NextResponse.redirect(dashboardUrl);
     }
+    return NextResponse.next();
+  }
+
+  if (url.pathname.startsWith("/dashboard")) {
+    if (!token) {
+      console.log(
+        "Acesso não autorizado ao dashboard, redirecionando para login"
+      );
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
+
+  if (url.pathname === "/" && token) {
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/", "/dashboard/:path*", "/login"],
 };

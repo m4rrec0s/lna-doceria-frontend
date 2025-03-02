@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { ShoppingBasket, Eye } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "../context/CartContext";
+import { applyDiscount } from "../helpers/applyDiscount";
 
 interface ProductItemProps {
   product: Product;
@@ -30,7 +31,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
           />
         </div>
         {product.discount && product.discount > 0 && (
-          <Badge className="absolute top-6 right-6 bg-rose-100 text-rose-700 px-2 py-1 rounded-full text-xs font-medium shadow-sm">
+          <Badge className="absolute top-3 left-3 bg-rose-700 text-rose-100 px-2 py-1 z-30 rounded-full border border-rose-100 text-xs font-medium shadow-sm">
             {product.discount}% OFF
           </Badge>
         )}
@@ -52,8 +53,15 @@ const ProductItem = ({ product }: ProductItemProps) => {
           ))}
         </div>
 
-        <div className="text-md font-bold text-rose-600 font-poppins mb-3 text-center">
-          {formatCurrency(product.price)}
+        <div className="flex flex-col">
+          {product.discount && product.discount > 0 && (
+            <div className="text-sm text-gray-500 text-center line-through">
+              {formatCurrency(product.price)}
+            </div>
+          )}
+          <div className="text-lg font-bold text-rose-600 font-poppins text-center">
+            {formatCurrency(applyDiscount(product.price, product.discount))}
+          </div>
         </div>
 
         <div className="mt-auto flex flex-col gap-2">

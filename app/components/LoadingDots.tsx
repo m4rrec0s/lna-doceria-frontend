@@ -7,7 +7,6 @@ interface LoadingDotsProps {
 }
 
 const LoadingDots = ({ title }: LoadingDotsProps) => {
-  // Cores que remetem a doces e chocolates
   const colors = ["#8B4513", "#D2691E", "#A0522D", "#CD853F"];
 
   return (

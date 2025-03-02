@@ -12,22 +12,21 @@ const CartSummary: React.FC = () => {
   const handleFinishPurchase = () => {
     if (items.length === 0) return;
 
-    // Formatar mensagem para o WhatsApp
     let message = "🍰 *Novo Pedido - LNA Confeitaria* 🍰\n\n";
     message += "*Itens do Pedido:*\n";
 
     items.forEach((item, index) => {
       const itemTotal = item.price * item.quantity;
-      const discountedTotal = item.discount_percent
-        ? itemTotal - (itemTotal * item.discount_percent) / 100
+      const discountedTotal = item.discount
+        ? itemTotal - (itemTotal * item.discount) / 100
         : itemTotal;
 
       message += `${index + 1}. ${item.name}\n`;
       message += `   - Quantidade: ${item.quantity}\n`;
       message += `   - Valor unitário: ${formatCurrency(item.price)}\n`;
 
-      if (item.discount_percent) {
-        message += `   - Desconto: ${item.discount_percent}%\n`;
+      if (item.discount) {
+        message += `   - Desconto: ${item.discount}%\n`;
         message += `   - Valor total: ${formatCurrency(discountedTotal)}\n`;
       } else {
         message += `   - Valor total: ${formatCurrency(itemTotal)}\n`;
@@ -46,10 +45,7 @@ const CartSummary: React.FC = () => {
     message += `*Valor Total: ${formatCurrency(total)}*\n\n`;
     message += "Gostaria de continuar com este pedido? 😊";
 
-    // Codificar mensagem para URL
     const encodedMessage = encodeURIComponent(message);
-
-    // Abrir link do WhatsApp
     window.open(`https://wa.me/558388511950?text=${encodedMessage}`, "_blank");
   };
 

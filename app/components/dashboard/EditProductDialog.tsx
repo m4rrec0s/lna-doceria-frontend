@@ -100,14 +100,13 @@ const EditProductDialog = ({
     setFormError(null);
 
     try {
-      // Aqui está a correção: enviar apenas os IDs das categorias
       const productData = {
         name: formData.name,
         description: formData.description,
         price: Number(formData.price),
         discount: formData.discount ? Number(formData.discount) : undefined,
         imageUrl: formData.imageUrl,
-        categoryIds: formData.categoryIds, // Enviar apenas os IDs das categorias
+        categoryIds: formData.categoryIds,
       };
 
       await updateProduct(product.id, productData);
@@ -157,7 +156,7 @@ const EditProductDialog = ({
                   value={formData.name}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                  className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                 />
               </div>
 
@@ -175,7 +174,7 @@ const EditProductDialog = ({
                   onChange={handleChange}
                   required
                   rows={4}
-                  className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                  className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                 />
               </div>
 
@@ -196,7 +195,7 @@ const EditProductDialog = ({
                     required
                     step="0.01"
                     min="0"
-                    className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                   />
                 </div>
 
@@ -215,7 +214,7 @@ const EditProductDialog = ({
                     onChange={handleChange}
                     min="0"
                     max="100"
-                    className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                    className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                   />
                 </div>
               </div>
@@ -235,11 +234,11 @@ const EditProductDialog = ({
                   name="imageFile"
                   accept="image/*"
                   onChange={handleImageFileChange}
-                  className="w-full px-3 py-2 border rounded-md bg-zinc-900"
+                  className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                 />
               </div>
 
-              <div className="flex justify-center items-center border rounded-md h-40 bg-zinc-800">
+              <div className="flex justify-center items-center border rounded-md h-40 bg-zinc-400 dark:bg-zinc-800">
                 {imagePreview ? (
                   <div className="relative w-full h-full">
                     <Image

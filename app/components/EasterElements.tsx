@@ -27,7 +27,6 @@ export default function EasterElements() {
   const [elements, setElements] = useState<EasterElement[]>([]);
 
   useEffect(() => {
-    // Gerar ovos caindo
     const eggs = Array.from({ length: 15 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -39,7 +38,6 @@ export default function EasterElements() {
       image: eggImages[Math.floor(Math.random() * eggImages.length)],
     }));
 
-    // Gerar coelhinhos no rodapé
     const bunnies = Array.from({ length: 4 }, (_, i) => ({
       id: eggs.length + i,
       left: `${i * 25 + Math.random() * 10}%`,
@@ -53,7 +51,6 @@ export default function EasterElements() {
 
     setElements([...eggs, ...bunnies]);
 
-    // Atualizar a posição dos ovos periodicamente
     const interval = setInterval(() => {
       setElements((prev) => [
         ...prev.filter((el) => el.type === "bunny"),
@@ -68,7 +65,7 @@ export default function EasterElements() {
           image: eggImages[Math.floor(Math.random() * eggImages.length)],
         })),
       ]);
-    }, 15000); // Atualiza a cada 15 segundos
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -88,6 +85,7 @@ export default function EasterElements() {
             transform: `rotate(${element.rotation})`,
             bottom: element.type === "bunny" ? "0" : "auto",
             top: element.type === "egg" ? "-50px" : "auto",
+            opacity: 0.4,
           }}
         >
           <Image

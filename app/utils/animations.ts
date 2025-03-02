@@ -1,9 +1,5 @@
 import { Variants } from "framer-motion";
 
-/**
- * Variantes de animação para uso com o Framer Motion
- */
-
 export const fadeIn = {
   hidden: { opacity: 0 },
   visible: {
@@ -70,7 +66,6 @@ export const scaleIn = {
   },
 };
 
-// Animação de escala com bounce
 export const scaleUp: Variants = {
   hidden: { scale: 0.95, opacity: 0 },
   visible: {
@@ -84,7 +79,6 @@ export const scaleUp: Variants = {
   },
 };
 
-// Animação para container com filhos
 export const containerAnimation: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -96,7 +90,6 @@ export const containerAnimation: Variants = {
   },
 };
 
-// Animação fofa de flutuação
 export const floatingAnimation: Variants = {
   hover: {
     y: [-5, 5],
@@ -111,7 +104,6 @@ export const floatingAnimation: Variants = {
   },
 };
 
-// Animação de pulsação
 export const pulseAnimation: Variants = {
   initial: { scale: 1 },
   pulse: {

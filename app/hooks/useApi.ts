@@ -8,7 +8,7 @@ interface PaginationParams {
   per_page?: number;
   categoryId?: string;
   name?: string;
-  ids?: string[]; // Adicionando suporte para filtrar por IDs específicos
+  ids?: string[];
 }
 
 interface PaginatedResponse<T> {
@@ -25,7 +25,6 @@ interface DisplaySettings {
   [key: string]: unknown;
 }
 
-// Adicionando uma nova interface que pode ser um array ou um objeto com índice de string
 type FlexibleDisplaySettings = DisplaySettings | unknown[];
 
 export const useApi = () => {
@@ -86,7 +85,7 @@ export const useApi = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      await getProducts(); // Recarregar produtos após criação
+      await getProducts();
       return response.data;
     } catch (error: unknown) {
       setError("Error creating product - " + (error as Error).message);
@@ -103,15 +102,12 @@ export const useApi = () => {
     try {
       setLoading(true);
 
-      // Verificar se estamos recebendo categoryIds (edição de categorias)
       if (productData.categoryIds) {
-        // Se tivermos categoryIds, precisamos formatá-los adequadamente para a API
         const formattedData = {
           ...productData,
           categoryIds: productData.categoryIds,
         };
 
-        // Remover a propriedade categories se existir, pois estamos usando categoryIds
         if ("categories" in formattedData) {
           delete formattedData.categories;
         }
@@ -120,12 +116,11 @@ export const useApi = () => {
           `/products/${id}`,
           formattedData
         );
-        await getProducts(); // Recarregar produtos após atualização
+        await getProducts();
         return response.data;
       } else {
-        // Caso contrário, mantemos o comportamento original
         const response = await axiosClient.put(`/products/${id}`, productData);
-        await getProducts(); // Recarregar produtos após atualização
+        await getProducts();
         return response.data;
       }
     } catch (error: unknown) {
@@ -140,7 +135,7 @@ export const useApi = () => {
     try {
       setLoading(true);
       await axiosClient.delete(`/products/${id}`);
-      await getProducts(); // Recarregar produtos após exclusão
+      await getProducts();
       return true;
     } catch (error: unknown) {
       setError("Error deleting product - " + (error as Error).message);
@@ -150,7 +145,6 @@ export const useApi = () => {
     }
   };
 
-  // Funções para Categorias
   const getCategories = async () => {
     try {
       setLoading(true);
@@ -169,7 +163,7 @@ export const useApi = () => {
     try {
       setLoading(true);
       const response = await axiosClient.post("/categories", categoryData);
-      await getCategories(); // Recarregar categorias após criação
+      await getCategories();
       return response.data;
     } catch (error: unknown) {
       setError("Error creating category - " + (error as Error).message);
@@ -186,7 +180,7 @@ export const useApi = () => {
     try {
       setLoading(true);
       const response = await axiosClient.put(`/categories/${id}`, categoryData);
-      await getCategories(); // Recarregar categorias após atualização
+      await getCategories();
       return response.data;
     } catch (error: unknown) {
       setError("Error updating category - " + (error as Error).message);

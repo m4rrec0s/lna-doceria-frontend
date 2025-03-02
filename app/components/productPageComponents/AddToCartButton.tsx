@@ -25,7 +25,7 @@ const AddToCartButton = ({
       addItem(product, quantity);
       onClick();
       setIsLoading(false);
-    }, 800); // Simulando uma pequena espera para dar feedback ao usuário
+    }, 800);
   };
 
   return (

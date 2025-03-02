@@ -19,7 +19,6 @@ import { Card, CardContent, CardFooter } from "../../components/ui/card";
 import { useApi } from "../../hooks/useApi";
 import { toast } from "sonner";
 
-// Importações do dnd-kit
 import {
   DndContext,
   closestCenter,
@@ -52,7 +51,6 @@ interface ProductDisplaySettingsProps {
   products: Product[];
 }
 
-// Componente para cada seção arrastável
 interface SortableItemProps {
   section: ProductSection;
   index: number;
@@ -213,7 +211,6 @@ const ProductDisplaySettings = ({
   const [sections, setSections] = useState<ProductSection[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Configuração dos sensores para drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -222,7 +219,6 @@ const ProductDisplaySettings = ({
   );
 
   useEffect(() => {
-    // Função para carregar as configurações salvas
     const loadSettings = async () => {
       setLoading(true);
       try {
@@ -237,7 +233,6 @@ const ProductDisplaySettings = ({
       }
     };
 
-    // Adicione uma flag para evitar chamadas duplicadas
     let isMounted = true;
     if (isMounted) {
       loadSettings();
@@ -271,7 +266,6 @@ const ProductDisplaySettings = ({
   ) => {
     const updatedSections = [...sections];
     updatedSections[index].type = type;
-    // Resetar valores específicos do tipo
     if (type === "category") {
       updatedSections[index].productIds = undefined;
     } else {
