@@ -2,7 +2,6 @@
 "use client";
 
 import "./globals.css";
-import Banner from "./components/banner";
 import Header from "./components/header";
 import { useEffect, useState } from "react";
 import { Product } from "./types/product";
@@ -11,6 +10,39 @@ import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
 import ProductList from "./components/productList";
 import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
+import BannerContainer from "./components/bannerContainer";
+import { useEasterTheme } from "./contexts/EasterThemeContext";
+
+// Componente para garantir aplicação do tema na página principal com prioridade alta
+function EnsureTheme() {
+  const { isEasterTheme } = useEasterTheme();
+
+  // Aplicar o tema imediatamente quando o componente monta
+  useEffect(() => {
+    const applyTheme = () => {
+      if (isEasterTheme) {
+        console.log("EnsureTheme: Aplicando tema Easter na página principal");
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("easter");
+      } else {
+        console.log("EnsureTheme: Removendo tema Easter na página principal");
+        document.documentElement.classList.remove("easter");
+        document.documentElement.classList.remove("dark");
+      }
+    };
+
+    // Aplicar tema imediatamente
+    applyTheme();
+
+    // E também aplicar após um pequeno delay para garantir
+    // que seja aplicado após qualquer transição de página
+    const timer = setTimeout(applyTheme, 50);
+
+    return () => clearTimeout(timer);
+  }, [isEasterTheme]);
+
+  return null;
+}
 
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
@@ -19,6 +51,52 @@ export default function Home() {
     Record<string, Product[]>
   >({});
   const [loadingSections, setLoadingSections] = useState(true);
+
+  const bannerData: {
+    imageUrl: string;
+    title: string;
+    description: string;
+    route: string;
+    variant: "blue" | "green" | "pink" | "purple" | "default";
+    brightness?: boolean;
+  }[] = [
+    {
+      imageUrl:
+        "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
+      title: "Para sua Páscoa",
+      description: "Ovos de páscoa recheados",
+      route: "#",
+      variant: "purple",
+      brightness: true,
+    },
+    {
+      imageUrl:
+        "https://i.pinimg.com/736x/e2/5f/d9/e25fd9779ef23538a029863efef3452e.jpg",
+      title: "Novidades",
+      description: "Doces Especiais",
+      route: "#",
+      variant: "blue",
+      brightness: true,
+    },
+    {
+      imageUrl:
+        "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
+      title: "Exclusivos",
+      description: "Chocolate Premium",
+      route: "#",
+      variant: "purple",
+      brightness: true,
+    },
+    {
+      imageUrl:
+        "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
+      title: "Tradicionais",
+      description: "Melhores Brigadeiros",
+      route: "#",
+      variant: "pink",
+      brightness: true,
+    },
+  ];
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -81,6 +159,7 @@ export default function Home() {
 
   return (
     <main className="w-full overflow-x-hidden">
+      <EnsureTheme />
       <Header />
       <section className="mt-[100px]">
         <div className="px-8">
@@ -125,13 +204,9 @@ export default function Home() {
               </motion.span>
             </motion.h2>
           </motion.div>
+
           <motion.div>
-            <Banner
-              imageUrl="/bannerImage.png"
-              title="Confira Aqui"
-              description="Brigadeiros"
-              route="#"
-            />
+            <BannerContainer banners={bannerData} />
           </motion.div>
         </div>
       </section>

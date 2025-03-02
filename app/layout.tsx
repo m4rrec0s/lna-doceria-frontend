@@ -1,39 +1,37 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { EasterThemeProvider } from "./contexts/EasterThemeContext";
+import EasterClientWrapper from "./components/EasterClientWrapper";
 import LayoutClient from "./components/layoutClient";
 import { Toaster } from "./components/ui/sonner";
 import { CartProvider } from "./context/CartContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LNA Doceria",
-  description: "Confeitaria de dar água na boca!",
+  title: "LNA - Doces & Bolos",
+  description: "LNA - Doces & Bolos Artesanais",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="pt-BR">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
-      >
-        <CartProvider>
-          <LayoutClient>{children}</LayoutClient>
-          <Toaster />
-        </CartProvider>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
+      <body className={inter.className}>
+        <EasterThemeProvider>
+          <CartProvider>
+            <LayoutClient>{children}</LayoutClient>
+            <Toaster />
+            <EasterClientWrapper />
+          </CartProvider>
+        </EasterThemeProvider>
       </body>
     </html>
   );
