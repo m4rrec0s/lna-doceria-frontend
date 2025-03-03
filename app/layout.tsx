@@ -10,8 +10,8 @@ import { CartProvider } from "./context/CartContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "LNA - Doces & Bolos",
-  description: "LNA - Doces & Bolos Artesanais",
+  title: "LNA Doceria",
+  description: "Doces Gourmet 🧁",
 };
 
 export default function RootLayout({
@@ -21,9 +21,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       <body className={inter.className}>
         <EasterThemeProvider>
           <CartProvider>

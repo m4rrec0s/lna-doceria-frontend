@@ -59,8 +59,8 @@ export default function Home() {
       imageUrl:
         "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
       title: "Para sua Páscoa",
-      description: "Ovos de páscoa recheados",
-      categoryId: "",
+      description: "Ovos recheados",
+      categoryId: "Ovos de colher ",
       variant: "purple",
       brightness: true,
     },

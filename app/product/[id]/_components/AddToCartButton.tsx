@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { useCart } from "../../context/CartContext";
-import { Product } from "../../types/product";
+import { useCart } from "../../../context/CartContext";
+import { Product } from "../../../types/product";
 
 interface AddToCartButtonProps {
   onClick: () => void;

@@ -1,10 +1,10 @@
 "use client";
 
-import { Product } from "../../types/product";
+import { Product } from "../../../types/product";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { formatCurrency } from "../../utils/format";
+import { formatCurrency } from "../../../utils/format";
 
 interface RelatedProductsProps {
   products: Product[];

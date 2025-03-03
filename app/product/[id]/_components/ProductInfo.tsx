@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { fadeInUp } from "../../utils/animations";
+import { fadeInUp } from "../../../utils/animations";
 import { formatCurrency } from "@/app/utils/format";
 import { Category } from "@/app/types/category";
-import { Badge } from "../ui/badge";
+import { Badge } from "../../../components/ui/badge";
 
 interface ProductInfoProps {
   name: string;

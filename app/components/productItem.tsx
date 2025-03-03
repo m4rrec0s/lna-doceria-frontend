@@ -20,13 +20,14 @@ const ProductItem = ({ product }: ProductItemProps) => {
   };
 
   return (
-    <li className="bg-white rounded-2xl w-[250px] h-[420px] shadow-lg flex flex-col transition-transform duration-300 hover:translate-y-[-5px]">
+    <li className="bg-white rounded-2xl w-[250px] h-[420px] shadow-lg flex flex-col">
       <div className="w-full h-[200px] relative">
         <div className="absolute inset-0 p-4">
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover rounded-t-2xl"
           />
         </div>

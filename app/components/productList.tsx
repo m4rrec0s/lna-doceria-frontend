@@ -64,14 +64,13 @@ const ProductList = ({
         })()}
       </motion.h1>
       <motion.div
-        className="overflow-x-auto pb-4"
         variants={containerAnimation}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
       >
         {products.length > 0 ? (
-          <ul className="flex items-center gap-6">
+          <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden">
             {products.map((product: Product) => (
               <ProductItem key={product.id} product={product} />
             ))}
