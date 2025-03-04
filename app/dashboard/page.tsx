@@ -306,7 +306,7 @@ const DashBoard = () => {
               <Input
                 id="categoryName"
                 value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
+                onChange={(e) => setCategoryName(e.target.value.trim())}
                 placeholder="Nome da categoria"
                 required
               />

@@ -60,7 +60,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
       title: "Para sua Páscoa",
       description: "Ovos recheados",
-      categoryId: "Ovos de colher ",
+      categoryId: "Ovos de colher",
       variant: "purple",
       brightness: true,
     },
@@ -69,7 +69,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
       title: "Trufas",
       description: "As melhores",
-      categoryId: "Trufas ",
+      categoryId: "Trufas",
       variant: "blue",
       brightness: true,
     },
@@ -78,7 +78,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
       title: "Especiais",
       description: "Aqui temos os melhores",
-      categoryId: "Brigadeiros especiais ",
+      categoryId: "Brigadeiros especiais",
       variant: "purple",
       brightness: true,
     },
@@ -87,7 +87,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
       title: "Tradicionais",
       description: "Melhores Brigadeiros",
-      categoryId: "Brigadeiros tradicionais ",
+      categoryId: "Brigadeiros tradicionais",
       variant: "pink",
       brightness: true,
     },
@@ -205,7 +205,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-      <div className="space-y-8 py-8 px-8">
+      <div className="space-y-8 py-8 w-full max-w-screen-xl mx-auto">
         {displaySections.map((section) => (
           <ProductList
             key={section.id}
@@ -213,6 +213,7 @@ export default function Home() {
             products={sectionProducts[section.id] || []}
             loading={loadingSections}
             error={null}
+            sectionId={section.id}
           />
         ))}
       </div>

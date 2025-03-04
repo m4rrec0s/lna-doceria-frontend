@@ -101,8 +101,8 @@ const EditProductDialog = ({
 
     try {
       const productData = {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         price: Number(formData.price),
         discount: formData.discount ? Number(formData.discount) : undefined,
         imageUrl: formData.imageUrl,

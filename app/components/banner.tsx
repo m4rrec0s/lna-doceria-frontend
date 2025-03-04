@@ -13,46 +13,6 @@ export interface BannerProps {
 
 const CategoryIds = [
   {
-    id: "2dc3b178-6e52-4a07-adae-39f96b226a38",
-    name: "Cento de brigadeiros ",
-  },
-  {
-    id: "37c5879f-2add-43f5-80c2-e76c87a91d3a",
-    name: "Trufas ",
-  },
-  {
-    id: "1bd14a27-1c91-4fdb-b46f-ed6fbccfc8ee",
-    name: "Cento, doces finos ",
-  },
-  {
-    id: "00126359-cc95-4e74-8ee4-8d5515ef3008",
-    name: "Copinho de chocolate recheado ",
-  },
-  {
-    id: "fe7f6e52-c374-4264-a3ea-54ba5a3279ba",
-    name: "Brigadeiros tradicionais ",
-  },
-  {
-    id: "037d557f-ea8b-4957-ba0b-fae49ed3e13e",
-    name: "Brigadeiros especiais ",
-  },
-  {
-    id: "c1fd97fd-1111-4d24-92db-05d0562d8ceb",
-    name: "Ovos trufados ",
-  },
-  {
-    id: "b3c7f59a-cfbe-4e23-aa4f-0dec2ea9da8d",
-    name: "Kit mini ovos ",
-  },
-  {
-    id: "84fc9c1a-8a3a-45ac-bf9a-624c8c9d39f8",
-    name: "Kit mini confeiteiro ",
-  },
-  {
-    id: "9f91160d-8d98-4fe5-8ed3-56a5973a0c37",
-    name: "Barras recheadas ",
-  },
-  {
     id: "2d8d6d11-88fa-45e6-842c-de0ab663c590",
     name: "100g",
   },
@@ -65,20 +25,60 @@ const CategoryIds = [
     name: "350g",
   },
   {
+    id: "17137ff9-c1e8-43f3-86b7-97cd411bd186",
+    name: "100g",
+  },
+  {
+    id: "2dc3b178-6e52-4a07-adae-39f96b226a38",
+    name: "Cento de brigadeiros",
+  },
+  {
+    id: "1bd14a27-1c91-4fdb-b46f-ed6fbccfc8ee",
+    name: "Cento, doces finos",
+  },
+  {
+    id: "037d557f-ea8b-4957-ba0b-fae49ed3e13e",
+    name: "Brigadeiros especiais",
+  },
+  {
+    id: "fe7f6e52-c374-4264-a3ea-54ba5a3279ba",
+    name: "Brigadeiros tradicionais",
+  },
+  {
+    id: "37c5879f-2add-43f5-80c2-e76c87a91d3a",
+    name: "Trufas",
+  },
+  {
+    id: "c1fd97fd-1111-4d24-92db-05d0562d8ceb",
+    name: "Ovos trufados",
+  },
+  {
+    id: "b3c7f59a-cfbe-4e23-aa4f-0dec2ea9da8d",
+    name: "Kit mini ovos",
+  },
+  {
+    id: "84fc9c1a-8a3a-45ac-bf9a-624c8c9d39f8",
+    name: "Kit mini confeiteiro",
+  },
+  {
+    id: "9f91160d-8d98-4fe5-8ed3-56a5973a0c37",
+    name: "Barras recheadas",
+  },
+  {
     id: "59190bd8-dd9e-4f2d-8f80-e5bc79ea2d4e",
-    name: "Ovos de colher ",
+    name: "Ovos de colher",
   },
   {
     id: "0f08b433-f177-4a60-b552-c3b7ccaa756a",
-    name: "Trio mini ovos ",
+    name: "Trio mini ovos",
   },
   {
     id: "84a86d00-3a52-4b3a-803b-11b3992bf1fd",
-    name: "Kit mini confeiteiro ",
+    name: "Kit mini confeiteiro",
   },
   {
-    id: "17137ff9-c1e8-43f3-86b7-97cd411bd186",
-    name: "100g",
+    id: "00126359-cc95-4e74-8ee4-8d5515ef3008",
+    name: "Copinho de chocolate recheado",
   },
 ];
 

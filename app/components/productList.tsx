@@ -5,6 +5,8 @@ import { Product } from "../types/product";
 import LoadingDots from "./LoadingDots";
 import { motion } from "framer-motion";
 import { containerAnimation, fadeInUp } from "../utils/animations";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 interface ProductListProps {
   title?: string;
@@ -18,6 +20,7 @@ interface ProductListProps {
     total_pages: number;
   };
   onPageChange?: (page: number) => void;
+  sectionId?: string;
 }
 
 const ProductList = ({
@@ -25,6 +28,7 @@ const ProductList = ({
   products,
   loading,
   error,
+  sectionId,
 }: ProductListProps) => {
   if (!loading && !error && (!products || products.length === 0)) {
     return null;
@@ -44,25 +48,36 @@ const ProductList = ({
 
   return (
     <section className="w-full">
-      <motion.h1
-        className="text-3xl mb-6"
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
-        {(() => {
-          const words = title.split(" ");
-          if (words.length === 0) return title;
-          const [firstWord, ...restWords] = words;
-          return (
-            <>
-              <span className="font-bold">{firstWord}</span>
-              {restWords.length > 0 && " " + restWords.join(" ")}
-            </>
-          );
-        })()}
-      </motion.h1>
+      <div className="flex items-center mb-6 justify-between px-8">
+        <motion.h1
+          className="text-2xl max-w-[50%]"
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {(() => {
+            const words = title.split(" ");
+            if (words.length === 0) return title;
+            const [firstWord, ...restWords] = words;
+            return (
+              <>
+                <span className="font-bold">{firstWord}</span>
+                {restWords.length > 0 && " " + restWords.join(" ")}
+              </>
+            );
+          })()}
+        </motion.h1>
+        {sectionId && (
+          <Link
+            href={`/colecao/${sectionId}`}
+            className="text-sm text-primary flex items-center gap-1"
+          >
+            <span>Ver todos</span>
+            <ChevronRight size={16} />
+          </Link>
+        )}
+      </div>
       <motion.div
         variants={containerAnimation}
         initial="hidden"
@@ -70,7 +85,7 @@ const ProductList = ({
         viewport={{ once: true }}
       >
         {products.length > 0 ? (
-          <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden">
+          <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
             {products.map((product: Product) => (
               <ProductItem key={product.id} product={product} />
             ))}

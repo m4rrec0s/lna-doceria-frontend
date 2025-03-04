@@ -38,7 +38,7 @@ const CategoryForm = ({
 
     try {
       const categoryData = {
-        name: formData.name,
+        name: formData.name.trim(),
       };
 
       if (category) {

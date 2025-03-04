@@ -41,8 +41,8 @@ const Header = ({ showSearch = false }: HeaderProps) => {
       <Link href="/" className="flex items-center gap-2">
         <Image src="/logo.png" alt="LNA Doceria" width={40} height={40} />
         <div className="flex flex-col line-clamp-1">
-          <span className="text-xl font-bold text-pink-300">LNA</span>
-          <span className="text-sm font-bold">Confeitaria</span>
+          <span className="text-xl font-bold text-pink-200">LNA</span>
+          <span className="text-sm font-bold">Doceria</span>
         </div>
       </Link>
 

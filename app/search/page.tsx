@@ -7,8 +7,9 @@ import { useApi } from "../hooks/useApi";
 import { Product } from "../types/product";
 import { Category } from "../types/category";
 import Header from "../components/header";
-import ProductList from "../components/productList";
 import { Badge } from "../components/ui/badge";
+import ProductGrid from "../components/productGrid";
+import LoadingDots from "../components/LoadingDots";
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -64,16 +65,24 @@ export default function SearchPage() {
             </Badge>
           ))}
         </div>
-        <ProductList
-          title={`Resultados da Pesquisa${
-            selectedCategory
-              ? " em " + categories.find((c) => c.id === selectedCategory)?.name
-              : ""
-          }`}
-          products={products}
-          loading={loading}
-          error={null}
-        />
+        <div className="w-full">
+          {loading ? (
+            <LoadingDots title="Carregando produtos..." />
+          ) : (
+            <div className="my-6 flex flex-col justify-center items-center gap-3">
+              <h2 className="text-2xl">
+                <strong>Resultado</strong> para a pesquisa
+              </h2>
+              <ProductGrid products={products} />
+            </div>
+          )}
+
+          {products.length === 0 && !loading && (
+            <div className="flex justify-center items-center h-[200px]">
+              <p>Nenhum produto encontrado</p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

@@ -78,12 +78,12 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("description", formData.description);
-      formDataToSend.append("price", formData.price);
+      formDataToSend.append("name", formData.name.trim());
+      formDataToSend.append("description", formData.description.trim());
+      formDataToSend.append("price", formData.price.trim());
 
       if (formData.discount) {
-        formDataToSend.append("discount", formData.discount);
+        formDataToSend.append("discount", formData.discount.trim());
       }
 
       formData.categoryIds.forEach((categoryId) => {
