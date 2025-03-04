@@ -155,7 +155,7 @@ body {
   position: fixed;
   right: 10px;
   bottom: 10px;
-  z-index: 1000;
+  z-index: 40;
   background-color: hsl(330 85% 65%);
   color: white;
   border: none;
