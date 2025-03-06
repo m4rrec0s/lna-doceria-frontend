@@ -8,10 +8,11 @@ Este é o repositório do **frontend** do projeto **LNA Doceria**. A aplicação
 
 ## Tecnologias Utilizadas
 
-- **Next.js**: Framework React que possibilita renderização do lado do servidor (SSR) e geração de sites estáticos (SSG).
-- **Typescript**: Superset do JavaScript que adiciona tipagem estática, promovendo maior segurança e escalabilidade.
-- **Axios**: Biblioteca para realizar requisições HTTP de forma simples e eficiente.
-- **Tailwind CSS**: Framework CSS utilitário que agiliza o desenvolvimento de interfaces com design responsivo e customizável.
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=axios&logoColor=white)
 
 ## Deploy
 
