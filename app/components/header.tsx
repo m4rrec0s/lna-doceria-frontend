@@ -27,7 +27,8 @@ const Header = ({ showSearch = false }: HeaderProps) => {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(showSearch);
   const [searchTerm, setSearchTerm] = useState("");
-  const { items, itemCount } = useCart();
+  const { items } = useCart();
+  const itemCount = items.length;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

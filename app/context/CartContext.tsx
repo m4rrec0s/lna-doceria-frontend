@@ -5,7 +5,6 @@ import { Product } from "../types/product";
 import { toast } from "sonner";
 
 export interface CartItem extends Product {
-  quantity: number;
   discount?: number;
 }
 
@@ -13,9 +12,7 @@ interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantity: number) => void;
   removeItem: (productId: string) => void;
-  updateItemQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  itemCount: number;
   subtotal: number;
   totalDiscount: number;
   total: number;
@@ -27,7 +24,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [itemCount, setItemCount] = useState<number>(0);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
@@ -42,18 +38,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
 
-    const count = items.reduce((acc, item) => acc + item.quantity, 0);
-    setItemCount(count);
-
-    const subTotal = items.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
+    const subTotal = items.reduce((acc, item) => acc + item.price * 1, 0);
     setSubtotal(subTotal);
 
     const discount = items.reduce((acc, item) => {
       const itemDiscount = item.discount
-        ? (item.price * item.quantity * item.discount) / 100
+        ? (item.price * 1 * item.discount) / 100
         : 0;
       return acc + itemDiscount;
     }, 0);
@@ -62,19 +52,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setTotal(subTotal - discount);
   }, [items]);
 
-  const addItem = (product: Product, quantity: number) => {
+  const addItem = (product: Product) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
         toast.success(`Quantidade atualizada: ${product.name}`);
         return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+          item.id === product.id ? { ...item } : item
         );
       } else {
         toast.success(`Adicionado ao carrinho: ${product.name}`);
-        return [...prevItems, { ...product, quantity }];
+        return [...prevItems, { ...product }];
       }
     });
   };
@@ -89,19 +77,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  const updateItemQuantity = (productId: string, quantity: number) => {
-    if (quantity < 1) {
-      removeItem(productId);
-      return;
-    }
-
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
-    );
-  };
-
   const clearCart = () => {
     toast.info("Carrinho esvaziado");
     setItems([]);
@@ -113,9 +88,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         items,
         addItem,
         removeItem,
-        updateItemQuantity,
         clearCart,
-        itemCount,
         subtotal,
         totalDiscount,
         total,

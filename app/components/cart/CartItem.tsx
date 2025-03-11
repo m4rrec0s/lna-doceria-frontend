@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { CartItem as CartItemType } from "../../context/CartContext";
 import { useCart } from "../../context/CartContext";
@@ -11,8 +11,8 @@ interface CartItemProps {
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
-  const { updateItemQuantity, removeItem } = useCart();
-  const itemTotal = item.price * item.quantity;
+  const { removeItem } = useCart();
+  const itemTotal = item.price * 1;
   const discountedTotal = item.discount
     ? itemTotal - (itemTotal * item.discount) / 100
     : itemTotal;
@@ -58,27 +58,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center border border-gray-600 rounded-md">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-            >
-              <Minus size={14} />
-            </Button>
-            <span className="px-2">{item.quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-            >
-              <Plus size={14} />
-            </Button>
-          </div>
-
+        <div className="flex items-center justify-end mt-auto">
           <Button
             variant="ghost"
             size="icon"

@@ -16,13 +16,12 @@ const CartSummary: React.FC = () => {
     message += "*Itens do Pedido:*\n";
 
     items.forEach((item, index) => {
-      const itemTotal = item.price * item.quantity;
+      const itemTotal = item.price * 1;
       const discountedTotal = item.discount
         ? itemTotal - (itemTotal * item.discount) / 100
         : itemTotal;
 
       message += `${index + 1}. ${item.name}\n`;
-      message += `   - Quantidade: ${item.quantity}\n`;
       message += `   - Valor unitário: ${formatCurrency(item.price)}\n`;
 
       if (item.discount) {
@@ -43,6 +42,8 @@ const CartSummary: React.FC = () => {
     }
 
     message += `*Valor Total: ${formatCurrency(total)}*\n\n`;
+    message +=
+      "*Importante!!!* Brigadeiros são vendidos a partir de 4, 6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos encomendas de trufas apenas em cento (100 unidades) para festas e eventos. Obrigada!!!\n\n";
     message += "Gostaria de continuar com este pedido? 😊";
 
     const encodedMessage = encodeURIComponent(message);
@@ -70,10 +71,16 @@ const CartSummary: React.FC = () => {
         <span>{formatCurrency(total)}</span>
       </div>
 
+      <p className="text-xs text-pink-500 mt-3 mb-3 text-center">
+        <strong>Importante!!!</strong> Brigadeiros são vendidos a partir de 4,
+        6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos encomendas de
+        trufas apenas em cento (100 unidades) para festas e eventos. Obrigada!!!
+      </p>
+
       <Button
         disabled={items.length === 0}
         onClick={handleFinishPurchase}
-        className="w-full mt-6 bg-pink-500 hover:bg-pink-600 text-white flex items-center justify-center gap-2"
+        className="w-full mt-2 bg-pink-500 hover:bg-pink-600 text-white flex items-center justify-center gap-2"
       >
         <ShoppingBag size={18} />
         Finalizar Compra

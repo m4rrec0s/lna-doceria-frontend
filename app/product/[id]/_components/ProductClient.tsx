@@ -7,7 +7,6 @@ import { Product } from "../../../types/product";
 import Header from "../../../components/header";
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
-import QuantitySelector from "./QuantitySelector";
 import AddToCartButton from "./AddToCartButton";
 import RelatedProducts from "./RelatedProducts";
 import Link from "next/link";
@@ -18,12 +17,55 @@ interface ProductClientProps {
 
 const ProductClient = ({ productId }: ProductClientProps) => {
   const [product, setProduct] = useState<Product | null>(null);
-  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   const { getProductById, getProducts } = useApi();
+
+  const getCategoryMessage = (product: Product) => {
+    if (!product.categories || !Array.isArray(product.categories)) return null;
+
+    const hasBrigadeiro = product.categories.some((category) =>
+      category.name.toLowerCase().includes("brigadeiro")
+    );
+
+    const hasTrufa = product.categories.some((category) =>
+      category.name.toLowerCase().includes("trufa")
+    );
+
+    if (hasBrigadeiro || hasTrufa) {
+      return (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 my-2 rounded">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-amber-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-800 font-medium">
+                <strong>Importante!!!</strong> Brigadeiros são vendidos a partir
+                de 4, 6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos
+                encomendas de trufas apenas em cento (100 unidades) para festas
+                e eventos. Obrigada!!!
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -59,9 +101,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   }, []);
 
   const handleAddToCart = () => {
-    console.log(
-      `Adicionando ${quantity} unidade(s) do produto ${productId} ao carrinho`
-    );
+    console.log(`Adicionando produto ${productId} ao carrinho`);
   };
 
   if (loading) {
@@ -106,11 +146,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pb-6">
       <Header />
       <div className="container mx-auto px-4 mt-[100px]">
-        <div className="mb-4"></div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <ProductGallery imageUrl={product?.imageUrl} alt={product?.name} />
 
@@ -122,17 +160,13 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               categories={product?.categories}
             />
 
-            <div className="pt-6 border-t border-gray-100">
-              <QuantitySelector initialQuantity={1} onChange={setQuantity} />
+            <div className="mb-[150px]">
+              {product && getCategoryMessage(product)}
             </div>
 
-            <div className="py-6 fixed bottom-0 left-0 right-0 bg-white p-4 border-t rounded-tl-lg rounded-tr-lg border-gray-100">
+            <div className="py-6 fixed bottom-0 left-0 right-0 bg-white p-4 border-t rounded-tl-lg rounded-tr-lg border-gray-100 z-50">
               {product && (
-                <AddToCartButton
-                  onClick={handleAddToCart}
-                  product={product}
-                  quantity={quantity}
-                />
+                <AddToCartButton onClick={handleAddToCart} product={product} />
               )}
             </div>
           </div>
