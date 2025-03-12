@@ -16,12 +16,39 @@ const CartSummary: React.FC = () => {
     message += "*Itens do Pedido:*\n";
 
     items.forEach((item, index) => {
-      const itemTotal = item.price * 1;
+      // Cálculo correto do preço baseado no tipo de venda
+      const itemTotal =
+        item.sellingType === "package"
+          ? item.price
+          : item.price *
+            (item.packageInfo ? item.packageInfo.totalUnits : item.quantity);
+
       const discountedTotal = item.discount
         ? itemTotal - (itemTotal * item.discount) / 100
         : itemTotal;
 
-      message += `${index + 1}. ${item.name}\n`;
+      message += `${index + 1}. *${item.name}*\n`;
+
+      // Adicionar informações de quantidade e tipo
+      if (item.packageInfo) {
+        message += `   - ${item.quantity} ${
+          item.quantity > 1 ? "pacotes" : "pacote"
+        } com ${item.packageInfo.packageSize} unidades cada\n`;
+      } else {
+        message += `   - ${item.quantity} ${
+          item.quantity > 1 ? "unidades" : "unidade"
+        }\n`;
+      }
+
+      // Adicionar informações sobre os sabores selecionados
+      if (item.selectedFlavors && item.selectedFlavors.length > 0) {
+        message += `   - Mix de sabores: ${item.selectedFlavors
+          .map((f) => f.name)
+          .join(", ")}\n`;
+      } else if (item.flavorId) {
+        message += `   - Sabor específico selecionado\n`;
+      }
+
       message += `   - Valor unitário: ${formatCurrency(item.price)}\n`;
 
       if (item.discount) {
@@ -42,9 +69,7 @@ const CartSummary: React.FC = () => {
     }
 
     message += `*Valor Total: ${formatCurrency(total)}*\n\n`;
-    message +=
-      "*Importante!!!* Brigadeiros são vendidos a partir de 4, 6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos encomendas de trufas apenas em cento (100 unidades) para festas e eventos. Obrigada!!!\n\n";
-    message += "Gostaria de continuar com este pedido? 😊";
+    message += "Por favor, confirme meu pedido! 😊";
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/558388511950?text=${encodedMessage}`, "_blank");
@@ -70,12 +95,6 @@ const CartSummary: React.FC = () => {
         <span>Total</span>
         <span>{formatCurrency(total)}</span>
       </div>
-
-      <p className="text-xs text-pink-500 mt-3 mb-3 text-center">
-        <strong>Importante!!!</strong> Brigadeiros são vendidos a partir de 4,
-        6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos encomendas de
-        trufas apenas em cento (100 unidades) para festas e eventos. Obrigada!!!
-      </p>
 
       <Button
         disabled={items.length === 0}

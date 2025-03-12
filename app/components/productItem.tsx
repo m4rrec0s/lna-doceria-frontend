@@ -2,10 +2,8 @@ import Image from "next/image";
 import { Product } from "../types/product";
 import { formatCurrency } from "../helpers/formatCurrency";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { ShoppingBasket, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "../context/CartContext";
 import { applyDiscount } from "../helpers/applyDiscount";
 
 interface ProductItemProps {
@@ -13,14 +11,17 @@ interface ProductItemProps {
 }
 
 const ProductItem = ({ product }: ProductItemProps) => {
-  const { addItem } = useCart();
+  const packageCategory = product.categories?.find(
+    (cat) =>
+      cat.sellingType === "package" &&
+      cat.packageSizes &&
+      cat.packageSizes.length > 0
+  );
 
-  const handleAddToCart = () => {
-    addItem(product, 1);
-  };
+  const isPackage = !!packageCategory;
 
   return (
-    <li className="bg-white rounded-2xl w-[250px] h-[420px] shadow-lg flex flex-col">
+    <li className="bg-white rounded-2xl min-w-[250px] h-[420px] shadow-lg flex flex-col">
       <div className="w-full h-[200px] relative">
         <div className="absolute inset-0 p-4">
           <Image
@@ -44,7 +45,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
         </h2>
 
         <div className="flex justify-center gap-1 flex-wrap mb-2 max-h-[40px] overflow-hidden">
-          {product.categories.slice(0, 2).map((category) => (
+          {product.categories.map((category) => (
             <Badge
               key={category.id}
               className="bg-rose-100 text-rose-700 px-2 py-0.5 text-xs rounded-full"
@@ -53,6 +54,12 @@ const ProductItem = ({ product }: ProductItemProps) => {
             </Badge>
           ))}
         </div>
+
+        {isPackage && (
+          <div className="text-xs text-center text-gray-500 mb-2 flex flex-wrap justify-center gap-1">
+            <span>Vendido em pacotes</span>
+          </div>
+        )}
 
         <div className="flex flex-col">
           {product.discount && product.discount > 0 && (
@@ -68,17 +75,11 @@ const ProductItem = ({ product }: ProductItemProps) => {
         <div className="mt-auto flex flex-col gap-2">
           <Link
             href={`/product/${product.id}`}
-            className="flex items-center justify-center text-rose-500 hover:text-rose-600 text-sm font-medium transition-colors duration-200"
+            className="w-full bg-rose-400 text-white hover:bg-rose-500 text-sm h-9 px-3 py-4 transition-colors duration-200 
+            rounded-full font-medium flex items-center justify-center"
           >
             <Eye size={16} className="mr-1" /> Ver detalhes
           </Link>
-
-          <Button
-            className="bg-rose-400 text-white hover:bg-rose-500 text-sm h-9 px-3 py-1 transition-colors duration-200 rounded-full font-medium w-full"
-            onClick={handleAddToCart}
-          >
-            <ShoppingBasket size={16} className="mr-1" /> Adicionar ao Carrinho
-          </Button>
         </div>
       </div>
     </li>

@@ -26,7 +26,7 @@ import { Button } from "../components/ui/button";
 import { Category } from "../types/category";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import ProductDisplaySettings from "../components/dashboard/ProductDisplaySettings";
 import {
   Select,
@@ -36,30 +36,49 @@ import {
   SelectValue,
 } from "../components/ui/select";
 
+import FlavorForm from "../components/dashboard/FlavorForm";
+import FlavorList from "../components/dashboard/FlavorList";
+import { EditFlavorDialog } from "../components/dashboard/EditFlavorDialog";
+import { Flavor } from "../types/flavor";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Badge } from "../components/ui/badge";
+
 const DashBoard = () => {
   const { user } = useAuth();
   const {
     products,
     categories,
+    flavors,
     pagination,
     loading,
     error,
     getProducts,
     getCategories,
+    getFlavors,
     updateCategory,
     deleteProduct,
     deleteCategory,
+    deleteFlavor,
   } = useApi();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
+  const [selectedFlavor, setSelectedFlavor] = useState<Flavor | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [categoryName, setCategoryName] = useState("");
+  const [isFlavorDialogOpen, setIsFlavorDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [flavorCategoryFilter, setFlavorCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [categoryData, setCategoryData] = useState({
+    name: "",
+    sellingType: "package" as "package" | "unit",
+    packageSize: "",
+    packageSizes: [] as number[],
+  });
 
   useEffect(() => {
     getCategories();
@@ -79,8 +98,21 @@ const DashBoard = () => {
   }, [currentPage, searchTerm, filterCategory]);
 
   useEffect(() => {
+    getFlavors({
+      categoryId:
+        flavorCategoryFilter !== "all" ? flavorCategoryFilter : undefined,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flavorCategoryFilter]);
+
+  useEffect(() => {
     if (selectedCategory) {
-      setCategoryName(selectedCategory.name);
+      setCategoryData({
+        name: selectedCategory.name,
+        sellingType: selectedCategory.sellingType || "package",
+        packageSize: "",
+        packageSizes: selectedCategory.packageSizes || [],
+      });
     }
   }, [selectedCategory]);
 
@@ -94,12 +126,21 @@ const DashBoard = () => {
     setIsCategoryDialogOpen(true);
   };
 
+  const handleEditFlavor = (flavor: Flavor) => {
+    setSelectedFlavor(flavor);
+    setIsFlavorDialogOpen(true);
+  };
+
   const handleUpdateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedCategory && categoryName.trim()) {
+    if (selectedCategory && categoryData.name.trim()) {
       await updateCategory(selectedCategory.id, {
-        ...selectedCategory,
-        name: categoryName,
+        name: categoryData.name.trim(),
+        sellingType: categoryData.sellingType,
+        packageSizes:
+          categoryData.sellingType === "package"
+            ? categoryData.packageSizes
+            : null,
       });
       setIsCategoryDialogOpen(false);
       getCategories();
@@ -116,6 +157,12 @@ const DashBoard = () => {
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm("Tem certeza que deseja excluir este produto?")) {
       await deleteProduct(id);
+    }
+  };
+
+  const handleDeleteFlavor = async (id: string) => {
+    if (window.confirm("Tem certeza que deseja excluir este sabor?")) {
+      await deleteFlavor(id);
     }
   };
 
@@ -137,6 +184,39 @@ const DashBoard = () => {
     setCurrentPage(page);
   };
 
+  const handleSellingTypeChange = (value: "package" | "unit") => {
+    setCategoryData((prev) => ({ ...prev, sellingType: value }));
+  };
+
+  const addPackageSize = () => {
+    const size = parseInt(categoryData.packageSize);
+    if (isNaN(size) || size <= 0) return;
+
+    if (!categoryData.packageSizes.includes(size)) {
+      setCategoryData((prev) => ({
+        ...prev,
+        packageSizes: [...prev.packageSizes, size].sort((a, b) => a - b),
+        packageSize: "",
+      }));
+    } else {
+      setCategoryData((prev) => ({ ...prev, packageSize: "" }));
+    }
+  };
+
+  const removePackageSize = (size: number) => {
+    setCategoryData((prev) => ({
+      ...prev,
+      packageSizes: prev.packageSizes.filter((s) => s !== size),
+    }));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addPackageSize();
+    }
+  };
+
   if (!user) {
     return <div>Você precisa estar logado para acessar esta página.</div>;
   }
@@ -149,9 +229,10 @@ const DashBoard = () => {
         <p className="mb-8">Bem-vindo, {user?.name}!</p>
 
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid grid-cols-3 max-w-md mb-6">
+          <TabsList className="grid grid-cols-4 max-w-md mb-6">
             <TabsTrigger value="products">Produtos</TabsTrigger>
             <TabsTrigger value="categories">Categorias</TabsTrigger>
+            <TabsTrigger value="flavors">Sabores</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -275,6 +356,79 @@ const DashBoard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="flavors" className="space-y-8">
+            <div className="p-6 rounded-lg shadow">
+              <h2 className="text-xl font-semibold mb-4">
+                Adicionar Novo Sabor
+              </h2>
+              <FlavorForm
+                categories={categories}
+                onSubmitSuccess={() =>
+                  getFlavors({
+                    categoryId:
+                      flavorCategoryFilter !== "all"
+                        ? flavorCategoryFilter
+                        : undefined,
+                  })
+                }
+              />
+            </div>
+
+            <div className="p-6 rounded-lg shadow">
+              <h2 className="text-xl font-semibold mb-4">
+                Sabores Cadastrados
+              </h2>
+
+              <div className="mb-6">
+                <Label htmlFor="flavor-category-filter">
+                  Filtrar por categoria
+                </Label>
+                <Select
+                  value={flavorCategoryFilter}
+                  onValueChange={setFlavorCategoryFilter}
+                >
+                  <SelectTrigger
+                    id="flavor-category-filter"
+                    className="w-full md:w-72"
+                  >
+                    <SelectValue placeholder="Todas as categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <FlavorList
+                flavors={flavors}
+                loading={loading}
+                error={error}
+                onEdit={handleEditFlavor}
+                onDelete={handleDeleteFlavor}
+              />
+            </div>
+
+            <EditFlavorDialog
+              flavor={selectedFlavor}
+              categories={categories}
+              open={isFlavorDialogOpen}
+              onOpenChange={setIsFlavorDialogOpen}
+              onSuccess={() =>
+                getFlavors({
+                  categoryId:
+                    flavorCategoryFilter !== "all"
+                      ? flavorCategoryFilter
+                      : undefined,
+                })
+              }
+            />
+          </TabsContent>
+
           <TabsContent value="settings" className="space-y-8">
             <div className="p-6 rounded-lg shadow">
               <h2 className="text-xl font-semibold mb-4">
@@ -295,22 +449,125 @@ const DashBoard = () => {
         open={isCategoryDialogOpen}
         onOpenChange={setIsCategoryDialogOpen}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle>Editar Categoria</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleUpdateCategory} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="categoryName">Nome da Categoria</Label>
+            <div>
+              <Label htmlFor="categoryName">Nome da Categoria *</Label>
               <Input
                 id="categoryName"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value.trim())}
+                value={categoryData.name}
+                onChange={(e) =>
+                  setCategoryData((prev) => ({ ...prev, name: e.target.value }))
+                }
                 placeholder="Nome da categoria"
                 required
               />
             </div>
+
+            <div className="space-y-2">
+              <Label className="block text-sm font-medium">
+                Tipo de Venda *
+              </Label>
+              <RadioGroup
+                value={categoryData.sellingType}
+                onValueChange={(value: string) =>
+                  handleSellingTypeChange(value as "package" | "unit")
+                }
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="package" id="selling-package" />
+                  <Label htmlFor="selling-package">Pacote</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="unit" id="selling-unit" />
+                  <Label htmlFor="selling-unit">Unidade</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {categoryData.sellingType === "package" && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="packageSize"
+                  className="block text-sm font-medium"
+                >
+                  Tamanhos de Pacote
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    id="packageSize"
+                    value={categoryData.packageSize}
+                    onChange={(e) =>
+                      setCategoryData((prev) => ({
+                        ...prev,
+                        packageSize: e.target.value,
+                      }))
+                    }
+                    placeholder="Quantidade por pacote"
+                    className="flex-grow"
+                    min="1"
+                    onKeyDown={handleKeyDown}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addPackageSize}
+                    variant="secondary"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {categoryData.packageSizes.map((size) => (
+                    <Badge
+                      key={size}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {size} unidades
+                      <button
+                        title="close"
+                        type="button"
+                        onClick={() => removePackageSize(size)}
+                        className="ml-1 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedCategory?.flavors &&
+              selectedCategory.flavors.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="block text-sm font-medium">
+                    Sabores associados a esta categoria
+                  </Label>
+                  <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedCategory.flavors.map((flavor) => (
+                        <div
+                          key={flavor.id}
+                          className="text-sm p-1 bg-gray-100 dark:bg-zinc-800 rounded"
+                        >
+                          {flavor.name}
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Para gerenciar sabores, acesse a aba Sabores no dashboard.
+                    </p>
+                  </div>
+                </div>
+              )}
 
             <DialogFooter className="pt-4">
               <Button

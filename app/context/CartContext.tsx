@@ -3,15 +3,38 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Product } from "../types/product";
 import { toast } from "sonner";
+import { Flavor } from "../types/flavor";
 
 export interface CartItem extends Product {
   discount?: number;
+  quantity: number;
+  flavorId?: string;
+  selectedFlavors?: Flavor[];
+  packageInfo?: {
+    quantity: number;
+    packageSize: number;
+    totalUnits: number;
+  };
+  sellingType?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity: number) => void;
+  addItem: (
+    product: Product,
+    options: {
+      quantity: number;
+      flavorId?: string;
+      selectedFlavors?: Flavor[];
+      packageInfo?: {
+        quantity: number;
+        packageSize: number;
+        totalUnits: number;
+      };
+    }
+  ) => void;
   removeItem: (productId: string) => void;
+  updateItemQuantity: (productId: string, newQuantity: number) => void;
   clearCart: () => void;
   subtotal: number;
   totalDiscount: number;
@@ -38,13 +61,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(items));
 
-    const subTotal = items.reduce((acc, item) => acc + item.price * 1, 0);
+    const subTotal = items.reduce((acc, item) => {
+      return acc + item.price * item.quantity;
+    }, 0);
     setSubtotal(subTotal);
 
     const discount = items.reduce((acc, item) => {
-      const itemDiscount = item.discount
-        ? (item.price * 1 * item.discount) / 100
-        : 0;
+      if (!item.discount) return acc;
+
+      const itemPrice = item.price * item.quantity;
+      const itemDiscount = (itemPrice * item.discount) / 100;
       return acc + itemDiscount;
     }, 0);
     setTotalDiscount(discount);
@@ -52,18 +78,83 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setTotal(subTotal - discount);
   }, [items]);
 
-  const addItem = (product: Product) => {
+  const addItem = (
+    product: Product,
+    {
+      quantity,
+      flavorId,
+      selectedFlavors,
+      packageInfo,
+    }: {
+      quantity: number;
+      flavorId?: string;
+      selectedFlavors?: Flavor[];
+      packageInfo?: {
+        quantity: number;
+        packageSize: number;
+        totalUnits: number;
+      };
+    }
+  ) => {
     setItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
+      const existingItem = prevItems.find((i) => i.id === product.id);
+
+      // Se temos sabores selecionados, consideramos como um item único
+      // mesmo que o produto já exista no carrinho
+      if (selectedFlavors && selectedFlavors.length > 0) {
+        toast.success(
+          `Adicionado ao carrinho: ${product.name} (mix de sabores)`
+        );
+        return [
+          ...prevItems,
+          {
+            ...product,
+            quantity,
+            selectedFlavors,
+            packageInfo,
+          },
+        ];
+      } else if (existingItem) {
         toast.success(`Quantidade atualizada: ${product.name}`);
-        return prevItems.map((item) =>
-          item.id === product.id ? { ...item } : item
+        return prevItems.map((i) =>
+          i.id === product.id
+            ? {
+                ...i,
+                quantity: i.quantity + quantity,
+                flavorId,
+                packageInfo,
+              }
+            : i
         );
       } else {
         toast.success(`Adicionado ao carrinho: ${product.name}`);
-        return [...prevItems, { ...product }];
+        return [
+          ...prevItems,
+          {
+            ...product,
+            quantity,
+            flavorId,
+            packageInfo,
+          },
+        ];
       }
+    });
+  };
+
+  const updateItemQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+
+    setItems((prevItems) => {
+      const updatedItems = prevItems.map((item) =>
+        item.id === productId ? { ...item, quantity: newQuantity } : item
+      );
+
+      const updatedItem = updatedItems.find((item) => item.id === productId);
+      if (updatedItem) {
+        toast.success(`Quantidade atualizada: ${updatedItem.name}`);
+      }
+
+      return updatedItems;
     });
   };
 
@@ -88,6 +179,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         items,
         addItem,
         removeItem,
+        updateItemQuantity,
         clearCart,
         subtotal,
         totalDiscount,

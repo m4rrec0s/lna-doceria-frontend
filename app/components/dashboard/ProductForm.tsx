@@ -1,10 +1,21 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Category } from "../../types/category";
+import { Flavor } from "../../types/flavor";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Card } from "../ui/card";
+import { InfoIcon } from "lucide-react";
 
 interface ProductFormProps {
   categories: Category[];
@@ -12,11 +23,13 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
-  const { createProduct } = useApi();
+  const { createProduct, getFlavors } = useApi();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [availableFlavors, setAvailableFlavors] = useState<Flavor[]>([]);
+  const [showFlavorSelection, setShowFlavorSelection] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,7 +37,50 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     price: "",
     discount: "",
     categoryIds: [] as string[],
+    flavorId: "",
   });
+
+  // Carregar sabores quando uma categoria for selecionada
+  useEffect(() => {
+    const loadFlavors = async () => {
+      // Sabores são relevantes apenas quando há uma única categoria selecionada
+      // e principalmente quando essa categoria é de produtos vendidos em pacote
+      if (formData.categoryIds.length === 1) {
+        const selectedCategory = categories.find(
+          (cat) => cat.id === formData.categoryIds[0]
+        );
+
+        // Se for uma categoria de pacotes, podemos ter sabores associados
+        if (selectedCategory && selectedCategory.sellingType === "package") {
+          try {
+            const flavors = await getFlavors({
+              categoryId: formData.categoryIds[0],
+            });
+            setAvailableFlavors(flavors || []);
+            setShowFlavorSelection(flavors && flavors.length > 0);
+          } catch (error) {
+            console.error("Erro ao carregar sabores:", error);
+            setAvailableFlavors([]);
+            setShowFlavorSelection(false);
+          }
+        } else {
+          setAvailableFlavors([]);
+          setShowFlavorSelection(false);
+        }
+      } else {
+        setAvailableFlavors([]);
+        setShowFlavorSelection(false);
+      }
+
+      // Ao mudar a categoria, resetamos o sabor selecionado
+      if (formData.flavorId) {
+        setFormData((prev) => ({ ...prev, flavorId: "" }));
+      }
+    };
+
+    loadFlavors();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -40,15 +96,20 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     const isChecked = e.target.checked;
 
     setFormData((prev) => {
+      let newCategoryIds;
+
       if (isChecked) {
-        return { ...prev, categoryIds: [...prev.categoryIds, categoryId] };
+        newCategoryIds = [...prev.categoryIds, categoryId];
       } else {
-        return {
-          ...prev,
-          categoryIds: prev.categoryIds.filter((id) => id !== categoryId),
-        };
+        newCategoryIds = prev.categoryIds.filter((id) => id !== categoryId);
       }
+
+      return { ...prev, categoryIds: newCategoryIds };
     });
+  };
+
+  const handleFlavorChange = (flavorId: string) => {
+    setFormData((prev) => ({ ...prev, flavorId }));
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,6 +151,10 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         formDataToSend.append("categoryIds", categoryId);
       });
 
+      if (formData.flavorId) {
+        formDataToSend.append("flavorId", formData.flavorId);
+      }
+
       formDataToSend.append("image", selectedFile);
 
       await createProduct(formDataToSend);
@@ -100,9 +165,12 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         price: "",
         discount: "",
         categoryIds: [],
+        flavorId: "",
       });
       setSelectedFile(null);
       setImagePreview("");
+      setShowFlavorSelection(false);
+      setAvailableFlavors([]);
 
       toast.success("Produto adicionado com sucesso!");
 
@@ -208,6 +276,74 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               />
             </div>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Categorias *
+            </label>
+            <div className="max-h-40 overflow-y-auto p-2 border rounded-md">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id={`category-${category.id}`}
+                    value={category.id}
+                    checked={formData.categoryIds.includes(category.id)}
+                    onChange={handleCategoryChange}
+                    className="mr-2"
+                  />
+                  <label
+                    htmlFor={`category-${category.id}`}
+                    className="text-sm"
+                  >
+                    {category.name}
+                    <span className="text-xs text-gray-500 ml-1">
+                      (
+                      {category.sellingType === "package"
+                        ? "Pacote"
+                        : "Unidade"}
+                      )
+                    </span>
+                  </label>
+                </div>
+              ))}
+              {categories.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  Nenhuma categoria disponível
+                </p>
+              )}
+            </div>
+          </div>
+
+          {showFlavorSelection && (
+            <div>
+              <Label
+                htmlFor="flavorId"
+                className="block text-sm font-medium mb-2"
+              >
+                Sabor do Produto
+              </Label>
+              <Select
+                value={formData.flavorId}
+                onValueChange={handleFlavorChange}
+              >
+                <SelectTrigger id="flavorId">
+                  <SelectValue placeholder="Selecione um sabor (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum sabor</SelectItem>
+                  {availableFlavors.map((flavor) => (
+                    <SelectItem key={flavor.id} value={flavor.id}>
+                      {flavor.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Escolha um sabor para associar a este produto.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -246,34 +382,29 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">Categorias</label>
-            <div className="max-h-40 overflow-y-auto p-2 border rounded-md">
-              {categories.map((category) => (
-                <div key={category.id} className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    id={`category-${category.id}`}
-                    value={category.id}
-                    checked={formData.categoryIds.includes(category.id)}
-                    onChange={handleCategoryChange}
-                    className="mr-2"
-                  />
-                  <label
-                    htmlFor={`category-${category.id}`}
-                    className="text-sm"
-                  >
-                    {category.name}
-                  </label>
-                </div>
-              ))}
-              {categories.length === 0 && (
-                <p className="text-sm text-gray-500">
-                  Nenhuma categoria disponível
+          {formData.categoryIds.length > 1 && (
+            <Card className="p-3 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/50">
+              <div className="flex gap-2 text-sm text-amber-700 dark:text-amber-400">
+                <InfoIcon className="h-5 w-5 flex-shrink-0" />
+                <p>
+                  Múltiplas categorias selecionadas. Não é possível associar
+                  sabores quando um produto pertence a mais de uma categoria.
                 </p>
-              )}
-            </div>
-          </div>
+              </div>
+            </Card>
+          )}
+
+          {formData.categoryIds.length === 1 && !showFlavorSelection && (
+            <Card className="p-3 border-gray-200 bg-gray-50 dark:bg-gray-900/30 dark:border-gray-800">
+              <div className="flex gap-2 text-sm text-gray-700 dark:text-gray-400">
+                <InfoIcon className="h-5 w-5 flex-shrink-0" />
+                <p>
+                  Esta categoria não tem sabores associados. Você pode adicionar
+                  sabores na aba Sabores do dashboard.
+                </p>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 

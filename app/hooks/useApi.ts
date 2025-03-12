@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Product } from "../types/product";
 import { Category } from "../types/category";
 import axiosClient from "../services/axiosClient";
+import { Flavor } from "../types/flavor";
 
 interface PaginationParams {
   page?: number;
@@ -30,6 +31,7 @@ type FlexibleDisplaySettings = DisplaySettings | unknown[];
 export const useApi = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -204,6 +206,85 @@ export const useApi = () => {
     }
   };
 
+  const getFlavors = async (params: { categoryId?: string } = {}) => {
+    try {
+      setLoading(true);
+      const response = await axiosClient.get("/flavors", {
+        params,
+      });
+      setFlavors(response.data);
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error fetching flavors - " + (error as Error).message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createFlavor = async (flavorData: FormData) => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.post("/flavors", flavorData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      await getFlavors();
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error creating flavor - " + (error as Error).message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFlavor = async (id: string, flavorData: FormData) => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.put(`/flavors/${id}`, flavorData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      await getFlavors();
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error updating flavor - " + (error as Error).message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFlavor = async (id: string) => {
+    try {
+      setLoading(true);
+      await axiosClient.delete(`/flavors/${id}`);
+      await getFlavors();
+      return true;
+    } catch (error: unknown) {
+      setError("Error deleting flavor - " + (error as Error).message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFlavorById = async (id: string) => {
+    try {
+      setLoading(true);
+      const response = await axiosClient.get(`/flavors/${id}`);
+      return response.data;
+    } catch (error: unknown) {
+      setError("Error fetching flavor - " + (error as Error).message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getDisplaySettings = async () => {
     try {
       const response = await axiosClient.get("/display-settings");
@@ -227,6 +308,7 @@ export const useApi = () => {
   return {
     products,
     categories,
+    flavors,
     error,
     loading,
     pagination,
@@ -239,6 +321,11 @@ export const useApi = () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    getFlavors,
+    createFlavor,
+    updateFlavor,
+    deleteFlavor,
+    getFlavorById,
     getDisplaySettings,
     saveDisplaySettings,
   };

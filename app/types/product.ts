@@ -1,4 +1,5 @@
 import { Category } from "./category";
+import { Flavor } from "./flavor";
 
 export interface Product {
   id: string;
@@ -6,8 +7,11 @@ export interface Product {
   description: string;
   price: number;
   discount?: number;
+  stock?: number;
   imageUrl: string;
-  categories: Category[];
   createdAt: string;
   updatedAt: string;
+  categories: Category[];
+  flavorId?: string;
+  flavor?: Flavor;
 }

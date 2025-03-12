@@ -4,6 +4,10 @@ import { Category } from "../../types/category";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Badge } from "../ui/badge";
+import { X } from "lucide-react";
 
 interface CategoryFormProps {
   category?: Category;
@@ -22,13 +26,52 @@ const CategoryForm = ({
 
   const [formData, setFormData] = useState({
     name: category?.name || "",
+    sellingType: category?.sellingType || "package",
+    packageSize: "",
+    packageSizes: category?.packageSizes || [],
   });
+
+  const showAssociatedFlavors =
+    category?.flavors && category.flavors.length > 0;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSellingTypeChange = (value: "package" | "unit") => {
+    setFormData((prev) => ({ ...prev, sellingType: value }));
+  };
+
+  const addPackageSize = () => {
+    const size = parseInt(formData.packageSize);
+    if (isNaN(size) || size <= 0) return;
+
+    if (!formData.packageSizes.includes(size)) {
+      setFormData((prev) => ({
+        ...prev,
+        packageSizes: [...prev.packageSizes, size].sort((a, b) => a - b),
+        packageSize: "",
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, packageSize: "" }));
+    }
+  };
+
+  const removePackageSize = (size: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      packageSizes: prev.packageSizes.filter((s) => s !== size),
+    }));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addPackageSize();
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -39,19 +82,27 @@ const CategoryForm = ({
     try {
       const categoryData = {
         name: formData.name.trim(),
+        sellingType: formData.sellingType as "package" | "unit",
+        packageSizes:
+          formData.sellingType === "package" ? formData.packageSizes : null,
       };
 
       if (category) {
         await updateCategory(category.id, categoryData);
+        toast.success("Categoria atualizada com sucesso!");
       } else {
         await createCategory(categoryData);
+        toast.success("Categoria criada com sucesso!");
       }
 
       setFormData({
         name: "",
+        sellingType: "package",
+        packageSize: "",
+        packageSizes: [],
       });
+
       onSubmitSuccess();
-      toast.success("Categoria criada com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar categoria:", error);
       setFormError(
@@ -77,9 +128,9 @@ const CategoryForm = ({
       )}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium mb-1">
+        <Label htmlFor="name" className="block text-sm font-medium mb-1">
           Nome da Categoria *
-        </label>
+        </Label>
         <Input
           type="text"
           id="name"
@@ -90,6 +141,97 @@ const CategoryForm = ({
           className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
         />
       </div>
+
+      <div className="space-y-2">
+        <Label className="block text-sm font-medium">Tipo de Venda *</Label>
+        <RadioGroup
+          value={formData.sellingType}
+          onValueChange={(value: string) =>
+            handleSellingTypeChange(value as "package" | "unit")
+          }
+          className="flex space-x-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="package" id="selling-package" />
+            <Label htmlFor="selling-package">Pacote</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="unit" id="selling-unit" />
+            <Label htmlFor="selling-unit">Unidade</Label>
+          </div>
+        </RadioGroup>
+      </div>
+
+      {formData.sellingType === "package" && (
+        <div className="space-y-2">
+          <Label htmlFor="packageSize" className="block text-sm font-medium">
+            Tamanhos de Pacote
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              id="packageSize"
+              name="packageSize"
+              value={formData.packageSize}
+              onChange={handleChange}
+              placeholder="Quantidade por pacote"
+              className="flex-grow"
+              min="1"
+              onKeyDown={handleKeyDown}
+            />
+            <button
+              type="button"
+              onClick={addPackageSize}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Adicionar
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            {formData.packageSizes.map((size) => (
+              <Badge
+                key={size}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
+                {size} unidades
+                <button
+                  title="close"
+                  type="button"
+                  onClick={() => removePackageSize(size)}
+                  className="ml-1 hover:text-red-500"
+                >
+                  <X size={14} />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showAssociatedFlavors && (
+        <div className="space-y-2">
+          <Label className="block text-sm font-medium">
+            Sabores associados a esta categoria
+          </Label>
+          <div className="border rounded-md p-2 max-h-40 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2">
+              {category?.flavors?.map((flavor) => (
+                <div
+                  key={flavor.id}
+                  className="text-sm p-1 bg-gray-100 dark:bg-zinc-800 rounded"
+                >
+                  {flavor.name}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Para gerenciar sabores, acesse a aba Sabores no dashboard.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3 pt-2">
         {onCancel && (

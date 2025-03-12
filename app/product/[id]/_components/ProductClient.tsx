@@ -4,12 +4,15 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useApi } from "../../../hooks/useApi";
 import { Product } from "../../../types/product";
+import { Flavor } from "../../../types/flavor";
 import Header from "../../../components/header";
 import ProductGallery from "./ProductGallery";
 import ProductInfo from "./ProductInfo";
 import AddToCartButton from "./AddToCartButton";
 import RelatedProducts from "./RelatedProducts";
 import Link from "next/link";
+import Image from "next/image";
+import { Category } from "@/app/types/category";
 
 interface ProductClientProps {
   productId: string;
@@ -17,58 +20,19 @@ interface ProductClientProps {
 
 const ProductClient = ({ productId }: ProductClientProps) => {
   const [product, setProduct] = useState<Product | null>(null);
+  const [flavors, setFlavors] = useState<Flavor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
-  const { getProductById, getProducts } = useApi();
+  const { getProductById, getProducts, getFlavors } = useApi();
 
   const getCategoryMessage = (product: Product) => {
     if (!product.categories || !Array.isArray(product.categories)) return null;
-
-    const hasBrigadeiro = product.categories.some((category) =>
-      category.name.toLowerCase().includes("brigadeiro")
-    );
-
-    const hasTrufa = product.categories.some((category) =>
-      category.name.toLowerCase().includes("trufa")
-    );
-
-    if (hasBrigadeiro || hasTrufa) {
-      return (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 my-2 rounded">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-amber-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-amber-800 font-medium">
-                <strong>Importante!!!</strong> Brigadeiros são vendidos a partir
-                de 4, 6, 8 e 12 unidades, ou sob encomenda de centos. Aceitamos
-                encomendas de trufas apenas em cento (100 unidades) para festas
-                e eventos. Obrigada!!!
-              </p>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
   };
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndFlavors = async () => {
       setLoading(true);
       try {
         const productData = await getProductById(productId);
@@ -76,6 +40,14 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           ? productData.data[0]
           : productData.data;
         setProduct(productItem);
+
+        if (productItem?.categories && productItem.categories.length > 0) {
+          const categoryIds = productItem.categories.map(
+            (cat: Category) => cat.id
+          );
+          const flavorData = await getFlavors({ categoryId: categoryIds[0] });
+          setFlavors(Array.isArray(flavorData) ? flavorData : []);
+        }
 
         if (productItem?.category_id) {
           const related = await getProducts({
@@ -89,16 +61,16 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           );
         }
       } catch (err) {
-        console.error("Erro ao carregar produto:", err);
+        console.error("Erro ao carregar produto ou sabores:", err);
         setError("Não foi possível carregar os detalhes do produto.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    fetchProductAndFlavors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [productId]);
 
   const handleAddToCart = () => {
     console.log(`Adicionando produto ${productId} ao carrinho`);
@@ -159,6 +131,34 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               description={product?.description || "Sem descrição disponível"}
               categories={product?.categories}
             />
+
+            {/* Seção de Sabores */}
+            {flavors.length > 0 && (
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold mb-4">
+                  Sabores Disponíveis
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {flavors.map((flavor) => (
+                    <div
+                      key={flavor.id}
+                      className="flex items-center gap-3 p-3 border rounded-lg"
+                    >
+                      {flavor.imageUrl && (
+                        <Image
+                          src={flavor.imageUrl}
+                          alt={flavor.name}
+                          width={200}
+                          height={200}
+                          className="w-12 h-12 object-cover rounded-full"
+                        />
+                      )}
+                      <span className="text-gray-700">{flavor.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mb-[150px]">
               {product && getCategoryMessage(product)}
