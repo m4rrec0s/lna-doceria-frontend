@@ -118,7 +118,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   }
 
   return (
-    <main className="min-h-screen pb-6">
+    <main className="min-h-screen pb-[150px]">
       <Header />
       <div className="container mx-auto px-4 mt-[100px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
