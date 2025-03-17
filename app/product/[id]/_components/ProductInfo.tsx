@@ -23,7 +23,6 @@ const ProductInfo = ({
   categories = [],
   discount = 0,
 }: ProductInfoProps) => {
-  // Determinar o tipo de venda e tamanhos de pacote
   const packageCategory = categories?.find(
     (cat) => cat.sellingType === "package"
   );
@@ -38,7 +37,6 @@ const ProductInfo = ({
         : [];
   }
 
-  // Informação de venda baseada no tipo
   const renderSellingInfo = () => {
     if (sellingType === "package" && packageSizes.length > 0) {
       return (

@@ -2,11 +2,19 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import Banner, { BannerProps } from "./banner";
+import Banner from "./banner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useApi } from "../hooks/useApi";
 
 interface BannerContainerProps {
-  banners: BannerProps[];
+  banners: {
+    imageUrl: string;
+    title: string;
+    description: string;
+    categoryId: string;
+    variant?: "default" | "pink" | "blue" | "green" | "purple";
+    brightness?: boolean;
+  }[];
   autoSlideInterval?: number;
 }
 
@@ -20,6 +28,12 @@ const BannerContainer = ({
   const [isMobile, setIsMobile] = useState(false);
   const constraintsRef = useRef(null);
   const [dragStartX, setDragStartX] = useState(0);
+  const { categories, getCategories } = useApi();
+
+  useEffect(() => {
+    getCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -70,6 +84,11 @@ const BannerContainer = ({
     }
   };
 
+  const findCategoryIdByName = (name: string) => {
+    const category = categories.find((cat) => cat.name === name);
+    return category ? category.id : "";
+  };
+
   return (
     <div
       className="relative w-full py-2"
@@ -100,7 +119,10 @@ const BannerContainer = ({
               )
               .map((banner, idx) => (
                 <div key={idx} className="flex-1">
-                  <Banner {...banner} />
+                  <Banner
+                    {...banner}
+                    categoryId={findCategoryIdByName(banner.categoryId)}
+                  />
                 </div>
               ))}
           </motion.div>

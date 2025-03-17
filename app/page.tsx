@@ -12,6 +12,7 @@ import ProductList from "./components/productList";
 import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 import BannerContainer from "./components/bannerContainer";
 import { useEasterTheme } from "./contexts/EasterThemeContext";
+import Link from "next/link";
 
 function EnsureTheme() {
   const { isEasterTheme } = useEasterTheme();
@@ -69,7 +70,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
       title: "Trufas",
       description: "As melhores",
-      categoryId: "Trufas",
+      categoryId: "Trufas finas",
       variant: "blue",
       brightness: true,
     },
@@ -78,7 +79,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
       title: "Especiais",
       description: "Aqui temos os melhores",
-      categoryId: "Brigadeiros especiais",
+      categoryId: "Cento brigadeiro especiais",
       variant: "purple",
       brightness: true,
     },
@@ -87,7 +88,7 @@ export default function Home() {
         "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
       title: "Tradicionais",
       description: "Melhores Brigadeiros",
-      categoryId: "Brigadeiros tradicionais",
+      categoryId: "Cento de brigadeiro tradicional",
       variant: "pink",
       brightness: true,
     },
@@ -205,6 +206,31 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-6 mb-10 flex justify-center"
+      >
+        <Link
+          href="https://wa.me/558388511950/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg easter:from-pink-400 easter:to-purple-500 easter:hover:from-pink-500 easter:hover:to-purple-600"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            fill="currentColor"
+            viewBox="0 0 16 16"
+          >
+            <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
+          </svg>
+          Fale conosco pelo WhatsApp
+        </Link>
+      </motion.div>
+
       <div className="space-y-8 py-8 w-full max-w-screen-xl mx-auto">
         {displaySections.map((section) => (
           <ProductList
