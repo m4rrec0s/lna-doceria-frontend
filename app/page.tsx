@@ -3,7 +3,7 @@
 
 import "./globals.css";
 import Header from "./components/header";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Product } from "./types/product";
 import { useApi } from "./hooks/useApi";
 import { motion } from "framer-motion";
@@ -13,6 +13,7 @@ import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 import BannerContainer from "./components/bannerContainer";
 import { useEasterTheme } from "./contexts/EasterThemeContext";
 import Link from "next/link";
+import LoadingDots from "./components/LoadingDots";
 
 function EnsureTheme() {
   const { isEasterTheme } = useEasterTheme();
@@ -43,10 +44,15 @@ function EnsureTheme() {
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
   const [displaySections, setDisplaySections] = useState<ProductSection[]>([]);
+  const [visibleSections, setVisibleSections] = useState<ProductSection[]>([]);
   const [sectionProducts, setSectionProducts] = useState<
     Record<string, Product[]>
   >({});
   const [loadingSections, setLoadingSections] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [hasMoreSections, setHasMoreSections] = useState(true);
+  const loadedSectionsRef = useRef<Set<string>>(new Set());
 
   const bannerData: {
     imageUrl: string;
@@ -101,6 +107,10 @@ export default function Home() {
         if (settings && Array.isArray(settings)) {
           const activeSettings = settings.filter((section) => section.active);
           setDisplaySections(activeSettings);
+
+          const initialSections = activeSettings.slice(0, 2);
+          setVisibleSections(initialSections);
+          setHasMoreSections(activeSettings.length > 2);
         }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
@@ -110,21 +120,30 @@ export default function Home() {
     fetchInitialData();
   }, []);
 
-  useEffect(() => {
-    if (!displaySections.length) return;
+  const loadSectionProducts = useCallback(
+    async (sectionsToLoad: ProductSection[]) => {
+      if (!sectionsToLoad.length) return;
 
-    const loadSectionProducts = async () => {
-      setLoadingSections(true);
-      const sectionsData: Record<string, Product[]> = {};
+      setIsLoadingMore(true);
 
-      for (const section of displaySections) {
+      const newSectionsData: Record<string, Product[]> = {};
+      let hasNewData = false;
+
+      for (const section of sectionsToLoad) {
+        if (loadedSectionsRef.current.has(section.id)) {
+          continue;
+        }
+
         try {
           if (section.type === "category" && section.categoryId) {
             const products = await getProducts({
               categoryId: section.categoryId,
               per_page: 10,
             });
-            sectionsData[section.id] = Array.isArray(products) ? products : [];
+            newSectionsData[section.id] = Array.isArray(products)
+              ? products
+              : [];
+            hasNewData = true;
           } else if (
             (section.type === "custom" || section.type === "featured") &&
             section.productIds?.length
@@ -133,25 +152,88 @@ export default function Home() {
               ids: section.productIds,
               per_page: 100,
             });
-            sectionsData[section.id] = Array.isArray(products)
+            newSectionsData[section.id] = Array.isArray(products)
               ? products.filter((p) => section.productIds?.includes(p.id))
               : [];
+            hasNewData = true;
           }
+
+          loadedSectionsRef.current.add(section.id);
         } catch (error) {
           console.error(
             `Erro ao carregar produtos da seção ${section.id}:`,
             error
           );
-          sectionsData[section.id] = [];
+          newSectionsData[section.id] = [];
+          hasNewData = true;
         }
       }
 
-      setSectionProducts(sectionsData);
-      setLoadingSections(false);
-    };
+      if (hasNewData) {
+        setSectionProducts((prev) => ({ ...prev, ...newSectionsData }));
+      }
 
-    loadSectionProducts();
-  }, [displaySections]);
+      setLoadingSections(false);
+      setIsLoadingMore(false);
+    },
+    [getProducts]
+  );
+
+  useEffect(() => {
+    if (visibleSections.length > 0 && !isLoadingMore) {
+      const sectionsToLoad = visibleSections.filter(
+        (section) => !loadedSectionsRef.current.has(section.id)
+      );
+
+      if (sectionsToLoad.length > 0) {
+        loadSectionProducts(sectionsToLoad);
+      }
+    }
+  }, [visibleSections, loadSectionProducts, isLoadingMore]);
+
+  const loadMoreSections = useCallback(() => {
+    if (isLoadingMore || !hasMoreSections) return;
+
+    const currentCount = visibleSections.length;
+    const nextSections = displaySections.slice(currentCount, currentCount + 2);
+
+    if (nextSections.length > 0) {
+      setVisibleSections((prev) => [...prev, ...nextSections]);
+      setHasMoreSections(
+        currentCount + nextSections.length < displaySections.length
+      );
+    } else {
+      setHasMoreSections(false);
+    }
+  }, [displaySections, visibleSections, isLoadingMore, hasMoreSections]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoadingMore && hasMoreSections) {
+          setTimeout(() => {
+            loadMoreSections();
+          }, 100);
+        }
+      },
+      {
+        rootMargin: "200px",
+        threshold: 0.1,
+      }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [loadMoreSections, isLoadingMore, hasMoreSections]);
 
   return (
     <main className="w-full overflow-x-hidden">
@@ -232,16 +314,36 @@ export default function Home() {
       </motion.div>
 
       <div className="space-y-8 py-8 w-full max-w-screen-xl mx-auto">
-        {displaySections.map((section) => (
+        {visibleSections.map((section) => (
           <ProductList
             key={section.id}
             title={section.title}
             products={sectionProducts[section.id] || []}
-            loading={loadingSections}
+            loading={loadingSections && !sectionProducts[section.id]}
             error={null}
             sectionId={section.id}
           />
         ))}
+
+        <div
+          ref={loadMoreRef}
+          className="h-16 w-full flex justify-center items-center"
+          style={{
+            minHeight: "4rem",
+            height: "4rem",
+            overflow: "hidden",
+          }}
+        >
+          {isLoadingMore ? (
+            <LoadingDots title="Carregando mais produtos..." />
+          ) : hasMoreSections ? (
+            <div className="h-4 w-full" />
+          ) : (
+            <div className="text-center text-gray-500 text-sm">
+              Fim dos produtos
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

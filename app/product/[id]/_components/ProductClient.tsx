@@ -142,16 +142,17 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                   {flavors.map((flavor) => (
                     <div
                       key={flavor.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg"
+                      className="flex items-center gap-3 p-3 border rounded-lg bg-background"
                     >
                       {flavor.imageUrl && (
-                        <Image
-                          src={flavor.imageUrl}
-                          alt={flavor.name}
-                          width={200}
-                          height={200}
-                          className="w-12 h-12 object-cover rounded-full"
-                        />
+                        <div className="relative w-12 h-12 flex-shrink-0">
+                          <Image
+                            src={flavor.imageUrl}
+                            alt={flavor.name}
+                            fill
+                            className="object-cover rounded-full"
+                          />
+                        </div>
                       )}
                       <span className="text-gray-700">{flavor.name}</span>
                     </div>
@@ -164,7 +165,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               {product && getCategoryMessage(product)}
             </div>
 
-            <div className="py-6 fixed bottom-0 left-0 right-0 bg-white p-4 border-t rounded-tl-lg rounded-tr-lg border-gray-100 z-50">
+            <div className="py-6 fixed bottom-0 left-0 right-0 bg-white p-4 border-t shadow-2xl rounded-tl-lg rounded-tr-lg border-gray-100 z-50">
               {product && (
                 <AddToCartButton onClick={handleAddToCart} product={product} />
               )}

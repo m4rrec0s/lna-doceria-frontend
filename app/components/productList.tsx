@@ -3,8 +3,6 @@
 import ProductItem from "./productItem";
 import { Product } from "../types/product";
 import LoadingDots from "./LoadingDots";
-import { motion } from "framer-motion";
-import { containerAnimation, fadeInUp } from "../utils/animations";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
@@ -49,13 +47,7 @@ const ProductList = ({
   return (
     <section className="w-full">
       <div className="flex items-center mb-6 justify-between px-8">
-        <motion.h1
-          className="text-2xl max-w-[50%]"
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
+        <h1 className="text-2xl max-w-[50%]">
           {(() => {
             const words = title.split(" ");
             if (words.length === 0) return title;
@@ -67,7 +59,7 @@ const ProductList = ({
               </>
             );
           })()}
-        </motion.h1>
+        </h1>
         {sectionId && (
           <Link
             href={`/colecao/${sectionId}`}
@@ -78,12 +70,7 @@ const ProductList = ({
           </Link>
         )}
       </div>
-      <motion.div
-        variants={containerAnimation}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-      >
+      <div>
         {products.length > 0 ? (
           <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
             {products.map((product: Product) => (
@@ -95,7 +82,7 @@ const ProductList = ({
             <span className="text-zinc-400">Nenhum produto encontrado</span>
           </div>
         )}
-      </motion.div>
+      </div>
     </section>
   );
 };

@@ -91,8 +91,10 @@ export default function EasterElements() {
           <Image
             src={element.image}
             alt={element.type === "egg" ? "Easter Egg" : "Easter Bunny"}
-            layout="fill"
-            objectFit="contain"
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={element.type === "bunny"}
+            style={{ objectFit: "contain" }}
           />
         </div>
       ))}

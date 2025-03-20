@@ -20,12 +20,14 @@ const ProductItem = ({ product }: ProductItemProps) => {
 
   const isPackage = !!packageCategory;
 
+  const imageUrl = product.imageUrl || "/placeholder-image.jpg";
+
   return (
     <li className="bg-white rounded-2xl min-w-[250px] h-[420px] shadow-lg flex flex-col">
       <div className="w-full h-[200px] relative">
         <div className="absolute inset-0 p-4">
           <Image
-            src={product.imageUrl}
+            src={imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
