@@ -27,7 +27,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(showSearch);
   const [searchTerm, setSearchTerm] = useState("");
-  const { items } = useCart();
+  const { items, isCartOpen, setIsCartOpen } = useCart();
   const itemCount = items.length;
 
   const handleSearch = (e: React.FormEvent) => {
@@ -86,7 +86,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
         )}
 
         {(pathname === "/" || pathname !== "/dashboard") && !isSearchOpen && (
-          <Sheet>
+          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetTrigger className="relative">
               <ShoppingBasket size={24} />
               {itemCount > 0 && (

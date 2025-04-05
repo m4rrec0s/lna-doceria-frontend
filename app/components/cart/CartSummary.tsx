@@ -53,7 +53,9 @@ const CartSummary: React.FC = () => {
 
       if (item.discount) {
         message += `   - Desconto: ${item.discount}%\n`;
-        message += `   - Valor total: ${formatCurrency(discountedTotal)}\n`;
+        message += `   - Valor sem desconto: ${formatCurrency(itemTotal)}\n`;
+        message += `   - Valor com desconto: ${formatCurrency(discountedTotal)}\n`;
+        message += `   - Economia: ${formatCurrency((itemTotal * item.discount) / 100)}\n`;
       } else {
         message += `   - Valor total: ${formatCurrency(itemTotal)}\n`;
       }
@@ -66,6 +68,7 @@ const CartSummary: React.FC = () => {
 
     if (hasDiscount) {
       message += `Descontos: ${formatCurrency(totalDiscount)}\n`;
+      message += `Economia total: ${formatCurrency(totalDiscount)}\n`;
     }
 
     message += `*Valor Total: ${formatCurrency(total)}*\n\n`;

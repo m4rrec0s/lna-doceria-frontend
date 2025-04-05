@@ -40,7 +40,7 @@ import { CSS } from "@dnd-kit/utilities";
 export interface ProductSection {
   id: string;
   title: string;
-  type: "category" | "custom" | "featured";
+  type: "category" | "custom" | "featured" | "discounted";
   categoryId?: string;
   productIds?: string[];
   active: boolean;
@@ -57,7 +57,7 @@ interface SortableItemProps {
   updateSectionTitle: (index: number, title: string) => void;
   updateSectionType: (
     index: number,
-    type: "category" | "custom" | "featured"
+    type: "category" | "custom" | "featured" | "discounted"
   ) => void;
   updateSectionCategory: (index: number, categoryId: string) => void;
   toggleProductSelection: (sectionIndex: number, productId: string) => void;
@@ -135,7 +135,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
               onValueChange={(value) =>
                 updateSectionType(
                   index,
-                  value as "category" | "custom" | "featured"
+                  value as "category" | "custom" | "featured" | "discounted"
                 )
               }
             >
@@ -146,6 +146,9 @@ const SortableItem: React.FC<SortableItemProps> = ({
                 <SelectItem value="category">Categoria</SelectItem>
                 <SelectItem value="custom">Produtos Personalizados</SelectItem>
                 <SelectItem value="featured">Produtos em Destaque</SelectItem>
+                <SelectItem value="discounted">
+                  Produtos com Desconto
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -171,6 +174,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        ) : section.type === "discounted" ? (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-gray-500">
+              Produtos com desconto são adicionados automaticamente.
+            </p>
           </div>
         ) : (
           <div className="mt-4 space-y-2">
@@ -262,7 +271,7 @@ const ProductDisplaySettings = ({
 
   const updateSectionType = (
     index: number,
-    type: "category" | "custom" | "featured"
+    type: "category" | "custom" | "featured" | "discounted"
   ) => {
     const updatedSections = [...sections];
     updatedSections[index].type = type;
@@ -391,7 +400,8 @@ const ProductDisplaySettings = ({
 
       <CardFooter className="flex justify-end pt-4 border-t">
         <Button onClick={saveSettings} disabled={loading}>
-          {loading ? "Salvando..." : "Salvar Configurações"}
+          {loading ? "Salvando..." : "Salvar Configurações"
+          }
         </Button>
       </CardFooter>
     </div>

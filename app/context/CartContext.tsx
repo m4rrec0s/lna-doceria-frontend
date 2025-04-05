@@ -39,6 +39,8 @@ interface CartContextType {
   subtotal: number;
   totalDiscount: number;
   total: number;
+  isCartOpen: boolean;
+  setIsCartOpen: (isOpen: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -50,6 +52,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [subtotal, setSubtotal] = useState<number>(0);
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
@@ -99,12 +102,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setItems((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === product.id);
 
-      // Se temos sabores selecionados, consideramos como um item único
-      // mesmo que o produto já exista no carrinho
       if (selectedFlavors && selectedFlavors.length > 0) {
-        toast.success(
-          `Adicionado ao carrinho: ${product.name} (mix de sabores)`
-        );
+        setIsCartOpen(true);
         return [
           ...prevItems,
           {
@@ -115,7 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         ];
       } else if (existingItem) {
-        toast.success(`Quantidade atualizada: ${product.name}`);
+        setIsCartOpen(true);
         return prevItems.map((i) =>
           i.id === product.id
             ? {
@@ -127,6 +126,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
             : i
         );
       } else {
+        setIsCartOpen(true);
         toast.success(`Adicionado ao carrinho: ${product.name}`);
         return [
           ...prevItems,
@@ -149,10 +149,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         item.id === productId ? { ...item, quantity: newQuantity } : item
       );
 
-      const updatedItem = updatedItems.find((item) => item.id === productId);
-      if (updatedItem) {
-        toast.success(`Quantidade atualizada: ${updatedItem.name}`);
-      }
+      // const updatedItem = updatedItems.find((item) => item.id === productId);
+      // if (updatedItem) {
+      //   toast.success(`Quantidade atualizada: ${updatedItem.name}`);
+      // }
 
       return updatedItems;
     });
@@ -184,6 +184,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         subtotal,
         totalDiscount,
         total,
+        isCartOpen,
+        setIsCartOpen,
       }}
     >
       {children}

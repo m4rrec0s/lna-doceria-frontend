@@ -37,6 +37,10 @@ const ProductInfo = ({
         : [];
   }
 
+  const hasDiscount = discount > 0;
+  const discountedPrice = applyDiscount(price, discount);
+  const savedAmount = price - discountedPrice;
+
   const renderSellingInfo = () => {
     if (sellingType === "package" && packageSizes.length > 0) {
       return (
@@ -81,12 +85,17 @@ const ProductInfo = ({
       }}
     >
       {categories && (
-        <motion.div variants={fadeInUp} className="flex items-center gap-2">
+        <motion.div variants={fadeInUp} className="flex items-center gap-2 flex-wrap">
           {categories.map((category) => (
             <Badge key={category.id} className="text-pink-700 font-bold">
               {category.name}
             </Badge>
           ))}
+          {hasDiscount && (
+            <Badge className="bg-pink-500 text-white">
+              {discount}% OFF
+            </Badge>
+          )}
         </motion.div>
       )}
 
@@ -117,14 +126,25 @@ const ProductInfo = ({
         variants={fadeInUp}
         className="text-2xl font-semibold text-pink-600"
       >
-        {discount > 0 && (
-          <span className="text-gray-500 line-through mr-2 text-sm">
+        {hasDiscount ? (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 line-through mr-2 text-lg">
+                {formatCurrency(price)}
+              </span>
+              <span className="text-2xl font-semibold text-pink-600">
+                {formatCurrency(discountedPrice)}
+              </span>
+            </div>
+            <div className="text-sm text-green-500 mt-1">
+              Você economiza {formatCurrency(savedAmount)} ({discount}% de desconto)
+            </div>
+          </div>
+        ) : (
+          <span className="text-2xl font-semibold text-pink-600">
             {formatCurrency(price)}
           </span>
         )}
-        <span className="text-2xl font-semibold text-pink-600">
-          {formatCurrency(applyDiscount(price, discount))}
-        </span>
       </motion.div>
 
       <motion.div variants={fadeInUp} className="p-4 rounded-lg">

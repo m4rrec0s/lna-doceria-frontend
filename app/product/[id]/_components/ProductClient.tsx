@@ -130,6 +130,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               price={product?.price}
               description={product?.description || "Sem descrição disponível"}
               categories={product?.categories}
+              discount={product?.discount}
             />
 
             {/* Seção de Sabores */}

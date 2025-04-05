@@ -144,6 +144,14 @@ export default function Home() {
               ? products
               : [];
             hasNewData = true;
+          } else if (section.type === "discounted") {
+            const products = await getProducts({
+              per_page: 100,
+            });
+            newSectionsData[section.id] = Array.isArray(products)
+              ? products.filter((p) => p.discount && p.discount > 0)
+              : [];
+            hasNewData = true;
           } else if (
             (section.type === "custom" || section.type === "featured") &&
             section.productIds?.length
@@ -340,7 +348,9 @@ export default function Home() {
             <div className="h-4 w-full" />
           ) : (
             <div className="text-center text-gray-500 text-sm">
-              Fim dos produtos
+              {!loadingSections && (
+                <span>Não há mais seções para carregar.</span>
+              )}
             </div>
           )}
         </div>
