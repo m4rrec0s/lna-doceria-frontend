@@ -11,35 +11,8 @@ import { fadeInUp } from "./utils/animations";
 import ProductList from "./components/productList";
 import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 import BannerContainer from "./components/bannerContainer";
-import { useEasterTheme } from "./contexts/EasterThemeContext";
 import Link from "next/link";
 import LoadingDots from "./components/LoadingDots";
-
-function EnsureTheme() {
-  const { isEasterTheme } = useEasterTheme();
-
-  useEffect(() => {
-    const applyTheme = () => {
-      if (isEasterTheme) {
-        console.log("EnsureTheme: Aplicando tema Easter na página principal");
-        document.documentElement.classList.remove("dark");
-        document.documentElement.classList.add("easter");
-      } else {
-        console.log("EnsureTheme: Removendo tema Easter na página principal");
-        document.documentElement.classList.remove("easter");
-        document.documentElement.classList.remove("dark");
-      }
-    };
-
-    applyTheme();
-
-    const timer = setTimeout(applyTheme, 50);
-
-    return () => clearTimeout(timer);
-  }, [isEasterTheme]);
-
-  return null;
-}
 
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
@@ -65,7 +38,7 @@ export default function Home() {
     {
       imageUrl:
         "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
-      title: "Para sua Páscoa",
+      title: "Doces especiais",
       description: "Ovos recheados",
       categoryId: "Ovos de colher",
       variant: "purple",
@@ -245,7 +218,6 @@ export default function Home() {
 
   return (
     <main className="w-full overflow-x-hidden">
-      <EnsureTheme />
       <Header />
       <section className="mt-[100px]">
         <div className="px-8">
@@ -267,27 +239,13 @@ export default function Home() {
               className="text-3xl md:text-4xl font-light mb-2"
               variants={fadeInUp}
             >
-              Celebre a Páscoa
+              Conheça nossos
             </motion.h1>
             <motion.h2
               className="text-3xl md:text-4xl font-bold flex items-center gap-2"
               variants={fadeInUp}
             >
-              Com os Melhores Doces{" "}
-              <motion.span
-                role="img"
-                aria-label="easter egg"
-                initial={{ rotate: -10 }}
-                animate={{ rotate: [0, 10, 0, -10, 0] }}
-                transition={{
-                  duration: 1.5,
-                  delay: 1,
-                  repeat: Infinity,
-                  repeatDelay: 5,
-                }}
-              >
-                🐰
-              </motion.span>
+              Deliciosos Doces
             </motion.h2>
           </motion.div>
 
@@ -306,7 +264,7 @@ export default function Home() {
           href="https://wa.me/558388511950/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg easter:from-pink-400 easter:to-purple-500 easter:hover:from-pink-500 easter:hover:to-purple-600"
+          className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-full transition-all shadow-md hover:shadow-lg"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

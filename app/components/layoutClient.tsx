@@ -1,11 +1,24 @@
 "use client";
 
-import { AuthProvider } from "../context/authContext";
+import { useEasterTheme } from "../contexts/EasterThemeContext";
+import EasterThemeToggle from "./EasterThemeToggle";
+import { useEffect } from "react";
 
 export default function LayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthProvider>{children}</AuthProvider>;
+  const { forceApplyTheme } = useEasterTheme();
+
+  useEffect(() => {
+    forceApplyTheme();
+  }, [forceApplyTheme]);
+
+  return (
+    <>
+      {children}
+      <EasterThemeToggle />
+    </>
+  );
 }

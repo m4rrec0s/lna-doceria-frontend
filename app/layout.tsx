@@ -2,7 +2,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { EasterThemeProvider } from "./contexts/EasterThemeContext";
-import EasterClientWrapper from "./components/EasterClientWrapper";
 import LayoutClient from "./components/layoutClient";
 import { Toaster } from "./components/ui/sonner";
 import { CartProvider } from "./context/CartContext";
@@ -26,7 +25,6 @@ export default function RootLayout({
           <CartProvider>
             <LayoutClient>{children}</LayoutClient>
             <Toaster />
-            <EasterClientWrapper />
           </CartProvider>
         </EasterThemeProvider>
       </body>
