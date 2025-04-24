@@ -70,7 +70,7 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
           </div>
         </div>
       </header>
-      <section className="mt-[100px] px-8">
+      <section className="px-8">
         <motion.div
           initial="hidden"
           animate="visible"

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import "./globals.css";
@@ -10,9 +9,8 @@ import { motion } from "framer-motion";
 import { fadeInUp } from "./utils/animations";
 import ProductList from "./components/productList";
 import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
-import BannerContainer from "./components/bannerContainer";
-import Link from "next/link";
 import LoadingDots from "./components/LoadingDots";
+import Link from "next/link";
 
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
@@ -27,51 +25,51 @@ export default function Home() {
   const [hasMoreSections, setHasMoreSections] = useState(true);
   const loadedSectionsRef = useRef<Set<string>>(new Set());
 
-  const bannerData: {
-    imageUrl: string;
-    title: string;
-    description: string;
-    categoryId: string;
-    variant: "blue" | "green" | "pink" | "purple" | "default";
-    brightness?: boolean;
-  }[] = [
-    {
-      imageUrl:
-        "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
-      title: "Doces especiais",
-      description: "Ovos recheados",
-      categoryId: "Ovos de colher",
-      variant: "purple",
-      brightness: true,
-    },
-    {
-      imageUrl:
-        "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
-      title: "Trufas",
-      description: "As melhores",
-      categoryId: "Trufas finas",
-      variant: "blue",
-      brightness: true,
-    },
-    {
-      imageUrl:
-        "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
-      title: "Especiais",
-      description: "Aqui temos os melhores",
-      categoryId: "Cento brigadeiro especiais",
-      variant: "purple",
-      brightness: true,
-    },
-    {
-      imageUrl:
-        "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
-      title: "Tradicionais",
-      description: "Melhores Brigadeiros",
-      categoryId: "Cento de brigadeiro tradicional",
-      variant: "pink",
-      brightness: true,
-    },
-  ];
+  // const bannerData: {
+  //   imageUrl: string;
+  //   title: string;
+  //   description: string;
+  //   categoryId: string;
+  //   variant: "blue" | "green" | "pink" | "purple" | "default";
+  //   brightness?: boolean;
+  // }[] = [
+  //   {
+  //     imageUrl:
+  //       "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
+  //     title: "Doces especiais",
+  //     description: "Ovos recheados",
+  //     categoryId: "Ovos de colher",
+  //     variant: "purple",
+  //     brightness: true,
+  //   },
+  //   {
+  //     imageUrl:
+  //       "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
+  //     title: "Trufas",
+  //     description: "As melhores",
+  //     categoryId: "Trufas finas",
+  //     variant: "blue",
+  //     brightness: true,
+  //   },
+  //   {
+  //     imageUrl:
+  //       "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
+  //     title: "Especiais",
+  //     description: "Aqui temos os melhores",
+  //     categoryId: "Cento brigadeiro especiais",
+  //     variant: "purple",
+  //     brightness: true,
+  //   },
+  //   {
+  //     imageUrl:
+  //       "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
+  //     title: "Tradicionais",
+  //     description: "Melhores Brigadeiros",
+  //     categoryId: "Cento de brigadeiro tradicional",
+  //     variant: "pink",
+  //     brightness: true,
+  //   },
+  // ];
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -91,6 +89,7 @@ export default function Home() {
     };
 
     fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadSectionProducts = useCallback(
@@ -219,7 +218,7 @@ export default function Home() {
   return (
     <main className="w-full overflow-x-hidden">
       <Header />
-      <section className="mt-[100px]">
+      <section className="mt-8 mb-6">
         <div className="px-8">
           <motion.div
             className="mb-8"
@@ -249,9 +248,9 @@ export default function Home() {
             </motion.h2>
           </motion.div>
 
-          <motion.div>
+          {/* <motion.div>
             <BannerContainer banners={bannerData} />
-          </motion.div>
+          </motion.div> */}
         </div>
       </section>
       <motion.div

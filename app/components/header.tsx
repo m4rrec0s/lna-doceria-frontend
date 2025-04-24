@@ -10,15 +10,14 @@ import {
 } from "./ui/sheet";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
 import CartItem from "./cart/CartItem";
 import CartSummary from "./cart/CartSummary";
 import { cn } from "../lib/utils";
-import { useApi } from "../hooks/useApi";
-import { Category } from "../types/category";
+import { DialogTitle } from "./ui/dialog";
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -27,10 +26,8 @@ interface HeaderProps {
 const Header = ({ showSearch = false }: HeaderProps) => {
   const pathname = usePathname();
   const router = useRouter();
-  const { getCategories } = useApi();
   const [isSearchOpen, setIsSearchOpen] = useState(showSearch);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
   const { items, isCartOpen, setIsCartOpen } = useCart();
   const itemCount = items.length;
 
@@ -40,21 +37,6 @@ const Header = ({ showSearch = false }: HeaderProps) => {
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await getCategories();
-        setCategories(response);
-        console.log("Categories fetched:", response);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -73,16 +55,26 @@ const Header = ({ showSearch = false }: HeaderProps) => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          {categories &&
-            categories.map((category) => (
-              <Link
-                key={category.id}
-                href={category.id ? `/colecao/${category.id}` : "#"}
-                className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
-              >
-                {category.name}
-              </Link>
-            ))}
+          {pathname !== "/" && (
+            <Link
+              href="/"
+              className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+            >
+              Início
+            </Link>
+          )}
+          <Link
+            href="/about"
+            className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            Sobre Nós
+          </Link>
+          <Link
+            href="/contact"
+            className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+          >
+            Contato
+          </Link>
         </nav>
 
         {/* Search Bar - Desktop */}
@@ -137,20 +129,28 @@ const Header = ({ showSearch = false }: HeaderProps) => {
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[350px]">
                 <div className="flex flex-col h-full">
-                  <div className="flex items-center justify-between py-4 border-b">
-                    <span className="text-lg font-medium">Menu</span>
-                  </div>
+                  <DialogTitle>Menu</DialogTitle>
                   <nav className="flex flex-col space-y-4 py-6">
-                    {categories &&
-                      categories.map((category) => (
-                        <Link
-                          key={category.id}
-                          href={category.id ? `/colecao/${category.id}` : "#"}
-                          className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
+                    {pathname !== "/" && (
+                      <Link
+                        href="/"
+                        className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                      >
+                        Início
+                      </Link>
+                    )}
+                    <Link
+                      href="/about"
+                      className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                    >
+                      Sobre Nós
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                    >
+                      Contato
+                    </Link>
                   </nav>
                 </div>
               </SheetContent>
@@ -197,6 +197,9 @@ const Header = ({ showSearch = false }: HeaderProps) => {
                       </span>
                     )}
                   </SheetTitle>
+                  <SheetDescription className="hidden">
+                    Adicione ou remova itens do seu carrinho.
+                  </SheetDescription>
                   {items.length === 0 && (
                     <SheetDescription className="text-center py-10">
                       Seu carrinho está vazio. Adicione delícias para continuar.

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEasterTheme } from "../contexts/EasterThemeContext";
-import EasterThemeToggle from "./EasterThemeToggle";
 import { useEffect } from "react";
 
 export default function LayoutClient({
@@ -15,10 +14,5 @@ export default function LayoutClient({
     forceApplyTheme();
   }, [forceApplyTheme]);
 
-  return (
-    <>
-      {children}
-      <EasterThemeToggle />
-    </>
-  );
+  return <>{children}</>;
 }

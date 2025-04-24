@@ -71,8 +71,8 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           </TooltipProvider>
         </div>
         <div className="flex flex-wrap gap-1">
-          {item.selectedFlavors.map((flavor, index) => (
-            <div key={index} className="relative group">
+          {item.selectedFlavors.map((flavor) => (
+            <div key={flavor.id} className="relative group">
               <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-700">
                 {isValidImageUrl(flavor.imageUrl) ? (
                   <Image
@@ -89,7 +89,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
                 )}
               </div>
               <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-pink-500">
-                {index + 1}
+                {flavor.category?.id || 1}
               </Badge>
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 rounded px-1 py-0.5 text-[8px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 {flavor.name}

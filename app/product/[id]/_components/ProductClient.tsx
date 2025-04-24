@@ -80,7 +80,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     return (
       <main>
         <Header />
-        <div className="container mx-auto px-4 mt-[100px] py-12 flex justify-center">
+        <div className="container mx-auto px-4 mt-8 py-12 flex justify-center">
           <motion.div
             className="w-20 h-20 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"
             animate={{ rotate: 360 }}
@@ -95,7 +95,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     return (
       <main>
         <Header />
-        <div className="container mx-auto px-4 mt-[100px] py-12">
+        <div className="container mx-auto px-4 mt-8 py-12">
           <div className="text-center">
             <span className="text-6xl mb-4 block">😕</span>
             <h1 className="text-2xl font-bold mb-4">Produto não encontrado</h1>
@@ -120,7 +120,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   return (
     <main className="min-h-screen pb-[150px]">
       <Header />
-      <div className="container mx-auto px-4 mt-[100px]">
+      <div className="container mx-auto px-4 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <ProductGallery imageUrl={product?.imageUrl} alt={product?.name} />
 
