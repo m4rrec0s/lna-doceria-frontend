@@ -8,7 +8,7 @@ import Header from "../../components/header";
 import { ProductSection } from "../../components/dashboard/ProductDisplaySettings";
 import { LoadingDots } from "../../components/LoadingDots";
 import ProductGrid from "../../components/productGrid";
-import { ArrowLeft } from "lucide-react";
+import { ChevronLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function CollectionPage({
@@ -77,7 +77,7 @@ export default function CollectionPage({
     return (
       <>
         <Header />
-        <div className="w-full pt-28 flex justify-center">
+        <div className="w-full flex-1 flex justify-center">
           <LoadingDots />
         </div>
       </>
@@ -88,9 +88,9 @@ export default function CollectionPage({
     return (
       <>
         <Header />
-        <div className="w-full pt-28 px-4 max-w-screen-xl mx-auto">
+        <div className="w-full mt-8 px-4 max-w-screen-xl mx-auto">
           <Link href="/" className="flex items-center gap-2 mb-8 text-primary">
-            <ArrowLeft size={18} />
+            <ChevronLeftIcon size={18} />
             <span>Voltar para página inicial</span>
           </Link>
           <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-center">
@@ -109,9 +109,9 @@ export default function CollectionPage({
   return (
     <>
       <Header />
-      <div className="w-full pt-28 px-4 max-w-screen-xl mx-auto">
+      <div className="w-full mt-8 px-4 max-w-screen-xl mx-auto">
         <Link href="/" className="flex items-center gap-2 mb-8 text-primary">
-          <ArrowLeft size={18} />
+          <ChevronLeftIcon size={18} />
           <span>Voltar para página inicial</span>
         </Link>
 

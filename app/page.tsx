@@ -8,6 +8,8 @@ import { useApi } from "./hooks/useApi";
 import ProductList, { ItemsListSkeleton } from "./components/productList";
 import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
 import { BannerPanel } from "./components/bannerPanel";
+import { WhatsAppButton } from "./components/whatsappButton";
+import { Footer } from "./components/footer";
 
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
@@ -73,7 +75,19 @@ export default function Home() {
       try {
         const settings = await getDisplaySettings();
         if (settings && Array.isArray(settings)) {
-          const activeSettings = settings.filter((section) => section.active);
+          const activeSettings = settings
+            .filter((section) => section.active)
+            .map((section) => ({
+              ...section,
+              productIds:
+                section.productIds && typeof section.productIds === "string"
+                  ? JSON.parse(section.productIds)
+                  : [],
+              tags:
+                section.tags && typeof section.tags === "string"
+                  ? JSON.parse(section.tags)
+                  : [],
+            }));
           setDisplaySections(activeSettings);
 
           const initialSections = activeSettings.slice(0, 2);
@@ -121,18 +135,22 @@ export default function Home() {
               ? products.filter((p) => p.discount && p.discount > 0)
               : [];
             hasNewData = true;
-          } else if (
-            (section.type === "custom" || section.type === "featured") &&
-            section.productIds?.length
-          ) {
-            const products = await getProducts({
-              ids: section.productIds,
-              per_page: 100,
-            });
-            newSectionsData[section.id] = Array.isArray(products)
-              ? products.filter((p) => section.productIds?.includes(p.id))
-              : [];
-            hasNewData = true;
+          } else if (section.type === "custom" && section.productIds) {
+            const productIds =
+              typeof section.productIds === "string"
+                ? JSON.parse(section.productIds)
+                : section.productIds;
+
+            if (Array.isArray(productIds) && productIds.length > 0) {
+              const products = await getProducts({
+                ids: productIds,
+                per_page: 100,
+              });
+              newSectionsData[section.id] = Array.isArray(products)
+                ? products.filter((p) => productIds.includes(p.id))
+                : [];
+              hasNewData = true;
+            }
           }
 
           loadedSectionsRef.current.add(section.id);
@@ -221,7 +239,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="space-y-8 py-8 w-full max-w-screen-xl mx-auto">
+      <div className="space-y-8 pt-4 w-full max-w-screen-xl mx-auto">
         {visibleSections.map((section) => (
           <ProductList
             key={section.id}
@@ -248,13 +266,13 @@ export default function Home() {
             <div className="h-4 w-full" />
           ) : (
             <div className="text-center text-gray-500 text-sm">
-              {!loadingSections && (
-                <span>Não há mais seções para carregar.</span>
-              )}
+              {!loadingSections && <span></span>}
             </div>
           )}
         </div>
       </div>
+      <Footer />
+      <WhatsAppButton />
     </main>
   );
 }

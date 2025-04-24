@@ -22,11 +22,22 @@ interface PaginatedResponse<T> {
   };
 }
 
-interface DisplaySettings {
-  [key: string]: unknown;
+interface DisplaySection {
+  id: string;
+  title: string;
+  type: "category" | "custom" | "discounted" | "new_arrivals";
+  active: boolean;
+  categoryId?: string | null;
+  productIds?: string | null;
+  order: number;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  tags?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-type FlexibleDisplaySettings = DisplaySettings | unknown[];
+type FlexibleDisplaySettings = DisplaySection[];
 
 const cache = {
   products: new Map<string, Product[]>(),
@@ -302,11 +313,13 @@ export const useApi = () => {
     }
   };
 
-  // ### Funções para Configurações de Exibição
   const getDisplaySettings = async () => {
     try {
       const response = await axiosClient.get("/display-settings");
-      return response.data;
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      throw new Error("Formato de dados inválido");
     } catch (error: unknown) {
       setError(
         "Erro ao buscar configurações de exibição - " + (error as Error).message
@@ -327,7 +340,6 @@ export const useApi = () => {
     }
   };
 
-  // Retorno do hook
   return {
     products,
     categories,

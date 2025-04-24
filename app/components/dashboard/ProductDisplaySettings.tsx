@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Product } from "../../types/product";
 import { Category } from "../../types/category";
 import { Button } from "../../components/ui/button";
@@ -40,10 +40,14 @@ import { CSS } from "@dnd-kit/utilities";
 export interface ProductSection {
   id: string;
   title: string;
-  type: "category" | "custom" | "featured" | "discounted";
-  categoryId?: string;
-  productIds?: string[];
+  type: "category" | "custom" | "discounted" | "new_arrivals";
+  categoryId?: string | null;
+  productIds: string | string[];
   active: boolean;
+  order: number;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  tags: string | string[];
 }
 
 interface ProductDisplaySettingsProps {
@@ -57,9 +61,15 @@ interface SortableItemProps {
   updateSectionTitle: (index: number, title: string) => void;
   updateSectionType: (
     index: number,
-    type: "category" | "custom" | "featured" | "discounted"
+    type: "category" | "custom" | "discounted" | "new_arrivals"
   ) => void;
   updateSectionCategory: (index: number, categoryId: string) => void;
+  updateSectionDate: (
+    index: number,
+    dateType: "startDate" | "endDate",
+    date: Date | null
+  ) => void;
+  updateSectionTags: (index: number, tags: string[]) => void;
   toggleProductSelection: (sectionIndex: number, productId: string) => void;
   toggleSectionActive: (index: number) => void;
   removeSection: (index: number) => void;
@@ -73,6 +83,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
   updateSectionTitle,
   updateSectionType,
   updateSectionCategory,
+  updateSectionDate,
+  updateSectionTags,
   toggleProductSelection,
   toggleSectionActive,
   removeSection,
@@ -86,6 +98,13 @@ const SortableItem: React.FC<SortableItemProps> = ({
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  const formattedStartDate = section.startDate
+    ? new Date(section.startDate).toISOString().split("T")[0]
+    : "";
+  const formattedEndDate = section.endDate
+    ? new Date(section.endDate).toISOString().split("T")[0]
+    : "";
 
   return (
     <Card
@@ -135,7 +154,7 @@ const SortableItem: React.FC<SortableItemProps> = ({
               onValueChange={(value) =>
                 updateSectionType(
                   index,
-                  value as "category" | "custom" | "featured" | "discounted"
+                  value as "category" | "custom" | "discounted" | "new_arrivals"
                 )
               }
             >
@@ -145,12 +164,56 @@ const SortableItem: React.FC<SortableItemProps> = ({
               <SelectContent>
                 <SelectItem value="category">Categoria</SelectItem>
                 <SelectItem value="custom">Produtos Personalizados</SelectItem>
-                <SelectItem value="featured">Produtos em Destaque</SelectItem>
                 <SelectItem value="discounted">
                   Produtos com Desconto
                 </SelectItem>
+                <SelectItem value="new_arrivals">Produtos Novos</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={`start-date-${section.id}`}>Data de Início</Label>
+            <Input
+              id={`start-date-${section.id}`}
+              type="date"
+              value={formattedStartDate}
+              onChange={(e) => {
+                const date = e.target.value ? new Date(e.target.value) : null;
+                updateSectionDate(index, "startDate", date);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={`end-date-${section.id}`}>Data de Término</Label>
+            <Input
+              id={`end-date-${section.id}`}
+              type="date"
+              value={formattedEndDate}
+              onChange={(e) => {
+                const date = e.target.value ? new Date(e.target.value) : null;
+                updateSectionDate(index, "endDate", date);
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={`tags-${section.id}`}>
+              Tags (separadas por vírgula)
+            </Label>
+            <Input
+              id={`tags-${section.id}`}
+              value={Array.isArray(section.tags) ? section.tags.join(", ") : ""}
+              onChange={(e) => {
+                const tags = e.target.value
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean);
+                updateSectionTags(index, tags);
+              }}
+              placeholder="ex: pascoa, sazonal, destaque"
+            />
           </div>
         </div>
 
@@ -181,6 +244,12 @@ const SortableItem: React.FC<SortableItemProps> = ({
               Produtos com desconto são adicionados automaticamente.
             </p>
           </div>
+        ) : section.type === "new_arrivals" ? (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-gray-500">
+              Produtos novos (últimos 30 dias) são adicionados automaticamente.
+            </p>
+          </div>
         ) : (
           <div className="mt-4 space-y-2">
             <Label>Selecionar Produtos</Label>
@@ -190,7 +259,10 @@ const SortableItem: React.FC<SortableItemProps> = ({
                   <div key={product.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`product-${section.id}-${product.id}`}
-                      checked={section.productIds?.includes(product.id)}
+                      checked={
+                        Array.isArray(section.productIds) &&
+                        section.productIds.includes(product.id)
+                      }
                       onCheckedChange={() =>
                         toggleProductSelection(index, product.id)
                       }
@@ -219,6 +291,7 @@ const ProductDisplaySettings = ({
   const { saveDisplaySettings, getDisplaySettings } = useApi();
   const [sections, setSections] = useState<ProductSection[]>([]);
   const [loading, setLoading] = useState(false);
+  const counterRef = useRef(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -233,7 +306,18 @@ const ProductDisplaySettings = ({
       try {
         const savedSettings = await getDisplaySettings();
         if (savedSettings && Array.isArray(savedSettings)) {
-          setSections(savedSettings);
+          const parsedSettings = savedSettings.map((section) => ({
+            ...section,
+            productIds:
+              section.productIds && typeof section.productIds === "string"
+                ? JSON.parse(section.productIds)
+                : [],
+            tags:
+              section.tags && typeof section.tags === "string"
+                ? JSON.parse(section.tags)
+                : [],
+          }));
+          setSections(parsedSettings);
         }
       } catch (error) {
         console.error("Erro ao carregar configurações:", error);
@@ -255,10 +339,13 @@ const ProductDisplaySettings = ({
 
   const addNewSection = () => {
     const newSection: ProductSection = {
-      id: `section-${Date.now()}`,
+      id: `section-${Date.now()}-${counterRef.current++}`,
       title: "Nova Seção",
       type: "category",
       active: true,
+      order: sections.length,
+      productIds: [],
+      tags: [],
     };
     setSections([...sections, newSection]);
   };
@@ -271,12 +358,12 @@ const ProductDisplaySettings = ({
 
   const updateSectionType = (
     index: number,
-    type: "category" | "custom" | "featured" | "discounted"
+    type: "category" | "custom" | "discounted" | "new_arrivals"
   ) => {
     const updatedSections = [...sections];
     updatedSections[index].type = type;
     if (type === "category") {
-      updatedSections[index].productIds = undefined;
+      updatedSections[index].productIds = [];
     } else {
       updatedSections[index].categoryId = undefined;
     }
@@ -289,13 +376,32 @@ const ProductDisplaySettings = ({
     setSections(updatedSections);
   };
 
+  const updateSectionDate = (
+    index: number,
+    dateType: "startDate" | "endDate",
+    date: Date | null
+  ) => {
+    const updatedSections = [...sections];
+    updatedSections[index][dateType] = date;
+    setSections(updatedSections);
+  };
+
+  const updateSectionTags = (index: number, tags: string[]) => {
+    const updatedSections = [...sections];
+    updatedSections[index].tags = tags;
+    setSections(updatedSections);
+  };
+
   const toggleProductSelection = (sectionIndex: number, productId: string) => {
     const updatedSections = [...sections];
     const section = updatedSections[sectionIndex];
 
-    if (!section.productIds) {
-      section.productIds = [productId];
-    } else if (section.productIds.includes(productId)) {
+    // Garantir que productIds seja sempre um array
+    if (!Array.isArray(section.productIds)) {
+      section.productIds = [];
+    }
+
+    if (section.productIds.includes(productId)) {
       section.productIds = section.productIds.filter((id) => id !== productId);
     } else {
       section.productIds.push(productId);
@@ -332,10 +438,25 @@ const ProductDisplaySettings = ({
   const saveSettings = async () => {
     if (loading) return;
 
+    const formattedSections = sections.map((section, index) => ({
+      id: section.id,
+      title: section.title,
+      type: section.type,
+      active: section.active,
+      categoryId: section.categoryId || null,
+      order: index,
+      startDate: section.startDate ? new Date(section.startDate) : null,
+      endDate: section.endDate ? new Date(section.endDate) : null,
+      productIds: Array.isArray(section.productIds)
+        ? JSON.stringify(section.productIds)
+        : null,
+      tags: Array.isArray(section.tags) ? JSON.stringify(section.tags) : null,
+    }));
+
     setLoading(true);
     try {
-      await saveDisplaySettings(sections);
-      toast.success("Configurações salvas");
+      await saveDisplaySettings(formattedSections);
+      toast.success("Configurações salvas com sucesso");
     } catch (error) {
       console.error("Erro ao salvar configurações:", error);
       toast.error("Erro ao salvar configurações");
@@ -378,6 +499,8 @@ const ProductDisplaySettings = ({
                   updateSectionTitle={updateSectionTitle}
                   updateSectionType={updateSectionType}
                   updateSectionCategory={updateSectionCategory}
+                  updateSectionDate={updateSectionDate}
+                  updateSectionTags={updateSectionTags}
                   toggleProductSelection={toggleProductSelection}
                   toggleSectionActive={toggleSectionActive}
                   removeSection={removeSection}
@@ -400,8 +523,7 @@ const ProductDisplaySettings = ({
 
       <CardFooter className="flex justify-end pt-4 border-t">
         <Button onClick={saveSettings} disabled={loading}>
-          {loading ? "Salvando..." : "Salvar Configurações"
-          }
+          {loading ? "Salvando..." : "Salvar Configurações"}
         </Button>
       </CardFooter>
     </div>

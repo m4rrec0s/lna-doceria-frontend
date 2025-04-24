@@ -10,6 +10,7 @@ import { fadeInUp } from "../../../utils/animations";
 import ProductItem from "@/app/components/productItem";
 import { Button } from "@/app/components/ui/button";
 import { ChevronLeft } from "lucide-react";
+import Header from "@/app/components/header";
 
 interface CategoryClientProps {
   categoryId: string;
@@ -61,15 +62,14 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
 
   return (
     <main className="w-screen min-h-screen flex flex-col justify-center items-center">
-      <header className="fixed w-full top-0 left-0 z-10">
-        <div className="">
-          <div className="container mx-auto px-8 py-4">
-            <Button onClick={() => router.back()} className="">
-              <ChevronLeft size={24} />
-            </Button>
-          </div>
+      <Header />
+      <div className="w-full">
+        <div className="container mx-auto px-8 py-4">
+          <Button onClick={() => router.back()} variant={"link"}>
+            <ChevronLeft size={24} /> <span>Voltar</span>
+          </Button>
         </div>
-      </header>
+      </div>
       <section className="px-8">
         <motion.div
           initial="hidden"
