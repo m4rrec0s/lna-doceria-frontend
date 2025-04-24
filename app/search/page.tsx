@@ -9,7 +9,7 @@ import { Category } from "../types/category";
 import Header from "../components/header";
 import { Badge } from "../components/ui/badge";
 import ProductGrid from "../components/productGrid";
-import LoadingDots from "../components/LoadingDots";
+import { LoadingDots } from "../components/LoadingDots";
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
@@ -67,7 +67,7 @@ export default function SearchPage() {
         </div>
         <div className="w-full">
           {loading ? (
-            <LoadingDots title="Carregando produtos..." />
+            <LoadingDots text="Carregando produtos..." />
           ) : (
             <div className="my-6 flex flex-col justify-center items-center gap-3">
               <h2 className="text-2xl">

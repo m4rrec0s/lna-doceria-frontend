@@ -5,6 +5,7 @@ import { EasterThemeProvider } from "./contexts/EasterThemeContext";
 import LayoutClient from "./components/layoutClient";
 import { Toaster } from "./components/ui/sonner";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/authContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,12 +22,14 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <EasterThemeProvider>
-          <CartProvider>
-            <LayoutClient>{children}</LayoutClient>
-            <Toaster />
-          </CartProvider>
-        </EasterThemeProvider>
+        <AuthProvider>
+          <EasterThemeProvider>
+            <CartProvider>
+              <LayoutClient>{children}</LayoutClient>
+              <Toaster />
+            </CartProvider>
+          </EasterThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

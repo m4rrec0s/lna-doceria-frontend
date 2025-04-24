@@ -2,9 +2,9 @@
 
 import ProductItem from "./productItem";
 import { Product } from "../types/product";
-import LoadingDots from "./LoadingDots";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { Skeleton } from "./ui/skeleton";
 
 interface ProductListProps {
   title?: string;
@@ -35,7 +35,7 @@ const ProductList = ({
   if (loading) {
     return (
       <section className="flex justify-center items-center h-full">
-        <LoadingDots title="Carregando delícias..." />
+        <ItemsListSkeleton />
       </section>
     );
   }
@@ -86,5 +86,37 @@ const ProductList = ({
     </section>
   );
 };
+
+export function ItemsListSkeleton() {
+  return (
+    <div className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-2xl min-w-[250px] h-[420px] shadow-lg flex flex-col"
+        >
+          <Skeleton className="w-full h-[200px] rounded-t-2xl" />
+          <div className="p-4 flex flex-col flex-grow gap-4">
+            <Skeleton className="h-6 w-4/5 mx-auto" />
+
+            <div className="flex justify-center gap-1 flex-wrap">
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+
+            <div className="mt-auto">
+              <Skeleton className="h-9 w-full rounded-full" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default ProductList;

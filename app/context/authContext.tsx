@@ -10,7 +10,7 @@ import React, {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { User } from "../types/user";
-import LoadingDots from "../components/LoadingDots";
+import { LoadingDots } from "../components/LoadingDots";
 
 interface AuthContextProps {
   user: User | null;
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   if (!isInitialized) {
     return (
       <section className="flex justify-center items-center h-full">
-        <LoadingDots title="LNA Doceria está carregando..." />
+        <LoadingDots />
       </section>
     );
   }

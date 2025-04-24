@@ -224,7 +224,7 @@ const DashBoard = () => {
   return (
     <main className="min-h-screen pb-10">
       <Header />
-      <div className="container mx-auto px-4 pt-[120px]">
+      <div className="container mx-auto px-4 mt-8">
         <h1 className="text-3xl font-bold mb-6">Dashboard de Administração</h1>
         <p className="mb-8">Bem-vindo, {user?.name}!</p>
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Product } from "../../types/product";
 import Image from "next/image";
-import LoadingDots from "../LoadingDots";
+import { LoadingDots } from "../LoadingDots";
 import { Button } from "../ui/button";
 import { formatCurrency } from "../../helpers/formatCurrency";
 import { formatDate } from "../../helpers/formatDate";
@@ -33,7 +33,7 @@ const ProductList = ({
   onPageChange,
 }: ProductListProps) => {
   if (loading) {
-    return <LoadingDots title="Carregando produtos..." />;
+    return <LoadingDots text="Carregando produtos..." />;
   }
 
   if (error) {

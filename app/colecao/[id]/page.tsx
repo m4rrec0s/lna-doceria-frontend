@@ -6,7 +6,7 @@ import { Product } from "../../types/product";
 import { useApi } from "../../hooks/useApi";
 import Header from "../../components/header";
 import { ProductSection } from "../../components/dashboard/ProductDisplaySettings";
-import LoadingDots from "../../components/LoadingDots";
+import { LoadingDots } from "../../components/LoadingDots";
 import ProductGrid from "../../components/productGrid";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -78,7 +78,7 @@ export default function CollectionPage({
       <>
         <Header />
         <div className="w-full pt-28 flex justify-center">
-          <LoadingDots title="Carregando produtos..." />
+          <LoadingDots />
         </div>
       </>
     );
