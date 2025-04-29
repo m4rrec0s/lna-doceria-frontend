@@ -5,7 +5,7 @@ import { use, useEffect, useState } from "react";
 import { Product } from "../../types/product";
 import { useApi } from "../../hooks/useApi";
 import Header from "../../components/header";
-import { ProductSection } from "../../components/dashboard/ProductDisplaySettings";
+import { DisplaySection } from "../../components/dashboard/ProductDisplaySettings";
 import { LoadingDots } from "../../components/LoadingDots";
 import ProductGrid from "../../components/productGrid";
 import { ChevronLeftIcon } from "lucide-react";
@@ -21,7 +21,7 @@ export default function CollectionPage({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [section, setSection] = useState<ProductSection | null>(null);
+  const [section, setSection] = useState<DisplaySection | null>(null);
 
   useEffect(() => {
     const fetchSectionData = async () => {
@@ -39,25 +39,71 @@ export default function CollectionPage({
           throw new Error("Seção não encontrada");
         }
 
-        setSection(targetSection);
+        // Normalizar dados da seção
+        const normalizedSection = {
+          ...targetSection,
+          productIds: targetSection.productIds
+            ? typeof targetSection.productIds === "string"
+              ? JSON.parse(targetSection.productIds)
+              : targetSection.productIds
+            : [],
+          tags: targetSection.tags
+            ? typeof targetSection.tags === "string"
+              ? JSON.parse(targetSection.tags)
+              : targetSection.tags
+            : [],
+        };
+
+        setSection(normalizedSection);
+
+        // Se a seção já tiver produtos carregados, podemos usá-los diretamente
+        if (
+          targetSection.products &&
+          Array.isArray(targetSection.products) &&
+          targetSection.products.length > 0
+        ) {
+          setProducts(targetSection.products);
+          setLoading(false);
+          return;
+        }
 
         // Carregar produtos com base no tipo de seção
         let sectionProducts: Product[] = [];
-        if (targetSection.type === "category" && targetSection.categoryId) {
+
+        if (
+          normalizedSection.type === "category" &&
+          normalizedSection.categoryId
+        ) {
           // Buscar produtos da categoria, sem limite de quantidade
           sectionProducts = await getProducts({
-            categoryId: targetSection.categoryId,
+            categoryId: normalizedSection.categoryId,
             per_page: 100,
           });
-        } else if (
-          (targetSection.type === "custom" ||
-            targetSection.type === "featured") &&
-          targetSection.productIds?.length
-        ) {
-          // Buscar produtos específicos por IDs
+        } else if (normalizedSection.type === "custom") {
+          const productIds = Array.isArray(normalizedSection.productIds)
+            ? normalizedSection.productIds
+            : [];
+
+          if (productIds.length > 0) {
+            // Buscar produtos específicos por IDs
+            sectionProducts = await getProducts({
+              ids: productIds,
+              per_page: 100,
+            });
+          }
+        } else if (normalizedSection.type === "discounted") {
+          // Buscar todos os produtos com desconto
+          const allProducts = await getProducts({ per_page: 100 });
+          if (Array.isArray(allProducts)) {
+            sectionProducts = allProducts.filter(
+              (p) => p.discount && p.discount > 0
+            );
+          }
+        } else if (normalizedSection.type === "new_arrivals") {
+          // Buscar produtos mais recentes
           sectionProducts = await getProducts({
-            ids: targetSection.productIds,
-            per_page: 100,
+            per_page: 30,
+            // Idealmente, teríamos um parâmetro para buscar por data de criação
           });
         }
 
@@ -71,7 +117,7 @@ export default function CollectionPage({
     };
 
     fetchSectionData();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (

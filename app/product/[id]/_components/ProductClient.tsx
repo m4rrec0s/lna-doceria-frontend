@@ -37,7 +37,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
       try {
         const productData = await getProductById(productId);
         const productItem = Array.isArray(productData.data)
-          ? productData.data[0]
+          ? productData.data.find((p: Product) => p.id === productId)
           : productData.data;
         setProduct(productItem);
 

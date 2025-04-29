@@ -74,7 +74,10 @@ const ProductList = ({
         {products.length > 0 ? (
           <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
             {products.map((product: Product) => (
-              <ProductItem key={product.id} product={product} />
+              <ProductItem
+                key={`${sectionId}-${product.id}`}
+                product={product}
+              />
             ))}
           </ul>
         ) : (

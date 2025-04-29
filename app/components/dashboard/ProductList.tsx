@@ -74,7 +74,7 @@ const ProductList = ({
               <td className="py-3 px-2">{formatCurrency(product.price)}</td>
               <td className="py-3 px-2">
                 <div className="flex flex-wrap gap-1">
-                  {product.categories.map((category) => (
+                  {product.categories?.map((category) => (
                     <Badge
                       key={category.id}
                       className="bg-rose-100 text-rose-950"

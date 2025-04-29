@@ -47,7 +47,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
         </h2>
 
         <div className="flex justify-center gap-1 flex-wrap mb-2 max-h-[40px] overflow-hidden">
-          {product.categories.map((category) => (
+          {product.categories?.map((category) => (
             <Badge
               key={category.id}
               className="bg-rose-100 text-rose-700 px-2 py-0.5 text-xs rounded-full"

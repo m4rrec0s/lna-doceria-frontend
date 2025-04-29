@@ -6,15 +6,15 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Product } from "./types/product";
 import { useApi } from "./hooks/useApi";
 import ProductList, { ItemsListSkeleton } from "./components/productList";
-import { ProductSection } from "./components/dashboard/ProductDisplaySettings";
+import { DisplaySection } from "./components/dashboard/ProductDisplaySettings";
 import { BannerPanel } from "./components/bannerPanel";
 import { WhatsAppButton } from "./components/whatsappButton";
 import { Footer } from "./components/footer";
 
 export default function Home() {
   const { getProducts, getDisplaySettings } = useApi();
-  const [displaySections, setDisplaySections] = useState<ProductSection[]>([]);
-  const [visibleSections, setVisibleSections] = useState<ProductSection[]>([]);
+  const [displaySections, setDisplaySections] = useState<DisplaySection[]>([]);
+  const [visibleSections, setVisibleSections] = useState<DisplaySection[]>([]);
   const [sectionProducts, setSectionProducts] = useState<
     Record<string, Product[]>
   >({});
@@ -24,78 +24,64 @@ export default function Home() {
   const [hasMoreSections, setHasMoreSections] = useState(true);
   const loadedSectionsRef = useRef<Set<string>>(new Set());
 
-  // const bannerData: {
-  //   imageUrl: string;
-  //   title: string;
-  //   description: string;
-  //   categoryId: string;
-  //   variant: "blue" | "green" | "pink" | "purple" | "default";
-  //   brightness?: boolean;
-  // }[] = [
-  //   {
-  //     imageUrl:
-  //       "https://i.pinimg.com/736x/a5/95/58/a59558852b2b2e3fb7d663c553b1c8af.jpg",
-  //     title: "Doces especiais",
-  //     description: "Ovos recheados",
-  //     categoryId: "Ovos de colher",
-  //     variant: "purple",
-  //     brightness: true,
-  //   },
-  //   {
-  //     imageUrl:
-  //       "https://i.pinimg.com/736x/fc/a3/c6/fca3c64968a6ebc312bbb3942c11f661.jpg",
-  //     title: "Trufas",
-  //     description: "As melhores",
-  //     categoryId: "Trufas finas",
-  //     variant: "blue",
-  //     brightness: true,
-  //   },
-  //   {
-  //     imageUrl:
-  //       "https://i.pinimg.com/736x/a1/41/fd/a141fde1a2310071782378d1bdca8bdd.jpg",
-  //     title: "Especiais",
-  //     description: "Aqui temos os melhores",
-  //     categoryId: "Cento brigadeiro especiais",
-  //     variant: "purple",
-  //     brightness: true,
-  //   },
-  //   {
-  //     imageUrl:
-  //       "https://i.pinimg.com/736x/d4/81/9e/d4819e2518d3cb34d5e0c966a77d6984.jpg",
-  //     title: "Tradicionais",
-  //     description: "Melhores Brigadeiros",
-  //     categoryId: "Cento de brigadeiro tradicional",
-  //     variant: "pink",
-  //     brightness: true,
-  //   },
-  // ];
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        setLoadingSections(true);
         const settings = await getDisplaySettings();
+
         if (settings && Array.isArray(settings)) {
+          // Filtrar seções ativas e ordenar por ordem
           const activeSettings = settings
             .filter((section) => section.active)
-            .map((section) => ({
-              ...section,
-              productIds:
-                section.productIds && typeof section.productIds === "string"
-                  ? JSON.parse(section.productIds)
+            .sort((a, b) => a.order - b.order)
+            .map((section) => {
+              // Normalizar os dados para garantir consistência
+              return {
+                ...section,
+                productIds: section.productIds
+                  ? typeof section.productIds === "string"
+                    ? JSON.parse(section.productIds)
+                    : section.productIds
                   : [],
-              tags:
-                section.tags && typeof section.tags === "string"
-                  ? JSON.parse(section.tags)
+                tags: section.tags
+                  ? typeof section.tags === "string"
+                    ? JSON.parse(section.tags)
+                    : section.tags
                   : [],
-            }));
+                // Incluir produtos pré-carregados se existirem
+                products: section.products || [],
+              };
+            });
+
           setDisplaySections(activeSettings);
 
+          // Carregar as primeiras seções
           const initialSections = activeSettings.slice(0, 2);
           setVisibleSections(initialSections);
           setHasMoreSections(activeSettings.length > 2);
+
+          // Se as seções já vierem com produtos, usá-los imediatamente
+          const initialProducts: Record<string, Product[]> = {};
+          initialSections.forEach((section) => {
+            if (
+              section.products &&
+              Array.isArray(section.products) &&
+              section.products.length > 0
+            ) {
+              initialProducts[section.id] = section.products;
+              loadedSectionsRef.current.add(section.id);
+            }
+          });
+
+          if (Object.keys(initialProducts).length > 0) {
+            setSectionProducts(initialProducts);
+          }
         }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
+      } finally {
+        setLoadingSections(false);
       }
     };
 
@@ -104,7 +90,7 @@ export default function Home() {
   }, []);
 
   const loadSectionProducts = useCallback(
-    async (sectionsToLoad: ProductSection[]) => {
+    async (sectionsToLoad: DisplaySection[]) => {
       if (!sectionsToLoad.length) return;
 
       setIsLoadingMore(true);
@@ -113,10 +99,24 @@ export default function Home() {
       let hasNewData = false;
 
       for (const section of sectionsToLoad) {
+        // Pular seções que já foram carregadas
         if (loadedSectionsRef.current.has(section.id)) {
           continue;
         }
 
+        // Verificar se a seção já tem produtos pré-carregados
+        if (
+          section.products &&
+          Array.isArray(section.products) &&
+          section.products.length > 0
+        ) {
+          newSectionsData[section.id] = section.products;
+          loadedSectionsRef.current.add(section.id);
+          hasNewData = true;
+          continue;
+        }
+
+        // Caso contrário, carregar produtos com base no tipo de seção
         try {
           if (section.type === "category" && section.categoryId) {
             const products = await getProducts({
@@ -136,12 +136,13 @@ export default function Home() {
               : [];
             hasNewData = true;
           } else if (section.type === "custom" && section.productIds) {
-            const productIds =
-              typeof section.productIds === "string"
-                ? JSON.parse(section.productIds)
-                : section.productIds;
+            const productIds = Array.isArray(section.productIds)
+              ? section.productIds
+              : typeof section.productIds === "string"
+              ? JSON.parse(section.productIds)
+              : [];
 
-            if (Array.isArray(productIds) && productIds.length > 0) {
+            if (productIds.length > 0) {
               const products = await getProducts({
                 ids: productIds,
                 per_page: 100,
@@ -151,6 +152,16 @@ export default function Home() {
                 : [];
               hasNewData = true;
             }
+          } else if (section.type === "new_arrivals") {
+            const products = await getProducts({
+              per_page: 10,
+              // Na API, poderíamos adicionar um parâmetro como "createdAfter"
+              // Por enquanto, simplesmente pegamos os mais recentes
+            });
+            newSectionsData[section.id] = Array.isArray(products)
+              ? products
+              : [];
+            hasNewData = true;
           }
 
           loadedSectionsRef.current.add(section.id);
@@ -168,7 +179,6 @@ export default function Home() {
         setSectionProducts((prev) => ({ ...prev, ...newSectionsData }));
       }
 
-      setLoadingSections(false);
       setIsLoadingMore(false);
     },
     [getProducts]
@@ -240,12 +250,19 @@ export default function Home() {
       </section>
 
       <div className="space-y-8 pt-4 w-full max-w-screen-xl mx-auto">
-        {visibleSections.map((section) => (
+        {visibleSections.map((section, index) => (
           <ProductList
-            key={section.id}
+            key={`section-${section.id}-${index}`}
             title={section.title}
-            products={sectionProducts[section.id] || []}
-            loading={loadingSections && !sectionProducts[section.id]}
+            products={
+              sectionProducts[section.id]?.map((product) => ({
+                ...product,
+                uniqueKey: `${section.id}-${product.id}`,
+              })) || []
+            }
+            loading={
+              loadingSections && !loadedSectionsRef.current.has(section.id)
+            }
             error={null}
             sectionId={section.id}
           />

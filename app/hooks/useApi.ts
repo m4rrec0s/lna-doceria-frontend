@@ -37,7 +37,22 @@ interface DisplaySection {
   updatedAt?: Date;
 }
 
-type FlexibleDisplaySettings = DisplaySection[];
+export interface ProductSection {
+  id: string;
+  title: string;
+  type: "category" | "custom" | "discounted" | "new_arrivals";
+  categoryId?: string | null;
+  productIds: string[] | string;
+  active: boolean;
+  order: number;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  tags: string[] | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  category?: string;
+  products?: Product[];
+}
 
 const cache = {
   products: new Map<string, Product[]>(),
@@ -328,14 +343,91 @@ export const useApi = () => {
     }
   };
 
-  const saveDisplaySettings = async (settings: FlexibleDisplaySettings) => {
+  // Método para atualizar uma única seção
+  const updateDisplaySection = async (
+    sectionId: string,
+    sectionData: Partial<DisplaySection>
+  ) => {
     try {
-      const response = await axiosClient.post("/display-settings", settings);
+      // Garantindo que os objetos sejam convertidos para string JSON
+      const formattedData = {
+        ...sectionData,
+        productIds: Array.isArray(sectionData.productIds)
+          ? JSON.stringify(sectionData.productIds)
+          : sectionData.productIds,
+        tags: Array.isArray(sectionData.tags)
+          ? JSON.stringify(sectionData.tags)
+          : sectionData.tags,
+      };
+
+      const response = await axiosClient.put(
+        `/display-sections/${sectionId}`,
+        formattedData
+      );
       return response.data;
     } catch (error: unknown) {
-      setError(
-        "Erro ao salvar configurações de exibição - " + (error as Error).message
+      setError("Erro ao atualizar seção - " + (error as Error).message);
+      throw error;
+    }
+  };
+
+  // Método para criar uma nova seção
+  const createDisplaySection = async (
+    sectionData: Omit<DisplaySection, "id">
+  ) => {
+    try {
+      // Garantindo que os objetos sejam convertidos para string JSON
+      const formattedData = {
+        ...sectionData,
+        productIds: Array.isArray(sectionData.productIds)
+          ? JSON.stringify(sectionData.productIds)
+          : sectionData.productIds,
+        tags: Array.isArray(sectionData.tags)
+          ? JSON.stringify(sectionData.tags)
+          : sectionData.tags,
+      };
+
+      const response = await axiosClient.post(
+        "/display-sections",
+        formattedData
       );
+      return response.data;
+    } catch (error: unknown) {
+      setError("Erro ao criar seção - " + (error as Error).message);
+      throw error;
+    }
+  };
+
+  // Método para excluir uma seção
+  const deleteDisplaySection = async (sectionId: string) => {
+    try {
+      const response = await axiosClient.delete(
+        `/display-sections/${sectionId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      setError("Erro ao excluir seção - " + (error as Error).message);
+      throw error;
+    }
+  };
+
+  // Atualização em massa de seções
+  const updateAllSectionsApi = async (sections: ProductSection[]) => {
+    try {
+      // Garante que productIds e tags sejam serializados corretamente
+      const payload = sections.map((section) => ({
+        ...section,
+        productIds: Array.isArray(section.productIds)
+          ? JSON.stringify(section.productIds)
+          : section.productIds,
+        tags: Array.isArray(section.tags)
+          ? JSON.stringify(section.tags)
+          : section.tags,
+      }));
+      const response = await axiosClient.put("/display-sections", payload);
+      return response.data;
+    } catch (error) {
+      setError("Erro ao atualizar todas as seções - " + (error as Error).message);
       throw error;
     }
   };
@@ -362,6 +454,9 @@ export const useApi = () => {
     deleteFlavor,
     getFlavorById,
     getDisplaySettings,
-    saveDisplaySettings,
+    updateDisplaySection,
+    createDisplaySection,
+    deleteDisplaySection,
+    updateAllSectionsApi,
   };
 };

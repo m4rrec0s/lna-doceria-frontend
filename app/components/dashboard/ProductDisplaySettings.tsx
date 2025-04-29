@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Product } from "../../types/product";
 import { Category } from "../../types/category";
 import { Button } from "../../components/ui/button";
@@ -37,17 +37,21 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export interface ProductSection {
+export interface DisplaySection {
   id: string;
   title: string;
   type: "category" | "custom" | "discounted" | "new_arrivals";
   categoryId?: string | null;
-  productIds: string | string[];
+  productIds: string | null | undefined;
   active: boolean;
   order: number;
   startDate?: Date | string | null;
   endDate?: Date | string | null;
-  tags: string | string[];
+  tags: string[] | string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  category?: string;
+  products?: Product[];
 }
 
 interface ProductDisplaySettingsProps {
@@ -56,7 +60,7 @@ interface ProductDisplaySettingsProps {
 }
 
 interface SortableItemProps {
-  section: ProductSection;
+  section: DisplaySection;
   index: number;
   updateSectionTitle: (index: number, title: string) => void;
   updateSectionType: (
@@ -94,6 +98,8 @@ const SortableItem: React.FC<SortableItemProps> = ({
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: section.id });
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -106,178 +112,295 @@ const SortableItem: React.FC<SortableItemProps> = ({
     ? new Date(section.endDate).toISOString().split("T")[0]
     : "";
 
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "category":
+        return "Categoria";
+      case "custom":
+        return "Produtos Personalizados";
+      case "discounted":
+        return "Produtos com Desconto";
+      case "new_arrivals":
+        return "Produtos Novos";
+      default:
+        return type;
+    }
+  };
+
+  const getCategoryName = (categoryId: string | null | undefined) => {
+    if (!categoryId) return "Nenhuma";
+    const category = categories.find((c) => c.id === categoryId);
+    return category ? category.name : "Categoria não encontrada";
+  };
+
+  const getSelectedProductsCount = () => {
+    if (!Array.isArray(section.productIds)) return 0;
+    return section.productIds.length;
+  };
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
-      className={`border ${!section.active ? "opacity-70" : ""}`}
+      className={`border ${
+        !section.active ? "bg-gray-50 dark:bg-gray-900/20" : ""
+      }`}
     >
-      <CardContent className="p-6 pt-6">
-        <div className="flex items-center justify-between mb-4">
+      <CardContent className="p-4">
+        {/* Seção de cabeçalho */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="cursor-move p-1" {...attributes} {...listeners}>
               <GripVertical size={20} className="text-gray-500" />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="font-medium truncate">
+              {section.title || "Sem título"}
+            </div>
+            {!section.active && (
+              <span className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                Inativo
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-gray-500"
+            >
+              {isExpanded ? "Recolher" : "Expandir"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeSection(index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <Trash2 size={16} />
+            </Button>
+          </div>
+        </div>
+
+        {/* Resumo da seção (visível quando recolhido) */}
+        {!isExpanded && (
+          <div className="mt-2 pl-8 text-sm text-gray-500 grid grid-cols-3 gap-2">
+            <div>
+              <strong>Tipo:</strong> {getTypeLabel(section.type)}
+            </div>
+            {section.type === "category" && (
+              <div>
+                <strong>Categoria:</strong>{" "}
+                {getCategoryName(section.categoryId)}
+              </div>
+            )}
+            {section.type === "custom" && (
+              <div>
+                <strong>Produtos:</strong> {getSelectedProductsCount()}
+              </div>
+            )}
+            <div className="flex items-center">
               <Checkbox
-                id={`active-${section.id}`}
+                id={`active-${section.id}-collapsed`}
                 checked={section.active}
                 onCheckedChange={() => toggleSectionActive(index)}
+                className="mr-2"
               />
-              <Label htmlFor={`active-${section.id}`}>Ativo</Label>
+              <Label htmlFor={`active-${section.id}-collapsed`}>Ativo</Label>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => removeSection(index)}
-            className="text-red-500 hover:text-red-700"
-          >
-            <Trash2 size={16} />
-          </Button>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor={`title-${section.id}`}>Título da Seção</Label>
-            <Input
-              id={`title-${section.id}`}
-              value={section.title}
-              onChange={(e) => updateSectionTitle(index, e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={`type-${section.id}`}>Tipo de Seção</Label>
-            <Select
-              value={section.type}
-              onValueChange={(value) =>
-                updateSectionType(
-                  index,
-                  value as "category" | "custom" | "discounted" | "new_arrivals"
-                )
-              }
-            >
-              <SelectTrigger id={`type-${section.id}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="category">Categoria</SelectItem>
-                <SelectItem value="custom">Produtos Personalizados</SelectItem>
-                <SelectItem value="discounted">
-                  Produtos com Desconto
-                </SelectItem>
-                <SelectItem value="new_arrivals">Produtos Novos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={`start-date-${section.id}`}>Data de Início</Label>
-            <Input
-              id={`start-date-${section.id}`}
-              type="date"
-              value={formattedStartDate}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
-                updateSectionDate(index, "startDate", date);
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={`end-date-${section.id}`}>Data de Término</Label>
-            <Input
-              id={`end-date-${section.id}`}
-              type="date"
-              value={formattedEndDate}
-              onChange={(e) => {
-                const date = e.target.value ? new Date(e.target.value) : null;
-                updateSectionDate(index, "endDate", date);
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor={`tags-${section.id}`}>
-              Tags (separadas por vírgula)
-            </Label>
-            <Input
-              id={`tags-${section.id}`}
-              value={Array.isArray(section.tags) ? section.tags.join(", ") : ""}
-              onChange={(e) => {
-                const tags = e.target.value
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean);
-                updateSectionTags(index, tags);
-              }}
-              placeholder="ex: pascoa, sazonal, destaque"
-            />
-          </div>
-        </div>
-
-        {section.type === "category" ? (
-          <div className="mt-4 space-y-2">
-            <Label htmlFor={`category-${section.id}`}>
-              Selecionar Categoria
-            </Label>
-            <Select
-              value={section.categoryId || ""}
-              onValueChange={(value) => updateSectionCategory(index, value)}
-            >
-              <SelectTrigger id={`category-${section.id}`}>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category: Category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : section.type === "discounted" ? (
-          <div className="mt-4 space-y-2">
-            <p className="text-sm text-gray-500">
-              Produtos com desconto são adicionados automaticamente.
-            </p>
-          </div>
-        ) : section.type === "new_arrivals" ? (
-          <div className="mt-4 space-y-2">
-            <p className="text-sm text-gray-500">
-              Produtos novos (últimos 30 dias) são adicionados automaticamente.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-4 space-y-2">
-            <Label>Selecionar Produtos</Label>
-            <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {products.map((product: Product) => (
-                  <div key={product.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`product-${section.id}-${product.id}`}
-                      checked={
-                        Array.isArray(section.productIds) &&
-                        section.productIds.includes(product.id)
-                      }
-                      onCheckedChange={() =>
-                        toggleProductSelection(index, product.id)
-                      }
-                    />
-                    <Label
-                      htmlFor={`product-${section.id}-${product.id}`}
-                      className="text-sm"
-                    >
-                      {product.name}
-                    </Label>
-                  </div>
-                ))}
+        {/* Detalhes expandidos */}
+        {isExpanded && (
+          <>
+            <div className="mt-4 space-y-4 border-t pt-4">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id={`active-${section.id}`}
+                  checked={section.active}
+                  onCheckedChange={() => toggleSectionActive(index)}
+                />
+                <Label htmlFor={`active-${section.id}`}>Seção ativa</Label>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`title-${section.id}`}>Título da Seção</Label>
+                  <Input
+                    id={`title-${section.id}`}
+                    value={section.title}
+                    onChange={(e) => updateSectionTitle(index, e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`type-${section.id}`}>Tipo de Seção</Label>
+                  <Select
+                    value={section.type}
+                    onValueChange={(value) =>
+                      updateSectionType(
+                        index,
+                        value as
+                          | "category"
+                          | "custom"
+                          | "discounted"
+                          | "new_arrivals"
+                      )
+                    }
+                  >
+                    <SelectTrigger id={`type-${section.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="category">Categoria</SelectItem>
+                      <SelectItem value="custom">
+                        Produtos Personalizados
+                      </SelectItem>
+                      <SelectItem value="discounted">
+                        Produtos com Desconto
+                      </SelectItem>
+                      <SelectItem value="new_arrivals">
+                        Produtos Novos
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`start-date-${section.id}`}>
+                    Data de Início
+                  </Label>
+                  <Input
+                    id={`start-date-${section.id}`}
+                    type="date"
+                    value={formattedStartDate}
+                    onChange={(e) => {
+                      const date = e.target.value
+                        ? new Date(e.target.value)
+                        : null;
+                      updateSectionDate(index, "startDate", date);
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`end-date-${section.id}`}>
+                    Data de Término
+                  </Label>
+                  <Input
+                    id={`end-date-${section.id}`}
+                    type="date"
+                    value={formattedEndDate}
+                    onChange={(e) => {
+                      const date = e.target.value
+                        ? new Date(e.target.value)
+                        : null;
+                      updateSectionDate(index, "endDate", date);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor={`tags-${section.id}`}>
+                  Tags (separadas por vírgula)
+                </Label>
+                <Input
+                  id={`tags-${section.id}`}
+                  value={
+                    Array.isArray(section.tags) ? section.tags.join(", ") : ""
+                  }
+                  onChange={(e) => {
+                    const tags = e.target.value
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean);
+                    updateSectionTags(index, tags);
+                  }}
+                  placeholder="ex: pascoa, sazonal, destaque"
+                />
+              </div>
+
+              {section.type === "category" ? (
+                <div className="space-y-2">
+                  <Label htmlFor={`category-${section.id}`}>
+                    Selecionar Categoria
+                  </Label>
+                  <Select
+                    value={section.categoryId || ""}
+                    onValueChange={(value) =>
+                      updateSectionCategory(index, value)
+                    }
+                  >
+                    <SelectTrigger id={`category-${section.id}`}>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category: Category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : section.type === "discounted" ? (
+                <div className="mt-4 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-md">
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    Produtos com desconto são adicionados automaticamente. A
+                    seção exibirá todos os produtos com desconto ativo.
+                  </p>
+                </div>
+              ) : section.type === "new_arrivals" ? (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-md">
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    Produtos novos (últimos 30 dias) são adicionados
+                    automaticamente. A seção exibirá os produtos adicionados nos
+                    últimos 30 dias.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="flex items-center justify-between">
+                    Selecionar Produtos
+                    <span className="text-xs text-gray-500">
+                      {getSelectedProductsCount()} produto(s) selecionado(s)
+                    </span>
+                  </Label>
+                  <div className="border rounded-md p-4 max-h-60 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {products.map((product: Product) => (
+                        <div
+                          key={product.id}
+                          className="flex items-center space-x-2 p-1 hover:bg-gray-50 dark:hover:bg-gray-900 rounded"
+                        >
+                          <Checkbox
+                            id={`product-${section.id}-${product.id}`}
+                            checked={
+                              Array.isArray(section.productIds) &&
+                              section.productIds.includes(product.id)
+                            }
+                            onCheckedChange={() =>
+                              toggleProductSelection(index, product.id)
+                            }
+                          />
+                          <Label
+                            htmlFor={`product-${section.id}-${product.id}`}
+                            className="text-sm cursor-pointer flex-grow"
+                          >
+                            {product.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          </>
         )}
       </CardContent>
     </Card>
@@ -288,10 +411,22 @@ const ProductDisplaySettings = ({
   categories,
   products,
 }: ProductDisplaySettingsProps) => {
-  const { saveDisplaySettings, getDisplaySettings } = useApi();
-  const [sections, setSections] = useState<ProductSection[]>([]);
+  const {
+    getDisplaySettings,
+    createDisplaySection,
+    updateDisplaySection,
+    updateAllSectionsApi,
+    deleteDisplaySection,
+  } = useApi();
+
+  const [sections, setSections] = useState<DisplaySection[]>([]);
   const [loading, setLoading] = useState(false);
-  const counterRef = useRef(0);
+  const [currentOperation, setCurrentOperation] = useState<{
+    type: "create" | "update" | "delete" | "none";
+    sectionId?: string;
+    index?: number;
+    status: "idle" | "loading" | "success" | "error";
+  }>({ type: "none", status: "idle" });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -321,6 +456,7 @@ const ProductDisplaySettings = ({
         }
       } catch (error) {
         console.error("Erro ao carregar configurações:", error);
+        toast.error("Não foi possível carregar as configurações");
       } finally {
         setLoading(false);
       }
@@ -337,17 +473,73 @@ const ProductDisplaySettings = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const addNewSection = () => {
-    const newSection: ProductSection = {
-      id: `section-${Date.now()}-${counterRef.current++}`,
-      title: "Nova Seção",
-      type: "category",
-      active: true,
-      order: sections.length,
-      productIds: [],
-      tags: [],
-    };
-    setSections([...sections, newSection]);
+  const updateAllDisplaySections = async (
+    sectionsToUpdate: DisplaySection[]
+  ) => {
+    setLoading(true);
+    try {
+      const payload = sectionsToUpdate.map((section, index) => ({
+        ...section,
+        order: index,
+        productIds: Array.isArray(section.productIds) ? section.productIds : [],
+        tags: Array.isArray(section.tags) ? section.tags : [],
+      }));
+      await updateAllSectionsApi(payload);
+      toast.success("Seções atualizadas com sucesso");
+      await reloadSections();
+    } catch (error) {
+      toast.error(`Erro ao atualizar seções: ${(error as Error).message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadSections = async () => {
+    setLoading(true);
+    try {
+      const savedSettings = await getDisplaySettings();
+      if (savedSettings && Array.isArray(savedSettings)) {
+        const parsedSettings = savedSettings.map((section) => ({
+          ...section,
+          productIds:
+            section.productIds && typeof section.productIds === "string"
+              ? JSON.parse(section.productIds)
+              : [],
+          tags:
+            section.tags && typeof section.tags === "string"
+              ? JSON.parse(section.tags)
+              : [],
+        }));
+        setSections(parsedSettings);
+      }
+    } catch (error) {
+      toast.error("Erro ao recarregar seções" + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addNewSection = async () => {
+    setCurrentOperation({ type: "create", status: "loading" });
+    try {
+      const newSection = {
+        title: "Nova Seção",
+        type: "category" as const,
+        active: true,
+        order: sections.length,
+        productIds: JSON.stringify([]),
+        tags: JSON.stringify([]),
+        startDate: null as Date | null,
+        endDate: null as Date | null,
+      };
+      await createDisplaySection(newSection);
+      setCurrentOperation({ type: "create", status: "success" });
+      toast.success("Nova seção criada com sucesso");
+      await reloadSections();
+    } catch (error) {
+      toast.error("Erro ao criar nova seção" + (error as Error).message);
+      setCurrentOperation({ type: "create", status: "error" });
+    }
   };
 
   const updateSectionTitle = (index: number, title: string) => {
@@ -363,7 +555,7 @@ const ProductDisplaySettings = ({
     const updatedSections = [...sections];
     updatedSections[index].type = type;
     if (type === "category") {
-      updatedSections[index].productIds = [];
+      updatedSections[index].productIds = "[]";
     } else {
       updatedSections[index].categoryId = undefined;
     }
@@ -396,15 +588,20 @@ const ProductDisplaySettings = ({
     const updatedSections = [...sections];
     const section = updatedSections[sectionIndex];
 
-    // Garantir que productIds seja sempre um array
     if (!Array.isArray(section.productIds)) {
-      section.productIds = [];
+      section.productIds = JSON.stringify([]);
     }
 
-    if (section.productIds.includes(productId)) {
-      section.productIds = section.productIds.filter((id) => id !== productId);
+    const productIdsArray = section.productIds
+      ? JSON.parse(section.productIds)
+      : [];
+    if (productIdsArray.includes(productId)) {
+      section.productIds = JSON.stringify(
+        productIdsArray.filter((id: string) => id !== productId)
+      );
     } else {
-      section.productIds.push(productId);
+      productIdsArray.push(productId);
+      section.productIds = JSON.stringify(productIdsArray);
     }
 
     setSections(updatedSections);
@@ -416,10 +613,42 @@ const ProductDisplaySettings = ({
     setSections(updatedSections);
   };
 
-  const removeSection = (index: number) => {
-    const updatedSections = [...sections];
-    updatedSections.splice(index, 1);
-    setSections(updatedSections);
+  const removeSection = async (index: number) => {
+    const sectionToDelete = sections[index];
+
+    if (!sectionToDelete.id || sectionToDelete.id.startsWith("section-")) {
+      const updatedSections = [...sections];
+      updatedSections.splice(index, 1);
+      setSections(updatedSections);
+      return;
+    }
+
+    if (
+      !confirm(
+        `Tem certeza que deseja excluir a seção "${sectionToDelete.title}"?`
+      )
+    ) {
+      return;
+    }
+
+    setCurrentOperation({
+      type: "delete",
+      sectionId: sectionToDelete.id,
+      index,
+      status: "loading",
+    });
+    try {
+      await deleteDisplaySection(sectionToDelete.id);
+      const updatedSections = [...sections];
+      updatedSections.splice(index, 1);
+      setSections(updatedSections);
+      setCurrentOperation({ type: "delete", status: "success" });
+      toast.success("Seção excluída com sucesso");
+    } catch (error) {
+      console.error("Erro ao excluir seção:", error);
+      toast.error("Erro ao excluir seção");
+      setCurrentOperation({ type: "delete", status: "error" });
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -435,34 +664,56 @@ const ProductDisplaySettings = ({
     }
   };
 
-  const saveSettings = async () => {
-    if (loading) return;
+  const saveSection = async (index: number) => {
+    const section = sections[index];
+    if (!section) return;
 
-    const formattedSections = sections.map((section, index) => ({
-      id: section.id,
-      title: section.title,
-      type: section.type,
-      active: section.active,
-      categoryId: section.categoryId || null,
-      order: index,
-      startDate: section.startDate ? new Date(section.startDate) : null,
-      endDate: section.endDate ? new Date(section.endDate) : null,
-      productIds: Array.isArray(section.productIds)
-        ? JSON.stringify(section.productIds)
-        : null,
-      tags: Array.isArray(section.tags) ? JSON.stringify(section.tags) : null,
-    }));
+    setCurrentOperation({
+      type: "update",
+      sectionId: section.id,
+      index,
+      status: "loading",
+    });
 
-    setLoading(true);
     try {
-      await saveDisplaySettings(formattedSections);
-      toast.success("Configurações salvas com sucesso");
+      const sectionData = {
+        title: section.title,
+        type: section.type,
+        active: section.active,
+        categoryId: section.categoryId || null,
+        order: index,
+        startDate: section.startDate ? new Date(section.startDate) : null,
+        endDate: section.endDate ? new Date(section.endDate) : null,
+        productIds: Array.isArray(section.productIds) ? section.productIds : [],
+        tags: Array.isArray(section.tags) ? section.tags : [],
+      };
+
+      await updateDisplaySection(section.id, {
+        ...sectionData,
+        productIds: JSON.stringify(sectionData.productIds),
+        tags: JSON.stringify(sectionData.tags),
+      });
+      setCurrentOperation({
+        type: "update",
+        sectionId: section.id,
+        index,
+        status: "success",
+      });
+      toast.success(`Seção "${section.title}" atualizada com sucesso`);
     } catch (error) {
-      console.error("Erro ao salvar configurações:", error);
-      toast.error("Erro ao salvar configurações");
-    } finally {
-      setLoading(false);
+      console.error("Erro ao atualizar seção:", error);
+      toast.error("Erro ao atualizar seção");
+      setCurrentOperation({
+        type: "update",
+        sectionId: section.id,
+        index,
+        status: "error",
+      });
     }
+  };
+
+  const saveAllSections = async () => {
+    await updateAllDisplaySections(sections);
   };
 
   return (
@@ -492,21 +743,41 @@ const ProductDisplaySettings = ({
           >
             <div className="space-y-4">
               {sections.map((section, index) => (
-                <SortableItem
-                  key={section.id}
-                  section={section}
-                  index={index}
-                  updateSectionTitle={updateSectionTitle}
-                  updateSectionType={updateSectionType}
-                  updateSectionCategory={updateSectionCategory}
-                  updateSectionDate={updateSectionDate}
-                  updateSectionTags={updateSectionTags}
-                  toggleProductSelection={toggleProductSelection}
-                  toggleSectionActive={toggleSectionActive}
-                  removeSection={removeSection}
-                  categories={categories}
-                  products={products}
-                />
+                <div key={section.id} className="space-y-2">
+                  <SortableItem
+                    section={section}
+                    index={index}
+                    updateSectionTitle={updateSectionTitle}
+                    updateSectionType={updateSectionType}
+                    updateSectionCategory={updateSectionCategory}
+                    updateSectionDate={updateSectionDate}
+                    updateSectionTags={updateSectionTags}
+                    toggleProductSelection={toggleProductSelection}
+                    toggleSectionActive={toggleSectionActive}
+                    removeSection={removeSection}
+                    categories={categories}
+                    products={products}
+                  />
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={() => saveSection(index)}
+                      size="sm"
+                      disabled={
+                        loading ||
+                        (currentOperation.status === "loading" &&
+                          currentOperation.type === "update" &&
+                          currentOperation.index === index)
+                      }
+                      variant="outline"
+                    >
+                      {currentOperation.status === "loading" &&
+                      currentOperation.type === "update" &&
+                      currentOperation.index === index
+                        ? "Salvando..."
+                        : "Salvar Seção"}
+                    </Button>
+                  </div>
+                </div>
               ))}
               {sections.length === 0 && (
                 <div className="text-center p-8 border border-dashed rounded-lg">
@@ -521,11 +792,17 @@ const ProductDisplaySettings = ({
         </DndContext>
       </div>
 
-      <CardFooter className="flex justify-end pt-4 border-t">
-        <Button onClick={saveSettings} disabled={loading}>
-          {loading ? "Salvando..." : "Salvar Configurações"}
-        </Button>
-      </CardFooter>
+      {sections.length > 1 && (
+        <CardFooter className="flex justify-between pt-4 border-t">
+          <Button
+            onClick={saveAllSections}
+            disabled={loading}
+            variant="outline"
+          >
+            {loading ? "Salvando..." : "Salvar Todas as Seções"}
+          </Button>
+        </CardFooter>
+      )}
     </div>
   );
 };
