@@ -588,21 +588,36 @@ const ProductDisplaySettings = ({
     const updatedSections = [...sections];
     const section = updatedSections[sectionIndex];
 
-    if (!Array.isArray(section.productIds)) {
-      section.productIds = JSON.stringify([]);
+    // Garantir que section.productIds seja tratado corretamente, independentemente do formato
+    let productIdsArray: string[] = [];
+
+    // Verificar se é um array diretamente
+    if (Array.isArray(section.productIds)) {
+      productIdsArray = section.productIds;
+    }
+    // Se for string, tentar fazer o parse
+    else if (typeof section.productIds === "string") {
+      try {
+        productIdsArray = JSON.parse(section.productIds);
+        // Garantir que o resultado é um array
+        if (!Array.isArray(productIdsArray)) {
+          productIdsArray = [];
+        }
+      } catch (error) {
+        console.error("Erro ao processar productIds:", error);
+        productIdsArray = [];
+      }
     }
 
-    const productIdsArray = section.productIds
-      ? JSON.parse(section.productIds)
-      : [];
+    // Alternar a seleção do produto
     if (productIdsArray.includes(productId)) {
-      section.productIds = JSON.stringify(
-        productIdsArray.filter((id: string) => id !== productId)
-      );
+      productIdsArray = productIdsArray.filter((id) => id !== productId);
     } else {
       productIdsArray.push(productId);
-      section.productIds = JSON.stringify(productIdsArray);
     }
+
+    // Atualizar section.productIds com o novo array
+    section.productIds = JSON.stringify(productIdsArray);
 
     setSections(updatedSections);
   };
