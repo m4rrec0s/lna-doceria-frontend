@@ -11,7 +11,6 @@ import { Footer } from "./components/footer";
 import Header from "./components/header";
 import { Product } from "./types/product";
 
-// Definição dos tipos
 interface DisplaySection {
   id: string;
   title: string;
@@ -59,7 +58,10 @@ export default function Home() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const sections = data?.pages.flatMap((page) => page.sections) || [];
+  const sections =
+    data?.pages
+      .flatMap((page) => page.sections)
+      .filter((section) => section.active) || [];
 
   console.log("Sections:", sections);
 
