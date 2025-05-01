@@ -1,18 +1,18 @@
 "use client";
 
-import { useEasterTheme } from "../contexts/EasterThemeContext";
-import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// import { useEasterTheme } from "../contexts/EasterThemeContext";
+
+const queryClient = new QueryClient();
 
 export default function LayoutClient({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { forceApplyTheme } = useEasterTheme();
+  // const { isEasterTheme } = useEasterTheme();
 
-  useEffect(() => {
-    forceApplyTheme();
-  }, [forceApplyTheme]);
-
-  return <>{children}</>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }

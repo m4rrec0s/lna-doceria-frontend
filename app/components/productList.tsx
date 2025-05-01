@@ -28,10 +28,6 @@ const ProductList = ({
   error,
   sectionId,
 }: ProductListProps) => {
-  if (!loading && !error && (!products || products.length === 0)) {
-    return null;
-  }
-
   if (loading) {
     return (
       <section className="flex justify-center items-center h-full">
@@ -71,7 +67,7 @@ const ProductList = ({
         )}
       </div>
       <div>
-        {products.length > 0 ? (
+        {products && products.length > 0 ? (
           <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
             {products.map((product: Product) => (
               <ProductItem
@@ -82,7 +78,9 @@ const ProductList = ({
           </ul>
         ) : (
           <div className="w-full flex justify-center flex-grow p-6">
-            <span className="text-zinc-400">Nenhum produto encontrado</span>
+            <span className="text-zinc-400">
+              Nenhum produto encontrado nesta seção
+            </span>
           </div>
         )}
       </div>

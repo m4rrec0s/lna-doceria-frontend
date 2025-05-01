@@ -328,28 +328,56 @@ export const useApi = () => {
     }
   };
 
-  const getDisplaySettings = async () => {
+  interface DisplaySettingsRequest {
+    page: number;
+    limit: number;
+  }
+
+  interface DisplaySettingsResponse {
+    sections: DisplaySection[];
+    total: number;
+    page: number;
+    limit: number;
+    hasMore: boolean;
+  }
+
+  const getDisplaySettings = async ({
+    page,
+    limit,
+  }: DisplaySettingsRequest): Promise<DisplaySettingsResponse> => {
+    setLoading(true);
     try {
-      const response = await axiosClient.get("/display-settings");
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      throw new Error("Formato de dados inválido");
-    } catch (error: unknown) {
+      const response = await axiosClient.get("/display-settings", {
+        params: { page, limit },
+      });
+
+      const processedSections = response.data.sections.map(
+        (section: DisplaySection) => ({
+          ...section,
+          productIds: section.productIds ? JSON.parse(section.productIds) : [],
+          tags: section.tags ? JSON.parse(section.tags) : [],
+        })
+      );
+
+      return {
+        ...response.data,
+        sections: processedSections,
+      };
+    } catch (error) {
       setError(
         "Erro ao buscar configurações de exibição - " + (error as Error).message
       );
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Método para atualizar uma única seção
   const updateDisplaySection = async (
     sectionId: string,
     sectionData: Partial<DisplaySection>
   ) => {
     try {
-      // Garantindo que os objetos sejam convertidos para string JSON
       const formattedData = {
         ...sectionData,
         productIds: Array.isArray(sectionData.productIds)
@@ -427,7 +455,9 @@ export const useApi = () => {
       const response = await axiosClient.put("/display-sections", payload);
       return response.data;
     } catch (error) {
-      setError("Erro ao atualizar todas as seções - " + (error as Error).message);
+      setError(
+        "Erro ao atualizar todas as seções - " + (error as Error).message
+      );
       throw error;
     }
   };

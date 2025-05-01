@@ -23,12 +23,14 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.className}>
         <AuthProvider>
-          <EasterThemeProvider>
-            <CartProvider>
-              <LayoutClient>{children}</LayoutClient>
-              <Toaster />
-            </CartProvider>
-          </EasterThemeProvider>
+          <LayoutClient>
+            <EasterThemeProvider>
+              <CartProvider>
+                <LayoutClient>{children}</LayoutClient>
+                <Toaster />
+              </CartProvider>
+            </EasterThemeProvider>
+          </LayoutClient>
         </AuthProvider>
       </body>
     </html>

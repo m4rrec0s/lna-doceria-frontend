@@ -9,6 +9,7 @@ export interface Product {
   discount?: number;
   stock?: number;
   imageUrl: string;
+  active: boolean;
   createdAt: string;
   updatedAt: string;
   categories: Category[];

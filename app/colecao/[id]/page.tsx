@@ -28,7 +28,7 @@ export default function CollectionPage({
       try {
         setLoading(true);
         // Obter configurações de exibição
-        const settings = await getDisplaySettings();
+        const settings = await getDisplaySettings({ page: 1, limit: 100 });
         if (!Array.isArray(settings)) {
           throw new Error("Formato de configuração inválido");
         }
