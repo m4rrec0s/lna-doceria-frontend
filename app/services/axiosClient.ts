@@ -5,10 +5,10 @@ const urls = [
   "http://localhost:8080",
 ];
 
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || urls[0];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || urls[0];
 
 const axiosClient = axios.create({
-  baseURL: urls[1],
+  baseURL: API_URL,
 });
 
 export default axiosClient;

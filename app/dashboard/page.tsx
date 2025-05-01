@@ -42,6 +42,7 @@ import { EditFlavorDialog } from "../components/dashboard/EditFlavorDialog";
 import { Flavor } from "../types/flavor";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Badge } from "../components/ui/badge";
+import { toast } from "sonner";
 
 const DashBoard = () => {
   const { user } = useAuth();
@@ -53,12 +54,14 @@ const DashBoard = () => {
     loading,
     error,
     getProducts,
+    getAllProducts,
     getCategories,
     getFlavors,
     updateCategory,
     deleteProduct,
     deleteCategory,
     deleteFlavor,
+    updateProduct,
   } = useApi();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -93,7 +96,7 @@ const DashBoard = () => {
         filterCategory && filterCategory !== "all" ? filterCategory : undefined,
     };
 
-    getProducts(params);
+    getAllProducts(params);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm, filterCategory]);
 
@@ -217,6 +220,32 @@ const DashBoard = () => {
     }
   };
 
+  const handleToggleActive = async (product: Product) => {
+    try {
+      const newActiveState = !product.active;
+
+      await updateProduct(product.id, {
+        active: newActiveState,
+      });
+
+      toast.success(
+        `Produto ${newActiveState ? "ativado" : "desativado"} com sucesso!`
+      );
+
+      getAllProducts({
+        page: currentPage,
+        name: searchTerm || undefined,
+        categoryId:
+          filterCategory && filterCategory !== "all"
+            ? filterCategory
+            : undefined,
+      });
+    } catch (error) {
+      console.error("Erro ao alternar estado do produto:", error);
+      toast.error("Erro ao alterar o status do produto");
+    }
+  };
+
   if (!user) {
     return <div>Você precisa estar logado para acessar esta página.</div>;
   }
@@ -292,6 +321,7 @@ const DashBoard = () => {
                 error={error}
                 onEdit={handleEditProduct}
                 onDelete={handleDeleteProduct}
+                onToggleActive={handleToggleActive}
                 pagination={pagination}
                 onPageChange={handlePageChange}
               />

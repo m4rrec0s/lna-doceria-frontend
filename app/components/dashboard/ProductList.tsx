@@ -5,7 +5,14 @@ import { LoadingDots } from "../LoadingDots";
 import { Button } from "../ui/button";
 import { formatCurrency } from "../../helpers/formatCurrency";
 import { formatDate } from "../../helpers/formatDate";
-import { Edit, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { Badge } from "../ui/badge";
 
 interface ProductListProps {
@@ -14,6 +21,7 @@ interface ProductListProps {
   error: string | null;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
+  onToggleActive?: (product: Product) => void;
   pagination?: {
     total: number;
     page: number;
@@ -29,6 +37,7 @@ const ProductList = ({
   error,
   onEdit,
   onDelete,
+  onToggleActive,
   pagination,
   onPageChange,
 }: ProductListProps) => {
@@ -94,6 +103,25 @@ const ProductList = ({
                   >
                     <Edit size={16} />
                   </Button>
+                  {onToggleActive && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className={
+                        product.active ? "text-green-500" : "text-gray-500"
+                      }
+                      onClick={() => onToggleActive(product)}
+                      title={
+                        product.active ? "Desativar produto" : "Ativar produto"
+                      }
+                    >
+                      {product.active ? (
+                        <Eye size={16} />
+                      ) : (
+                        <EyeOff size={16} />
+                      )}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"

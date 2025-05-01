@@ -110,6 +110,40 @@ export const useApi = () => {
     }
   };
 
+  const getAllProducts = async (
+    params: PaginationParams = {},
+    forceRefresh = false
+  ) => {
+    const cacheKey = getCacheKey(params);
+
+    if (!forceRefresh && cache.products.has(cacheKey)) {
+      setProducts(cache.products.get(cacheKey)!);
+      return cache.products.get(cacheKey)!;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      const { data } = await axiosClient.get<PaginatedResponse<Product>>(
+        "/products/all",
+        { params }
+      );
+      setProducts(data.data);
+      setPagination(data.pagination);
+      cache.products.set(cacheKey, data.data);
+      return data.data;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erro desconhecido ao buscar produtos";
+      setError(errorMessage);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getProductById = async (id: string) => {
     try {
       setLoading(true);
@@ -470,6 +504,7 @@ export const useApi = () => {
     loading,
     pagination,
     getProducts,
+    getAllProducts,
     getProductById,
     createProduct,
     updateProduct,
