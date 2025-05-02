@@ -157,6 +157,23 @@ export const useApi = () => {
     }
   };
 
+  const getProductsByCategoryId = async (categoryId: string) => {
+    try {
+      setLoading(true);
+      const response = await axiosClient.get(
+        `/products/category/${categoryId}`
+      );
+      return response.data;
+    } catch (error: unknown) {
+      setError(
+        "Erro ao buscar produtos por categoria - " + (error as Error).message
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const createProduct = async (productData: FormData) => {
     setLoading(true);
     try {
@@ -407,6 +424,21 @@ export const useApi = () => {
     }
   };
 
+  const getDisplaySettingsById = async (id: string) => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.get(`/display-sections/${id}`);
+      return response.data;
+    } catch (error) {
+      setError(
+        "Erro ao buscar configurações de exibição - " + (error as Error).message
+      );
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateDisplaySection = async (
     sectionId: string,
     sectionData: Partial<DisplaySection>
@@ -433,12 +465,10 @@ export const useApi = () => {
     }
   };
 
-  // Método para criar uma nova seção
   const createDisplaySection = async (
     sectionData: Omit<DisplaySection, "id">
   ) => {
     try {
-      // Garantindo que os objetos sejam convertidos para string JSON
       const formattedData = {
         ...sectionData,
         productIds: Array.isArray(sectionData.productIds)
@@ -460,7 +490,6 @@ export const useApi = () => {
     }
   };
 
-  // Método para excluir uma seção
   const deleteDisplaySection = async (sectionId: string) => {
     try {
       const response = await axiosClient.delete(
@@ -473,10 +502,8 @@ export const useApi = () => {
     }
   };
 
-  // Atualização em massa de seções
   const updateAllSectionsApi = async (sections: ProductSection[]) => {
     try {
-      // Garante que productIds e tags sejam serializados corretamente
       const payload = sections.map((section) => ({
         ...section,
         productIds: Array.isArray(section.productIds)
@@ -506,6 +533,7 @@ export const useApi = () => {
     getProducts,
     getAllProducts,
     getProductById,
+    getProductsByCategoryId,
     createProduct,
     updateProduct,
     deleteProduct,
@@ -519,6 +547,7 @@ export const useApi = () => {
     deleteFlavor,
     getFlavorById,
     getDisplaySettings,
+    getDisplaySettingsById,
     updateDisplaySection,
     createDisplaySection,
     deleteDisplaySection,

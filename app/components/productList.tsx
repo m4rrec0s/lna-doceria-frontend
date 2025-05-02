@@ -5,6 +5,7 @@ import { Product } from "../types/product";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { Category } from "../types/category";
 
 interface ProductListProps {
   title?: string;
@@ -19,6 +20,7 @@ interface ProductListProps {
   };
   onPageChange?: (page: number) => void;
   sectionId?: string;
+  category: Category | null;
 }
 
 const ProductList = ({
@@ -27,6 +29,7 @@ const ProductList = ({
   loading,
   error,
   sectionId,
+  category,
 }: ProductListProps) => {
   if (loading) {
     return (
@@ -43,7 +46,7 @@ const ProductList = ({
   return (
     <section className="w-full">
       <div className="flex items-center mb-6 justify-between px-8">
-        <h1 className="text-2xl max-w-[50%]">
+        <h1 className="text-2xl max-w-[50%] ">
           {(() => {
             const words = title.split(" ");
             if (words.length === 0) return title;
@@ -55,10 +58,15 @@ const ProductList = ({
               </>
             );
           })()}
+          {category && category.sellingType === "package" && (
+            <span className="inline-flex items-center sm:ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              Pacote com {category.packageSizes} unidades
+            </span>
+          )}
         </h1>
         {sectionId && (
           <Link
-            href={`/colecao/${sectionId}`}
+            href={`/collection/${sectionId}`}
             className="text-sm text-primary flex items-center gap-1"
           >
             <span>Ver todos</span>

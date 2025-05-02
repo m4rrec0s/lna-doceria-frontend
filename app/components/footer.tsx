@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Instagram, Facebook, Twitter } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
+// import { Input } from "@/app/components/ui/input";
 
 export function Footer() {
   return (
     <footer className="bg-white border-t">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-pink-500">LNA Doceria</h3>
             <p className="text-gray-600 text-sm">
@@ -122,7 +122,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-4">
               Newsletter
             </h3>
@@ -139,7 +139,7 @@ export function Footer() {
                 Inscrever-se
               </Button>
             </form>
-          </div>
+          </div> */}
         </div>
 
         <div className="border-t mt-12 pt-8 text-center text-sm text-gray-500">

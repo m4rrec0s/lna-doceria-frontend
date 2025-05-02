@@ -1,7 +1,7 @@
 import React from "react";
 import { Product } from "../../types/product";
 import Image from "next/image";
-import { LoadingDots } from "../LoadingDots";
+// import { LoadingDots } from "../LoadingDots";
 import { Button } from "../ui/button";
 import { formatCurrency } from "../../helpers/formatCurrency";
 import { formatDate } from "../../helpers/formatDate";
@@ -41,10 +41,6 @@ const ProductList = ({
   pagination,
   onPageChange,
 }: ProductListProps) => {
-  if (loading) {
-    return <LoadingDots text="Carregando produtos..." />;
-  }
-
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -99,6 +95,8 @@ const ProductList = ({
                   <Button
                     size="sm"
                     variant="outline"
+                    title="Editar produto"
+                    disabled={loading}
                     onClick={() => onEdit(product)}
                   >
                     <Edit size={16} />
@@ -107,6 +105,7 @@ const ProductList = ({
                     <Button
                       size="sm"
                       variant="outline"
+                      disabled={loading}
                       className={
                         product.active ? "text-green-500" : "text-gray-500"
                       }
@@ -126,6 +125,8 @@ const ProductList = ({
                     size="sm"
                     variant="outline"
                     className="text-rose-500"
+                    disabled={loading}
+                    title="Excluir produto"
                     onClick={() => onDelete(product.id)}
                   >
                     <Trash2 size={16} />

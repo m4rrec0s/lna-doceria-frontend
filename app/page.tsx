@@ -10,6 +10,7 @@ import { WhatsAppButton } from "./components/whatsappButton";
 import { Footer } from "./components/footer";
 import Header from "./components/header";
 import { Product } from "./types/product";
+import { Category } from "./types/category";
 
 interface DisplaySection {
   id: string;
@@ -23,6 +24,7 @@ interface DisplaySection {
   endDate?: Date | null;
   tags?: string | null;
   products?: Product[];
+  category?: Category | null;
 }
 
 interface DisplaySettingsResponse {
@@ -80,6 +82,7 @@ export default function Home() {
                 key={section.id}
                 title={section.title}
                 products={section.products || []}
+                category={section.category ?? null}
                 loading={false}
                 error={null}
                 sectionId={section.id}

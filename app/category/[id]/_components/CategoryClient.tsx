@@ -17,7 +17,7 @@ interface CategoryClientProps {
 }
 
 export default function CategoryClient({ categoryId }: CategoryClientProps) {
-  const { getProducts, getCategories } = useApi();
+  const { getProductsByCategoryId, getCategories } = useApi();
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,13 +41,12 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
         if (foundCategory) {
           setCategory(foundCategory);
         }
-
-        const categoryProducts = await getProducts({
-          categoryId: categoryId,
-          per_page: 50,
-        });
-
-        setProducts(categoryProducts);
+        const response = await getProductsByCategoryId(categoryId);
+        if (response && response.data) {
+          setProducts(response.data);
+        } else {
+          setProducts([]);
+        }
       } catch (err) {
         console.error("Erro ao buscar dados da categoria:", err);
         setError("Não foi possível carregar os produtos desta categoria.");
@@ -58,7 +57,7 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
 
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [categoryId]);
 
   return (
     <main className="w-screen min-h-screen flex flex-col justify-center items-center">
