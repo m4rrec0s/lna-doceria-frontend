@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { use, useEffect, useState } from "react";
@@ -30,14 +29,12 @@ export default function CollectionPage({
       try {
         setLoading(true);
 
-        // Usar getDisplaySettingsById para buscar diretamente a seção pelo ID
         const sectionData = await getDisplaySettingsById(id);
 
         if (!sectionData) {
           throw new Error("Seção não encontrada");
         }
 
-        // Normalizar dados da seção
         const normalizedSection = {
           ...sectionData,
           productIds: sectionData.productIds
@@ -111,6 +108,7 @@ export default function CollectionPage({
     };
 
     fetchSectionData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) {
