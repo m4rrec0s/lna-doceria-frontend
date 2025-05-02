@@ -6,6 +6,7 @@ import { useApi } from "../../../hooks/useApi";
 import { Product } from "../../../types/product";
 import { Category } from "../../../types/category";
 import { motion } from "framer-motion";
+import { LoadingDots } from "@/app/components/LoadingDots";
 import { fadeInUp } from "../../../utils/animations";
 import ProductItem from "@/app/components/productItem";
 import { Button } from "@/app/components/ui/button";
@@ -60,7 +61,7 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
   }, [categoryId]);
 
   return (
-    <main className="w-screen min-h-screen flex flex-col justify-center items-center">
+    <main className="w-screen min-h-screen">
       <Header />
       <div className="w-full">
         <div className="container mx-auto px-8 py-4">
@@ -69,58 +70,58 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
           </Button>
         </div>
       </div>
-      <section className="px-8">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.3 },
-            },
-          }}
-          className="mb-8"
-        >
-          <motion.h1
-            className="text-3xl md:text-4xl font-bold mb-2"
-            variants={fadeInUp}
+      {loading ? (
+        <>
+          <LoadingDots />
+        </>
+      ) : (
+        <section className="px-8 flex flex-col justify-center items-center h-full w-full">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.3 },
+              },
+            }}
+            className="mb-8"
           >
-            {category?.name || "Categoria"}
-          </motion.h1>
-        </motion.div>
+            <motion.h1
+              className="text-3xl md:text-4xl font-bold mb-2"
+              variants={fadeInUp}
+            >
+              {category?.name || "Categoria"}
+            </motion.h1>
+          </motion.div>
 
-        {error ? (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        ) : (
-          <div className="flex justify-center w-full px-4 sm:px-6 md:px-8">
-            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8 w-full max-w-screen-xl mx-auto">
-              {loading ? (
-                <li className="text-center col-span-full">
-                  Carregando produtos...
-                </li>
-              ) : (
-                products.map((product) => (
+          {error ? (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          ) : (
+            <div className="flex justify-center w-full px-4 sm:px-6 md:px-8">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8 w-full max-w-screen-xl mx-auto">
+                {products.map((product) => (
                   <ProductItem key={product.id} product={product} />
-                ))
-              )}
-            </ul>
-          </div>
-        )}
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
 
-        {!loading && products.length === 0 && !error && (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-medium mb-4">
-              Nenhum produto encontrado
-            </h2>
-            <p className="text-gray-600">
-              Não encontramos produtos nesta categoria no momento.
-            </p>
-          </div>
-        )}
-      </section>
+      {!loading && products.length === 0 && !error && (
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-medium mb-4">
+            Nenhum produto encontrado
+          </h2>
+          <p className="text-gray-600">
+            Não encontramos produtos nesta categoria no momento.
+          </p>
+        </div>
+      )}
     </main>
   );
 }
