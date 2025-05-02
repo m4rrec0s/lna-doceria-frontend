@@ -9,8 +9,8 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useCart } from "../context/CartContext";
@@ -26,10 +26,18 @@ interface HeaderProps {
 const Header = ({ showSearch = false }: HeaderProps) => {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSearchOpen, setIsSearchOpen] = useState(showSearch);
   const [searchTerm, setSearchTerm] = useState("");
   const { items, isCartOpen, setIsCartOpen } = useCart();
   const itemCount = items.length;
+
+  useEffect(() => {
+    const query = searchParams.get("q");
+    if (query) {
+      setSearchTerm(query);
+    }
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +49,6 @@ const Header = ({ showSearch = false }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo and Title */}
         <Link href="/" className="flex items-center gap-2 mr-4">
           <Image
             src="/logo.png"
@@ -53,7 +60,6 @@ const Header = ({ showSearch = false }: HeaderProps) => {
           <span className="text-2xl font-bold text-pink-500">LNA Doceria</span>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           {pathname !== "/" && (
             <Link
@@ -77,31 +83,36 @@ const Header = ({ showSearch = false }: HeaderProps) => {
           </Link>
         </nav>
 
-        {/* Search Bar - Desktop */}
-        <form onSubmit={handleSearch}>
+        <form onSubmit={handleSearch} className="hidden md:block">
           <div className="hidden md:flex items-center relative max-w-xs w-full mx-4">
             <Input
               type="search"
               placeholder="Buscar doces..."
+              value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-8 border-pink-200 focus-visible:ring-pink-500"
             />
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              aria-label="Pesquisar"
+              title="Pesquisar"
+            >
+              <Search className="h-4 w-4 text-gray-400" />
+            </button>
           </div>
-          {/* Mobile Search Toggle */}
-          <Button
-            variant="ghost"
-            type="submit"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-          >
-            <Search className="h-5 w-5 text-gray-700" />
-            <span className="sr-only">Buscar</span>
-          </Button>
         </form>
 
-        {/* Actions */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={() => setIsSearchOpen(!isSearchOpen)}
+        >
+          <Search className="h-5 w-5 text-gray-700" />
+          <span className="sr-only">Buscar</span>
+        </Button>
+
         {(pathname === "/" || pathname !== "/dashboard") && (
           <div className="flex items-center space-x-2">
             <Button
@@ -119,7 +130,6 @@ const Header = ({ showSearch = false }: HeaderProps) => {
               <span className="sr-only">Carrinho</span>
             </Button>
 
-            {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -159,7 +169,6 @@ const Header = ({ showSearch = false }: HeaderProps) => {
         )}
       </div>
 
-      {/* Mobile Search Bar - Expandable */}
       <div
         className={cn(
           "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
@@ -171,16 +180,21 @@ const Header = ({ showSearch = false }: HeaderProps) => {
             <Input
               type="search"
               placeholder="Buscar doces..."
+              value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pr-8 border-pink-200 focus-visible:ring-pink-500"
             />
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              aria-label="Pesquisar"
+              title="Pesquisar"
+            >
+              <Search className="h-4 w-4 text-gray-400" />
+            </button>
           </div>
         </form>
       </div>
-
-      {/* Cart Modal */}
-      {/* <CartModal open={isCartOpen} onOpenChange={setIsCartOpen} /> */}
 
       <div className="flex items-center gap-4">
         {!isSearchOpen && (

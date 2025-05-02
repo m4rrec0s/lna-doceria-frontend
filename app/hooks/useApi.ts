@@ -144,6 +144,29 @@ export const useApi = () => {
     }
   };
 
+  const getProductBySearch = async (query: string) => {
+    setLoading(true);
+    setError("");
+    try {
+      const { data } = await axiosClient.get<PaginatedResponse<Product>>(
+        "/search/products",
+        { params: { query } }
+      );
+      setProducts(data.data);
+      setPagination(data.pagination);
+      return data.data;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erro desconhecido ao buscar produtos";
+      setError(errorMessage);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getProductById = async (id: string) => {
     try {
       setLoading(true);
@@ -523,6 +546,26 @@ export const useApi = () => {
     }
   };
 
+  const updateLocalProductState = (
+    productId: string,
+    updates: Partial<Product>
+  ) => {
+    // Atualiza o produto no array de estado atual
+    setProducts((currentProducts) =>
+      currentProducts.map((p) =>
+        p.id === productId ? { ...p, ...updates } : p
+      )
+    );
+
+    // Atualiza o produto em todas as entradas do cache
+    cache.products.forEach((products, key) => {
+      const updatedProducts = products.map((p) =>
+        p.id === productId ? { ...p, ...updates } : p
+      );
+      cache.products.set(key, updatedProducts);
+    });
+  };
+
   return {
     products,
     categories,
@@ -533,6 +576,7 @@ export const useApi = () => {
     getProducts,
     getAllProducts,
     getProductById,
+    getProductBySearch,
     getProductsByCategoryId,
     createProduct,
     updateProduct,
@@ -552,5 +596,6 @@ export const useApi = () => {
     createDisplaySection,
     deleteDisplaySection,
     updateAllSectionsApi,
+    updateLocalProductState, // Exportando a nova função
   };
 };

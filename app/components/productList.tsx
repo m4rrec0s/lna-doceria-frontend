@@ -45,8 +45,8 @@ const ProductList = ({
 
   return (
     <section className="w-full">
-      <div className="flex items-center mb-6 justify-between px-8">
-        <h1 className="text-2xl max-w-[50%] ">
+      <div className="flex items-center mb-6 justify-between">
+        <h1 className="text-2xl max-w-[50%] px-2">
           {(() => {
             const words = title.split(" ");
             if (words.length === 0) return title;
@@ -76,7 +76,7 @@ const ProductList = ({
       </div>
       <div>
         {products && products.length > 0 ? (
-          <ul className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
+          <ul className="flex items-center gap-6 px-2 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden">
             {products.map((product: Product) => (
               <ProductItem
                 key={`${sectionId}-${product.id}`}

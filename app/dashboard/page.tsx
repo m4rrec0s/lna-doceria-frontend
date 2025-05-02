@@ -43,6 +43,7 @@ import { Flavor } from "../types/flavor";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
+import { Skeleton } from "../components/ui/skeleton";
 
 const DashBoard = () => {
   const { user } = useAuth();
@@ -53,7 +54,6 @@ const DashBoard = () => {
     pagination,
     loading,
     error,
-    getProducts,
     getAllProducts,
     getCategories,
     getFlavors,
@@ -180,7 +180,7 @@ const DashBoard = () => {
         filterCategory && filterCategory !== "all" ? filterCategory : undefined,
     };
 
-    getProducts(params);
+    getAllProducts(params);
   };
 
   const handlePageChange = (page: number) => {
@@ -272,7 +272,7 @@ const DashBoard = () => {
               </h2>
               <ProductForm
                 categories={categories}
-                onSubmitSuccess={() => getProducts({ page: 1 })}
+                onSubmitSuccess={() => getAllProducts({ page: 1 })}
               />
             </div>
 
@@ -315,16 +315,24 @@ const DashBoard = () => {
                 <Button type="submit">Buscar</Button>
               </form>
 
-              <ProductList
-                products={products}
-                loading={loading}
-                error={error}
-                onEdit={handleEditProduct}
-                onDelete={handleDeleteProduct}
-                onToggleActive={handleToggleActive}
-                pagination={pagination}
-                onPageChange={handlePageChange}
-              />
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+                </div>
+              ) : (
+                <ProductList
+                  products={products}
+                  loading={loading}
+                  error={error}
+                  onEdit={handleEditProduct}
+                  onDelete={handleDeleteProduct}
+                  onToggleActive={handleToggleActive}
+                  pagination={pagination}
+                  onPageChange={handlePageChange}
+                />
+              )}
             </div>
 
             <EditProductDialog
@@ -332,7 +340,7 @@ const DashBoard = () => {
               categories={categories}
               open={isEditDialogOpen}
               onOpenChange={setIsEditDialogOpen}
-              onSuccess={() => getProducts({ page: currentPage })}
+              onSuccess={() => getAllProducts({ page: currentPage })}
             />
           </TabsContent>
 
@@ -613,6 +621,23 @@ const DashBoard = () => {
         </DialogContent>
       </Dialog>
     </main>
+  );
+};
+
+const ProductSkeleton = () => {
+  return (
+    <Skeleton className="h-16 w-full mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+        </div>
+        <Skeleton className="h-4 w-16" />
+      </div>
+    </Skeleton>
   );
 };
 
