@@ -44,7 +44,7 @@ export default function AboutPage() {
               <MapPin className="w-8 h-8 text-pink-500 mb-4" />
               <h3 className="font-semibold mb-2">Localização</h3>
               <p className="text-gray-600">
-                Atendemos em toda região de São Paulo
+                Sítio Magão Do Bode - Puxinanã - PB
               </p>
             </div>
 
@@ -52,7 +52,7 @@ export default function AboutPage() {
               <Clock className="w-8 h-8 text-pink-500 mb-4" />
               <h3 className="font-semibold mb-2">Horário</h3>
               <p className="text-gray-600">
-                Segunda a Sábado
+                Segunda a Sexta
                 <br />
                 9h às 18h
               </p>
@@ -64,7 +64,7 @@ export default function AboutPage() {
               <p className="text-gray-600">
                 WhatsApp:
                 <br />
-                (11) 99999-9999
+                (83) 98851-1950
               </p>
             </div>
           </section>

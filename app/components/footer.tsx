@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Instagram, Facebook, Twitter } from "lucide-react";
+import { Instagram } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 // import { Input } from "@/app/components/ui/input";
 
@@ -19,11 +19,17 @@ export function Footer() {
                 variant="ghost"
                 size="icon"
                 className="rounded-full h-8 w-8"
+                asChild
               >
-                <Instagram className="h-4 w-4 text-pink-500" />
-                <span className="sr-only">Instagram</span>
+                <Link
+                  href={"https://www.instagram.com/lna.doceria/"}
+                  target="_blank"
+                >
+                  <Instagram className="h-4 w-4 text-pink-500" />
+                  <span className="sr-only">Instagram</span>
+                </Link>
               </Button>
-              <Button
+              {/* <Button
                 variant="ghost"
                 size="icon"
                 className="rounded-full h-8 w-8"
@@ -38,7 +44,7 @@ export function Footer() {
               >
                 <Twitter className="h-4 w-4 text-pink-500" />
                 <span className="sr-only">Twitter</span>
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -68,14 +74,6 @@ export function Footer() {
                   href="#"
                   className="text-gray-600 hover:text-pink-500 text-sm"
                 >
-                  Bolos
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-gray-600 hover:text-pink-500 text-sm"
-                >
                   Doces Especiais
                 </Link>
               </li>
@@ -89,7 +87,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="#"
+                  href="/about"
                   className="text-gray-600 hover:text-pink-500 text-sm"
                 >
                   Sobre Nós
@@ -97,13 +95,13 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/contact"
                   className="text-gray-600 hover:text-pink-500 text-sm"
                 >
                   Contato
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link
                   href="#"
                   className="text-gray-600 hover:text-pink-500 text-sm"
@@ -118,7 +116,7 @@ export function Footer() {
                 >
                   Termos e Condições
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 
