@@ -65,8 +65,6 @@ export default function Home() {
       .flatMap((page) => page.sections)
       .filter((section) => section.active) || [];
 
-  console.log("Sections:", sections);
-
   return (
     <main className="w-full overflow-x-hidden">
       <Header />

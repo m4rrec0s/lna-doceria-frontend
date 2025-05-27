@@ -45,8 +45,17 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           const categoryIds = productItem.categories.map(
             (cat: Category) => cat.id
           );
-          const flavorData = await getFlavors({ categoryId: categoryIds[0] });
-          setFlavors(Array.isArray(flavorData) ? flavorData : []);
+          const allFlavorsArrays = await Promise.all(
+            categoryIds.map((id: string) => getFlavors({ categoryId: id }))
+          );
+          const allFlavors = allFlavorsArrays
+            .flat()
+            .filter((flavor, index, self) =>
+              flavor && flavor.id
+                ? self.findIndex((f) => f.id === flavor.id) === index
+                : false
+            );
+          setFlavors(Array.isArray(allFlavors) ? allFlavors : []);
         }
 
         if (productItem?.category_id) {

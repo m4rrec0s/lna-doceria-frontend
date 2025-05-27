@@ -21,7 +21,6 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { removeItem, updateItemQuantity } = useCart();
 
   const itemTotal = item.price * item.quantity;
-  console.log("Item no CartItem:", item);
 
   const discountedTotal = item.discount
     ? itemTotal - (itemTotal * item.discount) / 100

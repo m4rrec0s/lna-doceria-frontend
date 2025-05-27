@@ -85,16 +85,21 @@ const ProductInfo = ({
       }}
     >
       {categories && (
-        <motion.div variants={fadeInUp} className="flex items-center gap-2 flex-wrap">
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center gap-2 flex-wrap"
+        >
           {categories.map((category) => (
-            <Badge key={category.id} className="text-pink-700 font-bold">
+            <Badge
+              key={category.id}
+              variant={"outline"}
+              className="text-pink-700 font-bold"
+            >
               {category.name}
             </Badge>
           ))}
           {hasDiscount && (
-            <Badge className="bg-pink-500 text-white">
-              {discount}% OFF
-            </Badge>
+            <Badge className="bg-pink-500 text-white">{discount}% OFF</Badge>
           )}
         </motion.div>
       )}
@@ -137,7 +142,8 @@ const ProductInfo = ({
               </span>
             </div>
             <div className="text-sm text-green-500 mt-1">
-              Você economiza {formatCurrency(savedAmount)} ({discount}% de desconto)
+              Você economiza {formatCurrency(savedAmount)} ({discount}% de
+              desconto)
             </div>
           </div>
         ) : (

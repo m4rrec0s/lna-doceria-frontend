@@ -49,10 +49,6 @@ const FlavorForm = ({
     (cat) => cat.sellingType === "package"
   );
 
-  // Adicionar este log para depuração
-  console.log("Todas as categorias:", categories);
-  console.log("Categorias com flavors:", categoriesWithFlavors);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
