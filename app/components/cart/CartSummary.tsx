@@ -45,8 +45,15 @@ const CartSummary: React.FC = () => {
         message += `   - Mix de sabores: ${item.selectedFlavors
           .map((f) => f.name)
           .join(", ")}\n`;
+        if (item.flavorSelectionRules) {
+          message += `   - Regra de sabores: mínimo ${item.flavorSelectionRules.min}, máximo ${item.flavorSelectionRules.max}\n`;
+          message += `   - Quantidade escolhida: ${item.selectedFlavors.length}\n`;
+        }
       } else if (item.flavorId) {
         message += `   - Sabor específico selecionado\n`;
+      } else if (item.flavorSelectionRules && item.flavorSelectionRules.max > 0) {
+        message += `   - Regra de sabores: mínimo ${item.flavorSelectionRules.min}, máximo ${item.flavorSelectionRules.max}\n`;
+        message += `   - Quantidade escolhida: 0\n`;
       }
 
       message += `   - Valor unitário: ${formatCurrency(item.price)}\n`;

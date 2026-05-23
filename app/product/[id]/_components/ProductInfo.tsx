@@ -24,7 +24,7 @@ const ProductInfo = ({
   discount = 0,
 }: ProductInfoProps) => {
   const packageCategory = categories?.find(
-    (cat) => cat.sellingType === "package"
+    (cat) => cat.sellingType === "package",
   );
   const sellingType = packageCategory ? "package" : "unit";
   let packageSizes: number[] = [];
@@ -33,8 +33,8 @@ const ProductInfo = ({
       typeof packageCategory.packageSizes === "string"
         ? JSON.parse(packageCategory.packageSizes)
         : Array.isArray(packageCategory.packageSizes)
-        ? packageCategory.packageSizes
-        : [];
+          ? packageCategory.packageSizes
+          : [];
   }
 
   const hasDiscount = discount > 0;
@@ -44,9 +44,9 @@ const ProductInfo = ({
   const renderSellingInfo = () => {
     if (sellingType === "package" && packageSizes.length > 0) {
       return (
-        <div className="flex items-center gap-2 bg-pink-50 p-3 rounded-md mb-4">
-          <PackageCheck className="text-pink-500" size={22} />
-          <span className="text-sm text-gray-700">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <PackageCheck className="text-amber-700" size={20} />
+          <span className="text-sm text-amber-900">
             Este produto é vendido em pacote{packageSizes.length > 1 ? "s" : ""}{" "}
             de {packageSizes.join(", ")} unidades
             {packageSizes.length > 1 ? " cada" : ""}
@@ -57,9 +57,9 @@ const ProductInfo = ({
 
     if (sellingType === "unit") {
       return (
-        <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-md mb-4">
-          <Package2 className="text-blue-500" size={22} />
-          <span className="text-sm text-gray-700">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
+          <Package2 className="text-sky-700" size={20} />
+          <span className="text-sm text-sky-900">
             Este produto é vendido por unidade
           </span>
         </div>
@@ -71,7 +71,7 @@ const ProductInfo = ({
 
   return (
     <motion.div
-      className="space-y-4"
+      className="space-y-4 rounded-2xl border border-rose-100 bg-white p-6 shadow-sm"
       initial="hidden"
       animate="visible"
       variants={{
@@ -93,20 +93,20 @@ const ProductInfo = ({
             <Badge
               key={category.id}
               variant={"outline"}
-              className="text-pink-700 font-bold"
+              className="border-rose-200 bg-rose-50 font-semibold text-rose-700"
             >
               {category.name}
             </Badge>
           ))}
           {hasDiscount && (
-            <Badge className="bg-pink-500 text-white">{discount}% OFF</Badge>
+            <Badge className="bg-rose-400 text-rose-950">{discount}% OFF</Badge>
           )}
         </motion.div>
       )}
 
       <motion.h1
         variants={fadeInUp}
-        className="text-3xl font-bold flex items-center gap-2"
+        className="flex items-center gap-2 text-3xl font-bold text-zinc-900"
       >
         {name}
         <motion.span
@@ -129,40 +129,35 @@ const ProductInfo = ({
 
       <motion.div
         variants={fadeInUp}
-        className="text-2xl font-semibold text-pink-600"
+        className="text-2xl font-semibold text-rose-700"
       >
         {hasDiscount ? (
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 line-through mr-2 text-lg">
+              <span className="mr-2 text-lg text-zinc-500 line-through">
                 {formatCurrency(price)}
               </span>
-              <span className="text-2xl font-semibold text-pink-600">
+              <span className="text-2xl font-semibold text-rose-700">
                 {formatCurrency(discountedPrice)}
               </span>
             </div>
-            <div className="text-sm text-green-500 mt-1">
+            <div className="mt-1 text-sm text-rose-700">
               Você economiza {formatCurrency(savedAmount)} ({discount}% de
               desconto)
             </div>
           </div>
         ) : (
-          <span className="text-2xl font-semibold text-pink-600">
+          <span className="text-2xl font-semibold text-rose-700">
             {formatCurrency(price)}
           </span>
         )}
       </motion.div>
 
-      <motion.div variants={fadeInUp} className="p-4 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-lg">📝</span>
-          <span className="font-medium">Descrição</span>
-        </div>
-        <p className="opacity-60">{description}</p>
-      </motion.div>
-
-      <motion.div variants={fadeInUp} className="flex items-center gap-2">
-        <span className="text-sm font-medium"></span>
+      <motion.div
+        variants={fadeInUp}
+        className="rounded-lg border border-zinc-200 p-4"
+      >
+        <p className="text-zinc-600">{description}</p>
       </motion.div>
     </motion.div>
   );

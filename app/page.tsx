@@ -66,12 +66,12 @@ export default function Home() {
       .filter((section) => section.active) || [];
 
   return (
-    <main className="w-full overflow-x-hidden">
+    <main className="w-full overflow-x-hidden bg-rose-50/40">
       <Header />
-      <section className="mt-8 mb-6">
+      <section className="mb-8 mt-6">
         <BannerPanel />
       </section>
-      <div className="space-y-8 pt-4 w-full max-w-screen-xl mx-auto px-4">
+      <div className="mx-auto grid w-full max-w-screen-2xl gap-6 px-4 pb-10 md:px-6">
         {isLoading && <ItemsListSkeleton />}
 
         {sections.length > 0
@@ -89,7 +89,7 @@ export default function Home() {
           : !isLoading &&
             !error && (
               <div className="text-center py-10">
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-zinc-500 dark:text-gray-400">
                   Nenhuma seção de produtos configurada
                 </p>
               </div>
@@ -102,7 +102,7 @@ export default function Home() {
         )}
 
         {!hasNextPage && sections.length > 0 && !isLoading && (
-          <div className="text-center text-gray-500 pb-8">
+          <div className="pb-8 text-center text-zinc-500">
             Todas as seções carregadas
           </div>
         )}

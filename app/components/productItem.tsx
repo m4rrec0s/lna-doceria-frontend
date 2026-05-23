@@ -15,70 +15,71 @@ const ProductItem = ({ product }: ProductItemProps) => {
     (cat) =>
       cat.sellingType === "package" &&
       cat.packageSizes &&
-      cat.packageSizes.length > 0
+      cat.packageSizes.length > 0,
   );
 
   const isPackage = !!packageCategory;
 
   const imageUrl = product.imageUrl || "/placeholder-image.jpg";
+  const hasDiscount = Boolean(product.discount && product.discount > 0);
+  const finalPrice = applyDiscount(product.price, product.discount);
 
   return (
-    <li className="bg-white rounded-2xl min-w-[250px] h-[420px] shadow-lg flex flex-col">
-      <div className="w-full h-[200px] relative">
-        <div className="absolute inset-0 p-4">
+    <li className="group flex flex-1 min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative h-[210px] w-full overflow-hidden bg-zinc-100">
+        <div className="absolute inset-0">
           <Image
             src={imageUrl}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover rounded-t-2xl"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </div>
-        {product.discount && product.discount > 0 && (
-          <Badge className="absolute top-3 left-3 bg-rose-700 text-rose-100 px-2 py-1 z-30 rounded-full border border-rose-100 text-xs font-medium shadow-sm">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        {hasDiscount && (
+          <Badge className="absolute right-3 top-3 z-30 rounded-full border border-rose-100 bg-rose-700 px-2 py-1 text-xs font-semibold text-rose-50 shadow-sm">
             {product.discount}% OFF
           </Badge>
         )}
+        <div className="absolute left-3 top-3 z-30 flex max-w-[70%] flex-wrap justify-end gap-1">
+          {product.categories?.[0] && (
+            <Badge
+              key={product.categories[0].id}
+              className="rounded-full border border-white/70 bg-white/50 px-2 py-0.5 text-[11px] font-medium text-white text-shadow shadow-sm backdrop-blur-sm"
+            >
+              {product.categories[0].name}
+            </Badge>
+          )}
+        </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-grow">
-        <h2 className="font-semibold text-base text-rose-800 font-poppins line-clamp-2 text-center mb-2">
+      <div className="flex flex-grow flex-col p-4">
+        <h2 className="mb-2 line-clamp-2 min-h-12 text-base font-semibold text-zinc-900">
           {product.name}
         </h2>
 
-        <div className="flex justify-center gap-1 flex-wrap mb-2 max-h-[40px] overflow-hidden">
-          {product.categories?.map((category) => (
-            <Badge
-              key={category.id}
-              className="bg-rose-100 text-rose-700 px-2 py-0.5 text-xs rounded-full"
-            >
-              {category.name}
-            </Badge>
-          ))}
-        </div>
-
         {isPackage && (
-          <div className="text-xs text-center text-gray-500 mb-2 flex flex-wrap justify-center gap-1">
+          <div className="mb-2 flex flex-wrap gap-1 text-xs text-zinc-500">
             <span>Vendido em pacotes</span>
           </div>
         )}
 
         <div className="flex flex-col">
-          {product.discount && product.discount > 0 && (
-            <div className="text-sm text-gray-500 text-center line-through">
+          {hasDiscount && (
+            <div className="text-sm text-zinc-500 line-through">
               {formatCurrency(product.price)}
             </div>
           )}
-          <div className="text-lg font-bold text-rose-600 font-poppins text-center">
-            {formatCurrency(applyDiscount(product.price, product.discount))}
+          <div className="text-xl font-bold text-emerald-700">
+            {formatCurrency(finalPrice)}
           </div>
         </div>
 
-        <div className="mt-auto flex flex-col gap-2">
+        <div className="mt-auto flex flex-col gap-2 pt-4">
           <Link
             href={`/product/${product.id}`}
-            className="w-full bg-rose-400 text-white hover:bg-rose-500 text-sm h-9 px-3 py-4 transition-colors duration-200 
-            rounded-full font-medium flex items-center justify-center"
+            className="flex h-10 w-full items-center justify-center rounded-lg bg-zinc-900 px-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-zinc-700"
           >
             <Eye size={16} className="mr-1" /> Ver detalhes
           </Link>

@@ -40,6 +40,8 @@ const EditProductDialog = ({
     discount: "",
     imageUrl: "",
     categoryIds: [] as string[],
+    minFlavors: "0",
+    maxFlavors: "0",
   });
 
   useEffect(() => {
@@ -51,6 +53,8 @@ const EditProductDialog = ({
         discount: product.discount?.toString() || "",
         imageUrl: product.imageUrl,
         categoryIds: product.categories.map((cat) => cat.id),
+        minFlavors: (product.minFlavors ?? 0).toString(),
+        maxFlavors: (product.maxFlavors ?? 0).toString(),
       });
       setImagePreview(product.imageUrl);
     }
@@ -107,7 +111,13 @@ const EditProductDialog = ({
         discount: formData.discount ? Number(formData.discount) : undefined,
         imageUrl: formData.imageUrl,
         categoryIds: formData.categoryIds,
+        minFlavors: Number(formData.minFlavors || 0),
+        maxFlavors: Number(formData.maxFlavors || 0),
       };
+
+      if (productData.maxFlavors < productData.minFlavors) {
+        throw new Error("Faixa de sabores inválida");
+      }
 
       await updateProduct(product.id, productData);
       toast.success("Produto atualizado com sucesso!");
@@ -215,6 +225,35 @@ const EditProductDialog = ({
                     min="0"
                     max="100"
                     className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 rounded-md border border-rose-200 bg-rose-50 p-3">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Mínimo de sabores
+                  </label>
+                  <input
+                    type="number"
+                    name="minFlavors"
+                    min="0"
+                    value={formData.minFlavors}
+                    onChange={handleChange}
+                    className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Máximo de sabores
+                  </label>
+                  <input
+                    type="number"
+                    name="maxFlavors"
+                    min="0"
+                    value={formData.maxFlavors}
+                    onChange={handleChange}
+                    className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
                   />
                 </div>
               </div>

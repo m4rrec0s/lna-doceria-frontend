@@ -14,5 +14,7 @@ export interface Product {
   updatedAt: string;
   categories: Category[];
   flavorId?: string;
+  minFlavors?: number;
+  maxFlavors?: number;
   flavor?: Flavor;
 }

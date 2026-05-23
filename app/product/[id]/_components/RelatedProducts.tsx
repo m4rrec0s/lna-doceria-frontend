@@ -20,7 +20,7 @@ const RelatedProducts = ({
   return (
     <div className="mt-16">
       <motion.h2
-        className="text-2xl font-bold mb-6 flex items-center gap-2"
+        className="mb-6 flex items-center gap-2 text-2xl font-bold text-zinc-900"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -40,11 +40,11 @@ const RelatedProducts = ({
         </motion.span>
       </motion.h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {products.slice(0, 4).map((product, index) => (
           <Link href={`/product/${product.id}`} key={product.id}>
             <motion.div
-              className="bg-white rounded-lg overflow-hidden border border-pink-100 hover:shadow-md transition-shadow"
+              className="overflow-hidden rounded-xl border border-zinc-200 bg-white transition-all hover:-translate-y-1 hover:shadow-lg"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -52,7 +52,7 @@ const RelatedProducts = ({
             >
               <div className="relative w-full h-40">
                 <Image
-                  src={product.imageUrl?.[0] || "/placeholder.png"}
+                  src={product.imageUrl || "/placeholder.png"}
                   alt={product.name}
                   fill
                   className="object-cover"
@@ -60,10 +60,10 @@ const RelatedProducts = ({
                 />
               </div>
               <div className="p-3">
-                <h3 className="font-medium text-sm line-clamp-1">
+                <h3 className="line-clamp-1 text-sm font-medium text-zinc-900">
                   {product.name}
                 </h3>
-                <p className="text-pink-600 text-sm font-semibold mt-1">
+                <p className="mt-1 text-sm font-semibold text-rose-700">
                   {formatCurrency(product.price)}
                 </p>
               </div>

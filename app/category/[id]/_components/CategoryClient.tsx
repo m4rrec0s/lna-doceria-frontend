@@ -28,7 +28,11 @@ export default function CategoryClient({ categoryId }: CategoryClientProps) {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!categoryId) return;
+      if (!categoryId) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       setError(null);

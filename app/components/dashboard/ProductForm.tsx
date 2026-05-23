@@ -8,13 +8,8 @@ import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Card } from "../ui/card";
+  Card
+} from "../ui/card";
 import { InfoIcon } from "lucide-react";
 
 interface ProductFormProps {
@@ -37,27 +32,28 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     price: "",
     discount: "",
     categoryIds: [] as string[],
-    flavorId: "",
+    minFlavors: "0",
+    maxFlavors: "0",
   });
 
   // Carregar sabores quando uma categoria for selecionada
   useEffect(() => {
     const loadFlavors = async () => {
-      // Sabores são relevantes apenas quando há uma única categoria selecionada
-      // e principalmente quando essa categoria é de produtos vendidos em pacote
+      let hasFlavorOptions = false;
+
       if (formData.categoryIds.length === 1) {
         const selectedCategory = categories.find(
           (cat) => cat.id === formData.categoryIds[0]
         );
 
-        // Se for uma categoria de pacotes, podemos ter sabores associados
         if (selectedCategory && selectedCategory.sellingType === "package") {
           try {
             const flavors = await getFlavors({
               categoryId: formData.categoryIds[0],
             });
             setAvailableFlavors(flavors || []);
-            setShowFlavorSelection(flavors && flavors.length > 0);
+            hasFlavorOptions = Boolean(flavors && flavors.length > 0);
+            setShowFlavorSelection(hasFlavorOptions);
           } catch (error) {
             console.error("Erro ao carregar sabores:", error);
             setAvailableFlavors([]);
@@ -72,15 +68,18 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         setShowFlavorSelection(false);
       }
 
-      // Ao mudar a categoria, resetamos o sabor selecionado
-      if (formData.flavorId) {
-        setFormData((prev) => ({ ...prev, flavorId: "" }));
+      if (!hasFlavorOptions) {
+        setFormData((prev) =>
+          prev.minFlavors === "0" && prev.maxFlavors === "0"
+            ? prev
+            : { ...prev, minFlavors: "0", maxFlavors: "0" }
+        );
       }
     };
 
     loadFlavors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [formData.categoryIds, categories]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -108,10 +107,6 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     });
   };
 
-  const handleFlavorChange = (flavorId: string) => {
-    setFormData((prev) => ({ ...prev, flavorId }));
-  };
-
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -137,6 +132,23 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
       return;
     }
 
+    if (showFlavorSelection) {
+      const minFlavors = Number(formData.minFlavors || 0);
+      const maxFlavors = Number(formData.maxFlavors || 0);
+
+      if (minFlavors < 0 || maxFlavors < 0 || maxFlavors < minFlavors) {
+        setFormError("Defina uma faixa válida de sabores (mínimo e máximo).");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (maxFlavors > availableFlavors.length) {
+        setFormError("O máximo de sabores não pode ultrapassar os sabores disponíveis.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name.trim());
@@ -151,8 +163,9 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         formDataToSend.append("categoryIds", categoryId);
       });
 
-      if (formData.flavorId) {
-        formDataToSend.append("flavorId", formData.flavorId);
+      if (showFlavorSelection) {
+        formDataToSend.append("minFlavors", formData.minFlavors || "0");
+        formDataToSend.append("maxFlavors", formData.maxFlavors || "0");
       }
 
       formDataToSend.append("image", selectedFile);
@@ -165,7 +178,8 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         price: "",
         discount: "",
         categoryIds: [],
-        flavorId: "",
+        minFlavors: "0",
+        maxFlavors: "0",
       });
       setSelectedFile(null);
       setImagePreview("");
@@ -316,31 +330,51 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
           </div>
 
           {showFlavorSelection && (
-            <div>
-              <Label
-                htmlFor="flavorId"
-                className="block text-sm font-medium mb-2"
-              >
-                Sabor do Produto
-              </Label>
-              <Select
-                value={formData.flavorId}
-                onValueChange={handleFlavorChange}
-              >
-                <SelectTrigger id="flavorId">
-                  <SelectValue placeholder="Selecione um sabor (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Nenhum sabor</SelectItem>
-                  {availableFlavors.map((flavor) => (
-                    <SelectItem key={flavor.id} value={flavor.id}>
-                      {flavor.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-1">
-                Escolha um sabor para associar a este produto.
+            <div className="space-y-3 rounded-md border border-rose-200 bg-rose-50 p-3">
+              <p className="text-sm font-medium text-rose-900">
+                Regras de seleção de sabores para o cliente
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="minFlavors" className="mb-1 block text-sm">
+                    Mínimo de sabores
+                  </Label>
+                  <Input
+                    id="minFlavors"
+                    type="number"
+                    min="0"
+                    max={String(availableFlavors.length)}
+                    value={formData.minFlavors}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        minFlavors: e.target.value,
+                        maxFlavors:
+                          Number(prev.maxFlavors || 0) < Number(e.target.value || 0)
+                            ? e.target.value
+                            : prev.maxFlavors,
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="maxFlavors" className="mb-1 block text-sm">
+                    Máximo de sabores
+                  </Label>
+                  <Input
+                    id="maxFlavors"
+                    type="number"
+                    min={formData.minFlavors || "0"}
+                    max={String(availableFlavors.length)}
+                    value={formData.maxFlavors}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, maxFlavors: e.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-rose-700">
+                Total de sabores disponíveis nesta categoria: {availableFlavors.length}
               </p>
             </div>
           )}

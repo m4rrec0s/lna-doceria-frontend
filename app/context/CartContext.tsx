@@ -10,6 +10,10 @@ export interface CartItem extends Product {
   quantity: number;
   flavorId?: string;
   selectedFlavors?: Flavor[];
+  flavorSelectionRules?: {
+    min: number;
+    max: number;
+  };
   packageInfo?: {
     quantity: number;
     packageSize: number;
@@ -26,6 +30,10 @@ interface CartContextType {
       quantity: number;
       flavorId?: string;
       selectedFlavors?: Flavor[];
+      flavorSelectionRules?: {
+        min: number;
+        max: number;
+      };
       packageInfo?: {
         quantity: number;
         packageSize: number;
@@ -87,11 +95,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       quantity,
       flavorId,
       selectedFlavors,
+      flavorSelectionRules,
       packageInfo,
     }: {
       quantity: number;
       flavorId?: string;
       selectedFlavors?: Flavor[];
+      flavorSelectionRules?: {
+        min: number;
+        max: number;
+      };
       packageInfo?: {
         quantity: number;
         packageSize: number;
@@ -106,12 +119,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsCartOpen(true);
         return [
           ...prevItems,
-          {
-            ...product,
-            quantity,
-            selectedFlavors,
-            packageInfo,
-          },
+            {
+              ...product,
+              quantity,
+              selectedFlavors,
+              flavorSelectionRules,
+              packageInfo,
+            },
         ];
       } else if (existingItem) {
         setIsCartOpen(true);
@@ -121,6 +135,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                 ...i,
                 quantity: i.quantity + quantity,
                 flavorId,
+                flavorSelectionRules,
                 packageInfo,
               }
             : i
@@ -132,10 +147,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           ...prevItems,
           {
             ...product,
-            quantity,
-            flavorId,
-            packageInfo,
-          },
+              quantity,
+              flavorId,
+              flavorSelectionRules,
+              packageInfo,
+            },
         ];
       }
     });

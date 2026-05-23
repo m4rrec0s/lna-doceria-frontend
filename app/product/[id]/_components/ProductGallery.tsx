@@ -22,31 +22,29 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-lg p-4 shadow-sm"
+      className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm"
     >
-      <div className="relative aspect-square overflow-hidden rounded-lg">
-        <>
-          <Button
-            onClick={router.back}
-            className="p-3 rounded-full bg-white absolute top-2 left-2 z-10"
-          >
-            <ChevronLeft size={30} className="text-black" />
-          </Button>
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={alt}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400">Sem imagem</span>
-            </div>
-          )}
-        </>
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-zinc-100">
+        <Button
+          onClick={router.back}
+          className="absolute left-3 top-3 z-10 rounded-full border border-zinc-200 bg-white p-3 text-zinc-900 hover:bg-zinc-100"
+        >
+          <ChevronLeft size={22} />
+        </Button>
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={alt}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover"
+            priority
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-zinc-200">
+            <span className="text-zinc-500">Sem imagem</span>
+          </div>
+        )}
       </div>
     </motion.div>
   );

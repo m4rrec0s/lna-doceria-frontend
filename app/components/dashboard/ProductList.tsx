@@ -50,48 +50,42 @@ const ProductList = ({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="py-3 pr-2">Imagem</th>
-            <th className="py-3 px-2">Nome</th>
-            <th className="py-3 px-2">Preço</th>
-            <th className="py-3 px-2">Categorias</th>
-            <th className="py-3 px-2">Data</th>
-            <th className="py-3 px-2">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id} className="border-b hover:bg-gray-100/10">
-              <td className="py-3 pr-2">
-                <div className="w-16 h-16 relative rounded-md overflow-hidden bg-gray-200">
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              </td>
-              <td className="py-3 px-2">{product.name}</td>
-              <td className="py-3 px-2">{formatCurrency(product.price)}</td>
-              <td className="py-3 px-2">
-                <div className="flex flex-wrap gap-1">
-                  {product.categories?.map((category) => (
-                    <Badge
-                      key={category.id}
-                      className="bg-rose-100 text-rose-950"
-                    >
-                      {category.name}
-                    </Badge>
-                  ))}
-                </div>
-              </td>
-              <td className="py-3 px-2">{formatDate(product.createdAt)}</td>
-              <td className="py-3 px-2">
-                <div className="flex space-x-2">
+    <div className="space-y-3">
+      {products.map((product) => (
+        <div
+          key={product.id}
+          className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm md:grid-cols-[72px_1fr_auto] md:items-center"
+        >
+          <div className="relative h-[72px] w-[72px] overflow-hidden rounded-lg bg-gray-200">
+            <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-base font-semibold text-zinc-900">{product.name}</h3>
+              <Badge className={product.active ? "bg-emerald-100 text-emerald-800" : "bg-zinc-200 text-zinc-700"}>
+                {product.active ? "Ativo" : "Inativo"}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {product.categories?.map((category) => (
+                <Badge key={category.id} className="bg-rose-100 text-rose-950">
+                  {category.name}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-3 text-sm text-zinc-600">
+              <span>Preço: {formatCurrency(product.price)}</span>
+              <span>
+                Sabores: {(product.maxFlavors ?? 0) > 0
+                  ? `${product.minFlavors ?? 0} a ${product.maxFlavors}`
+                  : "Não configurado"}
+              </span>
+              <span>Criado em: {formatDate(product.createdAt)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 md:justify-end">
                   <Button
                     size="sm"
                     variant="outline"
@@ -121,22 +115,19 @@ const ProductList = ({
                       )}
                     </Button>
                   )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-rose-500"
-                    disabled={loading}
-                    title="Excluir produto"
-                    onClick={() => onDelete(product.id)}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-rose-500"
+              disabled={loading}
+              title="Excluir produto"
+              onClick={() => onDelete(product.id)}
+            >
+              <Trash2 size={16} />
+            </Button>
+          </div>
+        </div>
+      ))}
 
       {pagination && pagination.total_pages > 1 && (
         <div className="flex justify-center items-center mt-8 gap-2">

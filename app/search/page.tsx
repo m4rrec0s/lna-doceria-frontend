@@ -25,9 +25,14 @@ export default function SearchPage() {
         return;
       }
 
-      const products = await getProductBySearch(query);
-      setProducts(Array.isArray(products) ? products : []);
-      setLoading(false);
+      try {
+        const products = await getProductBySearch(query);
+        setProducts(Array.isArray(products) ? products : []);
+      } catch {
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
     };
     searchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps

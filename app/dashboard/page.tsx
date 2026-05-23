@@ -8,12 +8,7 @@ import ProductForm from "../components/dashboard/ProductForm";
 import CategoryForm from "../components/dashboard/CategoryForm";
 import ProductList from "../components/dashboard/ProductList";
 import { Product } from "../types/product";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "../components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +21,7 @@ import { Button } from "../components/ui/button";
 import { Category } from "../types/category";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import ProductDisplaySettings from "../components/dashboard/ProductDisplaySettings";
 import {
   Select,
@@ -35,28 +30,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-
-import FlavorForm from "../components/dashboard/FlavorForm";
-import FlavorList from "../components/dashboard/FlavorList";
-import { EditFlavorDialog } from "../components/dashboard/EditFlavorDialog";
 import { Flavor } from "../types/flavor";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 import { Skeleton } from "../components/ui/skeleton";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 
 const DashBoard = () => {
+  const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const {
     products,
     categories,
-    flavors,
     pagination,
     loading,
     error,
     getAllProducts,
     getCategories,
     getFlavors,
+    createFlavor,
+    updateFlavor,
     updateCategory,
     deleteProduct,
     deleteCategory,
@@ -67,14 +63,15 @@ const DashBoard = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
-  const [selectedFlavor, setSelectedFlavor] = useState<Flavor | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
-  const [isFlavorDialogOpen, setIsFlavorDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
-  const [flavorCategoryFilter, setFlavorCategoryFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [catalogCategoryFilter, setCatalogCategoryFilter] = useState("all");
+  const [newFlavorNames, setNewFlavorNames] = useState<Record<string, string>>({});
+  const [editingFlavorId, setEditingFlavorId] = useState<string | null>(null);
+  const [editingFlavorName, setEditingFlavorName] = useState("");
 
   const [categoryData, setCategoryData] = useState({
     name: "",
@@ -101,12 +98,9 @@ const DashBoard = () => {
   }, [currentPage, searchTerm, filterCategory]);
 
   useEffect(() => {
-    getFlavors({
-      categoryId:
-        flavorCategoryFilter !== "all" ? flavorCategoryFilter : undefined,
-    });
+    getFlavors();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flavorCategoryFilter]);
+  }, []);
 
   useEffect(() => {
     if (selectedCategory) {
@@ -129,9 +123,43 @@ const DashBoard = () => {
     setIsCategoryDialogOpen(true);
   };
 
-  const handleEditFlavor = (flavor: Flavor) => {
-    setSelectedFlavor(flavor);
-    setIsFlavorDialogOpen(true);
+  const handleStartEditFlavor = (flavor: Flavor) => {
+    setEditingFlavorId(flavor.id);
+    setEditingFlavorName(flavor.name);
+  };
+
+  const handleSaveFlavor = async (flavor: Flavor) => {
+    try {
+      if (!editingFlavorName.trim()) return;
+      const formData = new FormData();
+      formData.append("name", editingFlavorName.trim());
+      if (flavor.categoryId) formData.append("categoryId", flavor.categoryId);
+      await updateFlavor(flavor.id, formData);
+      setEditingFlavorId(null);
+      setEditingFlavorName("");
+      await getCategories(true);
+      await getFlavors();
+      toast.success("Sabor atualizado");
+    } catch {
+      toast.error("Não foi possível atualizar o sabor");
+    }
+  };
+
+  const handleAddFlavorToCategory = async (categoryId: string) => {
+    const value = newFlavorNames[categoryId]?.trim();
+    if (!value) return;
+    try {
+      const formData = new FormData();
+      formData.append("name", value);
+      formData.append("categoryId", categoryId);
+      await createFlavor(formData);
+      setNewFlavorNames((prev) => ({ ...prev, [categoryId]: "" }));
+      await getCategories(true);
+      await getFlavors();
+      toast.success("Sabor adicionado");
+    } catch {
+      toast.error("Não foi possível adicionar o sabor");
+    }
   };
 
   const handleUpdateCategory = async (e: React.FormEvent) => {
@@ -250,6 +278,24 @@ const DashBoard = () => {
     return <div>Você precisa estar logado para acessar esta página.</div>;
   }
 
+  const activeSection = pathname.includes("/catalog")
+    ? "catalog"
+    : pathname.includes("/showcase")
+      ? "settings"
+      : "products";
+
+  const handleSectionChange = (section: string) => {
+    if (section === "catalog") {
+      router.push("/dashboard/catalog");
+      return;
+    }
+    if (section === "settings") {
+      router.push("/dashboard/showcase");
+      return;
+    }
+    router.push("/dashboard/products");
+  };
+
   return (
     <main className="min-h-screen pb-10">
       <Header />
@@ -257,61 +303,52 @@ const DashBoard = () => {
         <h1 className="text-3xl font-bold mb-6">Dashboard de Administração</h1>
         <p className="mb-8">Bem-vindo, {user?.name}!</p>
 
-        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid grid-cols-4 max-w-md mb-6">
-            <TabsTrigger value="products">Produtos</TabsTrigger>
-            <TabsTrigger value="categories">Categorias</TabsTrigger>
-            <TabsTrigger value="flavors">Sabores</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
+        <Tabs
+          value={activeSection}
+          onValueChange={handleSectionChange}
+          className="space-y-6"
+        >
+          <TabsList className="grid w-full max-w-xl grid-cols-3 rounded-xl bg-rose-50 p-1">
+            <TabsTrigger value="products" className="rounded-lg">Produtos</TabsTrigger>
+            <TabsTrigger value="catalog" className="rounded-lg">Catálogo</TabsTrigger>
+            <TabsTrigger value="settings" className="rounded-lg">Vitrine</TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="space-y-8">
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Adicionar Novo Produto
-              </h2>
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold">Adicionar Novo Produto</h2>
               <ProductForm
                 categories={categories}
                 onSubmitSuccess={() => getAllProducts({ page: 1 })}
               />
             </div>
 
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Produtos Cadastrados
-              </h2>
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold">Produtos Cadastrados</h2>
 
               <form
                 onSubmit={handleSearch}
-                className="flex flex-col md:flex-row gap-4 mb-6"
+                className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px_auto]"
               >
-                <div className="flex-grow">
-                  <Input
-                    type="text"
-                    placeholder="Buscar produtos por nome..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-                <div className="w-full md:w-48">
-                  <Select
-                    value={filterCategory}
-                    onValueChange={setFilterCategory}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as categorias</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Input
+                  type="text"
+                  placeholder="Buscar produtos por nome..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button type="submit">Buscar</Button>
               </form>
 
@@ -344,92 +381,21 @@ const DashBoard = () => {
             />
           </TabsContent>
 
-          <TabsContent value="categories" className="space-y-8">
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Adicionar Nova Categoria
-              </h2>
+          <TabsContent value="catalog" className="space-y-8">
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold">Criar Categoria</h2>
               <CategoryForm onSubmitSuccess={getCategories} />
             </div>
 
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Categorias Cadastradas
-              </h2>
-              <div className="space-y-4">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex justify-between items-center border-b pb-2"
-                  >
-                    <div>
-                      <h3 className="font-medium">{category.name}</h3>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        type="button"
-                        variant={"outline"}
-                        className="text-blue-500 hover:underline"
-                        onClick={() => handleEditCategory(category)}
-                      >
-                        Editar
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant={"outline"}
-                        className="text-red-500 hover:underline"
-                        onClick={() => handleDeleteCategory(category.id)}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {categories.length === 0 && !loading && (
-                  <p>Nenhuma categoria cadastrada</p>
-                )}
-                {loading && <p>Carregando categorias...</p>}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="flavors" className="space-y-8">
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Adicionar Novo Sabor
-              </h2>
-              <FlavorForm
-                categories={categories}
-                onSubmitSuccess={() =>
-                  getFlavors({
-                    categoryId:
-                      flavorCategoryFilter !== "all"
-                        ? flavorCategoryFilter
-                        : undefined,
-                  })
-                }
-              />
-            </div>
-
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Sabores Cadastrados
-              </h2>
-
-              <div className="mb-6">
-                <Label htmlFor="flavor-category-filter">
-                  Filtrar por categoria
-                </Label>
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold">Categorias e Sabores</h2>
                 <Select
-                  value={flavorCategoryFilter}
-                  onValueChange={setFlavorCategoryFilter}
+                  value={catalogCategoryFilter}
+                  onValueChange={setCatalogCategoryFilter}
                 >
-                  <SelectTrigger
-                    id="flavor-category-filter"
-                    className="w-full md:w-72"
-                  >
-                    <SelectValue placeholder="Todas as categorias" />
+                  <SelectTrigger className="w-full md:w-72">
+                    <SelectValue placeholder="Filtrar categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as categorias</SelectItem>
@@ -442,37 +408,142 @@ const DashBoard = () => {
                 </Select>
               </div>
 
-              <FlavorList
-                flavors={flavors}
-                loading={loading}
-                error={error}
-                onEdit={handleEditFlavor}
-                onDelete={handleDeleteFlavor}
-              />
-            </div>
+              <div className="space-y-4">
+                {categories
+                  .filter((category) =>
+                    catalogCategoryFilter === "all"
+                      ? true
+                      : category.id === catalogCategoryFilter
+                  )
+                  .map((category) => (
+                    <div
+                      key={category.id}
+                      className="rounded-xl border border-zinc-200 p-4"
+                    >
+                      <div className="mb-3 flex items-center justify-between gap-2">
+                        <div>
+                          <h3 className="font-semibold text-zinc-900">{category.name}</h3>
+                          <p className="text-xs text-zinc-500">
+                            Venda: {category.sellingType === "package" ? "Pacote" : "Unidade"}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditCategory(category)}
+                          >
+                            Editar categoria
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-red-500"
+                            onClick={() => handleDeleteCategory(category.id)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
 
-            <EditFlavorDialog
-              flavor={selectedFlavor}
-              categories={categories}
-              open={isFlavorDialogOpen}
-              onOpenChange={setIsFlavorDialogOpen}
-              onSuccess={() =>
-                getFlavors({
-                  categoryId:
-                    flavorCategoryFilter !== "all"
-                      ? flavorCategoryFilter
-                      : undefined,
-                })
-              }
-            />
+                      <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-[1fr_auto]">
+                        <Input
+                          placeholder="Novo sabor para esta categoria"
+                          value={newFlavorNames[category.id] || ""}
+                          onChange={(e) =>
+                            setNewFlavorNames((prev) => ({
+                              ...prev,
+                              [category.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => handleAddFlavorToCategory(category.id)}
+                          className="bg-rose-300 text-rose-950 hover:bg-rose-400"
+                        >
+                          <Plus size={14} className="mr-1" /> Adicionar sabor
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+                        {(category.flavors || []).map((flavor) => (
+                          <div
+                            key={flavor.id}
+                            className="flex items-center justify-between rounded-lg border border-zinc-200 px-3 py-2"
+                          >
+                            {editingFlavorId === flavor.id ? (
+                              <div className="flex w-full items-center gap-2">
+                                <Input
+                                  value={editingFlavorName}
+                                  onChange={(e) => setEditingFlavorName(e.target.value)}
+                                  className="h-8"
+                                />
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => handleSaveFlavor(flavor)}
+                                >
+                                  Salvar
+                                </Button>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <div className="relative h-7 w-7 overflow-hidden rounded-full border border-rose-200 bg-rose-50">
+                                    {flavor.imageUrl ? (
+                                      <Image
+                                        src={flavor.imageUrl}
+                                        alt={flavor.name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    ) : (
+                                      <div className="flex h-full w-full items-center justify-center text-[10px] text-zinc-500">
+                                        {flavor.name.slice(0, 1).toUpperCase()}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <span className="text-sm text-zinc-700">{flavor.name}</span>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleStartEditFlavor(flavor)}
+                                  >
+                                    <Pencil size={14} />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-red-500"
+                                    onClick={() => handleDeleteFlavor(flavor.id)}
+                                  >
+                                    <Trash2 size={14} />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                        {(category.flavors || []).length === 0 && (
+                          <p className="text-sm text-zinc-500">Sem sabores nesta categoria.</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-8">
-            <div className="p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">
-                Configurar Exibição de Produtos
-              </h2>
-              {/* Passando key para forçar remontagem apenas quando necessário */}
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold">Configurar Vitrine</h2>
               <ProductDisplaySettings
                 key="display-settings"
                 categories={categories}

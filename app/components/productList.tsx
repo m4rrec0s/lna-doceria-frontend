@@ -44,9 +44,9 @@ const ProductList = ({
   }
 
   return (
-    <section className="w-full">
-      <div className="flex items-center mb-6 justify-between">
-        <h1 className="text-2xl max-w-[50%] px-2">
+    <section className="w-full rounded-2xl border border-rose-100 bg-white p-5 shadow-sm md:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <h1 className="max-w-[70%] text-xl text-zinc-900 md:text-2xl">
           {(() => {
             const words = title.split(" ");
             if (words.length === 0) return title;
@@ -59,15 +59,15 @@ const ProductList = ({
             );
           })()}
           {category && category.sellingType === "package" && (
-            <span className="inline-flex items-center sm:ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 sm:ml-2">
               Pacote com {category.packageSizes} unidades
             </span>
           )}
         </h1>
-        {sectionId && (
+        {sectionId && products.length > 6 && (
           <Link
             href={`/collection/${sectionId}`}
-            className="text-sm text-primary flex items-center gap-1"
+            className="flex items-center gap-1 text-sm font-medium text-rose-700 transition-colors hover:bg-rose-100"
           >
             <span>Ver todos</span>
             <ChevronRight size={16} />
@@ -76,8 +76,8 @@ const ProductList = ({
       </div>
       <div>
         {products && products.length > 0 ? (
-          <ul className="flex items-center gap-6 px-2 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden">
-            {products.map((product: Product) => (
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
+            {products.slice(0, 6).map((product: Product) => (
               <ProductItem
                 key={`${sectionId}-${product.id}`}
                 product={product}
@@ -98,14 +98,14 @@ const ProductList = ({
 
 export function ItemsListSkeleton() {
   return (
-    <div className="flex items-center gap-6 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden px-8">
-      {Array.from({ length: 5 }).map((_, index) => (
+    <div className="grid grid-cols-2 gap-4 px-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
+      {Array.from({ length: 12 }).map((_, index) => (
         <div
           key={index}
-          className="bg-white rounded-2xl min-w-[250px] h-[420px] shadow-lg flex flex-col"
+          className="flex h-[420px] min-w-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm"
         >
-          <Skeleton className="w-full h-[200px] rounded-t-2xl" />
-          <div className="p-4 flex flex-col flex-grow gap-4">
+          <Skeleton className="h-[210px] w-full" />
+          <div className="flex flex-grow flex-col gap-4 p-4">
             <Skeleton className="h-6 w-4/5 mx-auto" />
 
             <div className="flex justify-center gap-1 flex-wrap">

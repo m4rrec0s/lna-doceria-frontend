@@ -5,8 +5,10 @@ import { useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import { Product } from "../../../types/product";
 import { Flavor } from "../../../types/flavor";
-import { MinusCircle, PlusCircle } from "lucide-react";
+import { MinusCircle, PlusCircle, ShoppingCart } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { toast } from "sonner";
+import { formatCurrency } from "@/app/utils/format";
 
 interface AddToCartButtonProps {
   onClick: () => void;
@@ -14,6 +16,8 @@ interface AddToCartButtonProps {
   disabled?: boolean;
   selectedFlavorId?: string | null;
   selectedFlavors?: Flavor[];
+  minFlavors?: number;
+  maxFlavors?: number;
 }
 
 const AddToCartButton = ({
@@ -22,6 +26,8 @@ const AddToCartButton = ({
   disabled,
   selectedFlavorId,
   selectedFlavors,
+  minFlavors = 0,
+  maxFlavors = 0,
 }: AddToCartButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -29,7 +35,7 @@ const AddToCartButton = ({
 
   // Determinar o tipo de venda e tamanhos de pacote
   const packageCategory = product.categories?.find(
-    (cat) => cat.sellingType === "package"
+    (cat) => cat.sellingType === "package",
   );
   const sellingType = packageCategory ? "package" : "unit";
   let packageSizes: number[] = [];
@@ -38,8 +44,8 @@ const AddToCartButton = ({
       typeof packageCategory.packageSizes === "string"
         ? JSON.parse(packageCategory.packageSizes)
         : Array.isArray(packageCategory.packageSizes)
-        ? packageCategory.packageSizes
-        : [];
+          ? packageCategory.packageSizes
+          : [];
   }
 
   const getQuantityText = () => {
@@ -53,13 +59,42 @@ const AddToCartButton = ({
     return `${quantity} ${quantity === 1 ? "unidade" : "unidades"}`;
   };
 
+  const getTotalPrice = () => {
+    const unitPrice = Number((product as Product)?.price) || 0;
+    const units =
+      sellingType === "package" && packageSizes.length > 0
+        ? packageSizes[0] * quantity
+        : quantity;
+    return unitPrice * units;
+  };
+
   const handleClick = () => {
+    const selectedCount = selectedFlavors?.length || 0;
+    if (maxFlavors > 0) {
+      if (selectedCount < minFlavors) {
+        toast.error(`Selecione pelo menos ${minFlavors} sabores.`);
+        return;
+      }
+
+      if (selectedCount > maxFlavors) {
+        toast.error(`Você pode selecionar no máximo ${maxFlavors} sabores.`);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       addItem(product, {
         quantity,
         flavorId: selectedFlavorId || undefined,
         selectedFlavors: selectedFlavors,
+        flavorSelectionRules:
+          maxFlavors > 0
+            ? {
+                min: minFlavors,
+                max: maxFlavors,
+              }
+            : undefined,
         packageInfo:
           sellingType === "package" && packageSizes.length
             ? {
@@ -76,30 +111,38 @@ const AddToCartButton = ({
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
           <Button
             onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-            className=""
+            className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
             disabled={quantity <= 1}
           >
             <MinusCircle size={24} />
           </Button>
 
-          <span className="font-medium text-xl">{quantity}</span>
+          <span className="min-w-10 text-center text-xl font-semibold text-zinc-900">
+            {quantity}
+          </span>
 
-          <Button onClick={() => setQuantity((prev) => prev + 1)} className="">
+          <Button
+            onClick={() => setQuantity((prev) => prev + 1)}
+            className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
+          >
             <PlusCircle size={24} />
           </Button>
         </div>
 
-        <div className="text-gray-600">{getQuantityText()}</div>
+        <div className="text-right text-sm text-zinc-600">
+          {getQuantityText()}
+        </div>
       </div>
 
       {selectedFlavors && selectedFlavors.length > 0 && (
         <div className="p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
           <p className="text-sm font-medium mb-2">
-            Sabores selecionados ({selectedFlavors.length}/5):
+            Sabores selecionados ({selectedFlavors.length}
+            {maxFlavors > 0 ? `/${maxFlavors}` : ""}):
           </p>
           <div className="flex flex-wrap gap-2">
             {selectedFlavors.map((flavor, index) => (
@@ -120,10 +163,10 @@ const AddToCartButton = ({
       <motion.button
         onClick={handleClick}
         disabled={isLoading || disabled}
-        className={`w-full p-4 rounded-full font-medium flex items-center justify-center gap-2 ${
+        className={`flex w-full items-center justify-center gap-2 rounded-xl p-4 font-medium ${
           disabled
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-pink-500 text-white hover:bg-pink-600"
+            : "bg-rose-300 text-rose-950 hover:bg-rose-400"
         }`}
         whileHover={{ scale: disabled ? 1 : 1.02 }}
         whileTap={{ scale: disabled ? 1 : 0.98 }}
@@ -135,14 +178,16 @@ const AddToCartButton = ({
           <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
         ) : (
           <>
-            <span>Adicionar ao carrinho</span>
-            <span className="text-lg">🛒</span>
+            <span>
+              <ShoppingCart />
+            </span>
+            <span>Adicionar por {formatCurrency(getTotalPrice())}</span>
           </>
         )}
       </motion.button>
 
       {sellingType === "package" && packageSizes.length > 0 && (
-        <p className="text-sm text-gray-600 text-center">
+        <p className="text-center text-sm text-zinc-600">
           Este produto é vendido em pacote{packageSizes.length > 1 ? "s" : ""}{" "}
           com {packageSizes.join(", ")} unidades cada.
         </p>

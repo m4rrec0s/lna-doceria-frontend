@@ -55,7 +55,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     }
 
     return (
-      <div className="mt-2">
+        <div className="mt-2">
         <div className="flex items-center gap-1 mb-1">
           <span className="text-xs text-gray-400">Sabores:</span>
           <TooltipProvider>
@@ -96,6 +96,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             </div>
           ))}
         </div>
+        {item.flavorSelectionRules && (
+          <p className="mt-2 text-xs text-gray-400">
+            Regra: {item.flavorSelectionRules.min} a {item.flavorSelectionRules.max} sabores
+          </p>
+        )}
       </div>
     );
   };
