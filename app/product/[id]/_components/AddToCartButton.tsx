@@ -61,11 +61,7 @@ const AddToCartButton = ({
 
   const getTotalPrice = () => {
     const unitPrice = Number((product as Product)?.price) || 0;
-    const units =
-      sellingType === "package" && packageSizes.length > 0
-        ? packageSizes[0] * quantity
-        : quantity;
-    return unitPrice * units;
+    return unitPrice * quantity;
   };
 
   const handleClick = () => {

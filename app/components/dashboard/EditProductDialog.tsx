@@ -13,6 +13,18 @@ import {
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 
+const hasFlavorEnabledCategory = (
+  categoryIds: string[],
+  categories: Category[] = [],
+) => {
+  const selectedCategories = categories.filter((item) =>
+    categoryIds.includes(item.id),
+  );
+  return selectedCategories.some(
+    (category) => (category.flavors?.length || 0) > 0,
+  );
+};
+
 interface EditProductDialogProps {
   product: Product | null;
   categories?: Category[];
@@ -104,6 +116,11 @@ const EditProductDialog = ({
     setFormError(null);
 
     try {
+      const canEnableFlavorRules = hasFlavorEnabledCategory(
+        formData.categoryIds,
+        categories,
+      );
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -111,8 +128,8 @@ const EditProductDialog = ({
         discount: formData.discount ? Number(formData.discount) : undefined,
         imageUrl: formData.imageUrl,
         categoryIds: formData.categoryIds,
-        minFlavors: Number(formData.minFlavors || 0),
-        maxFlavors: Number(formData.maxFlavors || 0),
+        minFlavors: canEnableFlavorRules ? Number(formData.minFlavors || 0) : 0,
+        maxFlavors: canEnableFlavorRules ? Number(formData.maxFlavors || 0) : 0,
       };
 
       if (productData.maxFlavors < productData.minFlavors) {
@@ -229,34 +246,40 @@ const EditProductDialog = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 rounded-md border border-rose-200 bg-rose-50 p-3">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">
-                    Mínimo de sabores
-                  </label>
-                  <input
-                    type="number"
-                    name="minFlavors"
-                    min="0"
-                    value={formData.minFlavors}
-                    onChange={handleChange}
-                    className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
-                  />
+              {hasFlavorEnabledCategory(formData.categoryIds, categories) ? (
+                <div className="grid grid-cols-2 gap-4 rounded-md border border-rose-200 bg-rose-50 p-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Mínimo de sabores
+                    </label>
+                    <input
+                      type="number"
+                      name="minFlavors"
+                      min="0"
+                      value={formData.minFlavors}
+                      onChange={handleChange}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Máximo de sabores
+                    </label>
+                    <input
+                      type="number"
+                      name="maxFlavors"
+                      min="0"
+                      value={formData.maxFlavors}
+                      onChange={handleChange}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">
-                    Máximo de sabores
-                  </label>
-                  <input
-                    type="number"
-                    name="maxFlavors"
-                    min="0"
-                    value={formData.maxFlavors}
-                    onChange={handleChange}
-                    className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
-                  />
-                </div>
-              </div>
+              ) : (
+                <p className="text-xs text-zinc-600">
+                  Regras de sabores so ficam ativas com uma categoria que tenha sabores vinculados.
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">

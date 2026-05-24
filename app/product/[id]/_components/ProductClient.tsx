@@ -43,17 +43,17 @@ const ProductClient = ({ productId }: ProductClientProps) => {
 
         if (productItem?.categories && productItem.categories.length > 0) {
           const categoryIds = productItem.categories.map(
-            (cat: Category) => cat.id
+            (cat: Category) => cat.id,
           );
           const allFlavorsArrays = await Promise.all(
-            categoryIds.map((id: string) => getFlavors({ categoryId: id }))
+            categoryIds.map((id: string) => getFlavors({ categoryId: id })),
           );
           const allFlavors = allFlavorsArrays
             .flat()
             .filter((flavor, index, self) =>
               flavor && flavor.id
                 ? self.findIndex((f) => f.id === flavor.id) === index
-                : false
+                : false,
             );
           setFlavors(Array.isArray(allFlavors) ? allFlavors : []);
         }
@@ -66,7 +66,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           setRelatedProducts(
             Array.isArray(related)
               ? related.filter((p) => p.id !== productItem.id)
-              : []
+              : [],
           );
         }
       } catch (err) {
@@ -92,10 +92,10 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   const minFlavorSelection = Math.max(0, product?.minFlavors ?? 0);
   const maxFlavorSelection = Math.min(
     flavors.length,
-    Math.max(minFlavorSelection, product?.maxFlavors ?? 0)
+    Math.max(minFlavorSelection, product?.maxFlavors ?? 0),
   );
   const selectedFlavors = flavors.filter((flavor) =>
-    selectedFlavorIds.includes(flavor.id)
+    selectedFlavorIds.includes(flavor.id),
   );
 
   const handleToggleFlavor = (flavorId: string, checked: boolean) => {
@@ -118,7 +118,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           <motion.div
             className="w-20 h-20 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 1, repeat: Infinity }}
           />
         </div>
       </main>
@@ -188,7 +188,8 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 </div>
                 {maxFlavorSelection > 0 && (
                   <p className="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    Selecione entre {minFlavorSelection} e {maxFlavorSelection} sabores.
+                    Selecione entre {minFlavorSelection} e {maxFlavorSelection}{" "}
+                    sabores.
                   </p>
                 )}
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -199,7 +200,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                         "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 transition-colors",
                         selectedFlavorIds.includes(flavor.id)
                           ? "border-rose-400 bg-rose-100"
-                          : "border-zinc-200 bg-white hover:border-rose-300"
+                          : "border-zinc-200 bg-white hover:border-rose-300",
                       )}
                     >
                       <Checkbox
@@ -224,7 +225,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                           />
                         </div>
                       )}
-                      <span className="text-sm font-medium text-zinc-800">{flavor.name}</span>
+                      <span className="text-sm font-medium text-zinc-800">
+                        {flavor.name}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -239,14 +242,17 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 minFlavors={maxFlavorSelection > 0 ? minFlavorSelection : 0}
                 maxFlavors={maxFlavorSelection}
                 disabled={
-                  maxFlavorSelection > 0 && selectedFlavorIds.length < minFlavorSelection
+                  maxFlavorSelection > 0 &&
+                  selectedFlavorIds.length < minFlavorSelection
                 }
               />
             </div>
           </aside>
         </section>
 
-        {relatedProducts.length > 0 && <RelatedProducts products={relatedProducts} />}
+        {relatedProducts.length > 0 && (
+          <RelatedProducts products={relatedProducts} />
+        )}
       </div>
     </main>
   );

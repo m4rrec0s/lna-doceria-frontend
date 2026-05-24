@@ -5,6 +5,7 @@
 .products-page {
   max-width: 1400px;
   margin: 0 auto;
+  padding-bottom: 24px;
 }
 
 .products-header {
@@ -29,7 +30,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  background: linear-gradient(135deg, #fda4af, #fb7185);
   color: white;
   border: none;
   height: 40px;
@@ -45,7 +46,7 @@
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 16px rgba(251, 113, 133, 0.3);
 }
 
 /* ========== TOOLBAR ========== */
@@ -199,15 +200,22 @@
 @media (max-width: 768px) {
   .products-header {
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
+    margin-bottom: 20px;
   }
 
   .products-toolbar {
-    flex-wrap: wrap;
+    flex-direction: column;
+    margin-bottom: 16px;
   }
 
   .search-bar {
     max-width: none;
+  }
+
+  .filter-btn {
+    width: 100%;
+    justify-content: center;
   }
 
   .products-grid {

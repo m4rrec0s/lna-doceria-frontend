@@ -73,7 +73,6 @@ export function LoadingDots({
           transition={{
             duration: 1.5,
             repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
           }}
         />
 
@@ -116,12 +115,10 @@ export function LoadingDots({
             rotate: {
               duration: 8,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "linear",
             },
             scale: {
               duration: 1.5,
               repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
             },
           }}
         >
@@ -163,7 +160,6 @@ function BrigadeiroSvg() {
         transition={{
           duration: 2,
           repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
         }}
       />
 
@@ -177,7 +173,6 @@ function BrigadeiroSvg() {
         transition={{
           duration: 20,
           repeat: Number.POSITIVE_INFINITY,
-          ease: "linear",
         }}
       />
 
@@ -202,7 +197,6 @@ function BrigadeiroSvg() {
               duration: 1.5,
               repeat: Number.POSITIVE_INFINITY,
               delay: i * 0.1,
-              ease: "easeInOut",
             }}
           />
         );
@@ -221,7 +215,6 @@ function BrigadeiroSvg() {
         transition={{
           duration: 2,
           repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
         }}
       />
     </svg>

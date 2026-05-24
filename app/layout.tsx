@@ -1,4 +1,3 @@
-// @ts-expect-error Next.js handles global CSS side-effect imports at build time
 import "./globals.css";
 
 import type { Metadata } from "next";

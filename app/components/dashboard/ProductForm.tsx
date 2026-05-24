@@ -1,4 +1,4 @@
-import React, { useState, FormEvent, useEffect } from "react";
+import React, { useState, FormEvent, useEffect, useMemo } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Category } from "../../types/category";
 import { Flavor } from "../../types/flavor";
@@ -18,7 +18,7 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
-  const { createProduct, getFlavors } = useApi();
+  const { createProduct } = useApi();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -36,50 +36,28 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     maxFlavors: "0",
   });
 
-  // Carregar sabores quando uma categoria for selecionada
+  const selectedCategory = useMemo(() => {
+    if (formData.categoryIds.length === 0) return null;
+    return categories.filter((cat) => formData.categoryIds.includes(cat.id));
+  }, [categories, formData.categoryIds]);
+
   useEffect(() => {
-    const loadFlavors = async () => {
-      let hasFlavorOptions = false;
+    const mergedFlavors = (selectedCategory || [])
+      .flatMap((category) => category.flavors || [])
+      .filter((flavor, index, self) => self.findIndex((f) => f.id === flavor.id) === index);
+    const canEnableFlavorRules = mergedFlavors.length > 0;
 
-      if (formData.categoryIds.length === 1) {
-        const selectedCategory = categories.find(
-          (cat) => cat.id === formData.categoryIds[0]
-        );
+    setAvailableFlavors(mergedFlavors);
+    setShowFlavorSelection(canEnableFlavorRules);
 
-        if (selectedCategory && selectedCategory.sellingType === "package") {
-          try {
-            const flavors = await getFlavors({
-              categoryId: formData.categoryIds[0],
-            });
-            setAvailableFlavors(flavors || []);
-            hasFlavorOptions = Boolean(flavors && flavors.length > 0);
-            setShowFlavorSelection(hasFlavorOptions);
-          } catch (error) {
-            console.error("Erro ao carregar sabores:", error);
-            setAvailableFlavors([]);
-            setShowFlavorSelection(false);
-          }
-        } else {
-          setAvailableFlavors([]);
-          setShowFlavorSelection(false);
-        }
-      } else {
-        setAvailableFlavors([]);
-        setShowFlavorSelection(false);
-      }
-
-      if (!hasFlavorOptions) {
-        setFormData((prev) =>
-          prev.minFlavors === "0" && prev.maxFlavors === "0"
-            ? prev
-            : { ...prev, minFlavors: "0", maxFlavors: "0" }
-        );
-      }
-    };
-
-    loadFlavors();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.categoryIds, categories]);
+    if (!canEnableFlavorRules) {
+      setFormData((prev) =>
+        prev.minFlavors === "0" && prev.maxFlavors === "0"
+          ? prev
+          : { ...prev, minFlavors: "0", maxFlavors: "0" }
+      );
+    }
+  }, [selectedCategory]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -378,6 +356,12 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               </p>
             </div>
           )}
+
+          {!showFlavorSelection && formData.categoryIds.length > 0 && (
+            <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600">
+              Regras de sabores ficam ativas apenas para categorias com sabores vinculados.
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -421,8 +405,8 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               <div className="flex gap-2 text-sm text-amber-700 dark:text-amber-400">
                 <InfoIcon className="h-5 w-5 flex-shrink-0" />
                 <p>
-                  Múltiplas categorias selecionadas. Não é possível associar
-                  sabores quando um produto pertence a mais de uma categoria.
+                  Múltiplas categorias selecionadas. As regras de sabor usam os
+                  sabores combinados das categorias que possuem sabores.
                 </p>
               </div>
             </Card>

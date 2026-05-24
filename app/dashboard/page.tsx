@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BadgePercent, CheckCircle, Package, Tags } from 'lucide-react';
+import Link from 'next/link';
 import { useAuth } from '../context/authContext';
 import { useApi } from '../hooks/useApi';
 import { Product } from '../types/product';
@@ -126,7 +127,7 @@ export default function DashboardOverview() {
     show: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: 'easeOut' },
+      transition: { duration: 0.4 },
     },
   };
 
@@ -140,6 +141,26 @@ export default function DashboardOverview() {
       >
         <h1>Visão Geral</h1>
         <p>Bem-vindo ao seu painel de controle, {user?.email || 'Gerenciador'}</p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.35 }}
+        className="quick-links"
+      >
+        <Link href="/dashboard/products" className="quick-link-card">
+          <h3>Produtos</h3>
+          <p>Cadastrar, editar e controlar regras de sabores.</p>
+        </Link>
+        <Link href="/dashboard/catalog" className="quick-link-card">
+          <h3>Catálogo</h3>
+          <p>Organizar categorias e sabores no mesmo fluxo.</p>
+        </Link>
+        <Link href="/dashboard/showcase" className="quick-link-card">
+          <h3>Vitrine</h3>
+          <p>Ajustar feed e distribuição de seções da homepage.</p>
+        </Link>
       </motion.div>
 
       {loadError && <div className="dashboard-error">{loadError}</div>}

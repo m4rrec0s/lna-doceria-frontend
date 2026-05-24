@@ -204,7 +204,6 @@ export const useApi = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       cache.products.clear();
-      await getProducts();
       return response.data;
     } catch (error: unknown) {
       setError("Erro ao criar produto - " + (error as Error).message);
@@ -222,7 +221,6 @@ export const useApi = () => {
     try {
       const response = await axiosClient.put(`/products/${id}`, productData);
       cache.products.clear();
-      await getProducts();
       return response.data;
     } catch (error: unknown) {
       setError("Erro ao atualizar produto - " + (error as Error).message);
@@ -237,7 +235,6 @@ export const useApi = () => {
     try {
       await axiosClient.delete(`/products/${id}`);
       cache.products.clear();
-      await getProducts();
       return true;
     } catch (error: unknown) {
       setError("Erro ao deletar produto - " + (error as Error).message);

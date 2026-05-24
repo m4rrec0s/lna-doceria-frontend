@@ -1,17 +1,16 @@
 import { Variants } from "framer-motion";
 
-export const fadeIn = {
+export const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
       duration: 0.6,
-      ease: "easeInOut",
     },
   },
 };
 
-export const fadeInUp = {
+export const fadeInUp: Variants = {
   hidden: {
     opacity: 0,
     y: 20,
@@ -21,12 +20,11 @@ export const fadeInUp = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
     },
   },
 };
 
-export const fadeInRight = {
+export const fadeInRight: Variants = {
   hidden: {
     opacity: 0,
     x: -20,
@@ -36,12 +34,11 @@ export const fadeInRight = {
     x: 0,
     transition: {
       duration: 0.5,
-      ease: "easeOut",
     },
   },
 };
 
-export const staggerChildren = {
+export const staggerChildren: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -51,7 +48,7 @@ export const staggerChildren = {
   },
 };
 
-export const scaleIn = {
+export const scaleIn: Variants = {
   hidden: {
     opacity: 0,
     scale: 0.9,
@@ -61,7 +58,6 @@ export const scaleIn = {
     scale: 1,
     transition: {
       duration: 0.4,
-      ease: "easeOut",
     },
   },
 };
@@ -98,7 +94,6 @@ export const floatingAnimation: Variants = {
         repeat: Infinity,
         repeatType: "reverse",
         duration: 1.5,
-        ease: "easeInOut",
       },
     },
   },
@@ -111,7 +106,6 @@ export const pulseAnimation: Variants = {
     transition: {
       duration: 1.5,
       repeat: Infinity,
-      ease: "easeInOut",
     },
   },
 };

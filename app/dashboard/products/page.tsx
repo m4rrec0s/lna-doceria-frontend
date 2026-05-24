@@ -21,9 +21,11 @@ export default function ProductsPage() {
     error,
     loading,
     pagination,
-    getProducts,
+    getAllProducts,
     getCategories,
     deleteProduct,
+    updateProduct,
+    updateLocalProductState,
   } = useApi();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -31,7 +33,7 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    getProducts();
+    getAllProducts();
     getCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -47,6 +49,7 @@ export default function ProductsPage() {
   const handleDeleteProduct = async (id: string) => {
     try {
       await deleteProduct(id);
+      await getAllProducts({ page: pagination.page, per_page: pagination.per_page }, true);
       toast.success('Produto deletado com sucesso!');
     } catch (err) {
       console.error('Erro ao deletar produto:', err);
@@ -55,7 +58,18 @@ export default function ProductsPage() {
   };
 
   const handlePageChange = (page: number) => {
-    getProducts({ page, per_page: pagination.per_page });
+    getAllProducts({ page, per_page: pagination.per_page });
+  };
+
+  const handleToggleActive = async (product: Product) => {
+    try {
+      const updatedActive = !product.active;
+      await updateProduct(product.id, { active: updatedActive });
+      updateLocalProductState(product.id, { active: updatedActive });
+      toast.success(updatedActive ? 'Produto ativado' : 'Produto desativado');
+    } catch {
+      toast.error('Não foi possível atualizar o status do produto');
+    }
   };
 
   return (
@@ -75,7 +89,7 @@ export default function ProductsPage() {
         </Button>
       </motion.div>
 
-      <div className="products-toolbar">
+      <div className="products-toolbar rounded-2xl border border-rose-100 bg-white/90 p-3 shadow-sm">
         <div className="search-bar">
           <Search className="search-icon" />
           <Input
@@ -96,6 +110,7 @@ export default function ProductsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.1 }}
+        className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm"
       >
         <ProductList
           products={filteredProducts}
@@ -106,6 +121,7 @@ export default function ProductsPage() {
             setIsEditDialogOpen(true);
           }}
           onDelete={handleDeleteProduct}
+          onToggleActive={handleToggleActive}
           pagination={searchTerm ? undefined : pagination}
           onPageChange={searchTerm ? undefined : handlePageChange}
         />
@@ -119,7 +135,7 @@ export default function ProductsPage() {
           <ProductForm
             categories={categories ?? []}
             onSubmitSuccess={() => {
-              getProducts({ page: 1, per_page: pagination.per_page }, true);
+              getAllProducts({ page: 1, per_page: pagination.per_page }, true);
               setIsCreateDialogOpen(false);
             }}
           />
@@ -132,7 +148,7 @@ export default function ProductsPage() {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSuccess={() => {
-          getProducts({ page: pagination.page, per_page: pagination.per_page }, true);
+          getAllProducts({ page: pagination.page, per_page: pagination.per_page }, true);
           setIsEditDialogOpen(false);
         }}
       />
