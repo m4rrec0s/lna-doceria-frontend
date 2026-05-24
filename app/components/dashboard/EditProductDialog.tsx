@@ -15,7 +15,7 @@ import { toast } from "sonner";
 
 interface EditProductDialogProps {
   product: Product | null;
-  categories: Category[];
+  categories?: Category[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
@@ -52,7 +52,7 @@ const EditProductDialog = ({
         price: product.price.toString(),
         discount: product.discount?.toString() || "",
         imageUrl: product.imageUrl,
-        categoryIds: product.categories.map((cat) => cat.id),
+        categoryIds: product.categories?.map((cat) => cat.id) ?? [],
         minFlavors: (product.minFlavors ?? 0).toString(),
         maxFlavors: (product.maxFlavors ?? 0).toString(),
       });
@@ -63,7 +63,7 @@ const EditProductDialog = ({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -126,10 +126,10 @@ const EditProductDialog = ({
     } catch (error: unknown) {
       console.error("Erro ao atualizar produto:", error);
       toast.error(
-        "Erro ao atualizar produto. Verifique os dados e tente novamente."
+        "Erro ao atualizar produto. Verifique os dados e tente novamente.",
       );
       setFormError(
-        "Erro ao atualizar produto. Verifique os dados e tente novamente."
+        "Erro ao atualizar produto. Verifique os dados e tente novamente.",
       );
     } finally {
       setIsSubmitting(false);
@@ -301,7 +301,7 @@ const EditProductDialog = ({
                   Categorias
                 </label>
                 <div className="max-h-40 overflow-y-auto p-2 border rounded-md">
-                  {categories.map((category) => (
+                  {(categories ?? []).map((category) => (
                     <div key={category.id} className="flex items-center">
                       <input
                         type="checkbox"
