@@ -6,11 +6,14 @@ import { useInView } from "react-intersection-observer";
 import { useApi } from "./hooks/useApi";
 import ProductList, { ItemsListSkeleton } from "./components/productList";
 import { BannerPanel } from "./components/bannerPanel";
+import Link from "next/link";
+import { Instagram } from "lucide-react";
 import { WhatsAppButton } from "./components/whatsappButton";
 import { Footer } from "./components/footer";
 import Header from "./components/header";
 import { Product } from "./types/product";
 import { Category } from "./types/category";
+import WhatsappIcon from "@/public/whatsappIcon";
 
 interface DisplaySection {
   id: string;
@@ -68,9 +71,42 @@ export default function Home() {
   return (
     <main className="w-full overflow-x-hidden bg-rose-50/40">
       <Header />
-      <section className="mb-8 mt-6">
+
+      <section className="mt-6">
         <BannerPanel />
       </section>
+
+      <section className="mx-auto my-5 w-full max-w-screen-2xl md:px-6">
+        <div className="rpx-5 py-4 ">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="text-center">
+              <h2 className="mt-2 text-2xl font-bold text-rose-950">
+                Acesse nossas redes
+              </h2>
+              <p className="mt-1 text-sm text-zinc-600">
+                Atendimento rapido e novidades no Instagram.
+              </p>
+            </div>
+            <div className="flex justify-center flex-wrap gap-3">
+              <Link
+                href="https://www.instagram.com/lna.doceria/"
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-full border border-rose-600 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+              >
+                <Instagram className="h-4 w-4" /> Instagram
+              </Link>
+              <Link
+                href="https://wa.me/558388511950?text=Olá!%20Gostaria%20de%20saber%20mais%20sobre%20os%20doces%20da%20LNA%20Doceria."
+                target="_blank"
+                className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-400"
+              >
+                <WhatsappIcon size={16} color="#ffffff" /> WhatsApp
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="mx-auto grid w-full max-w-screen-2xl gap-6 px-4 pb-10 md:px-6">
         {isLoading && <ItemsListSkeleton />}
 

@@ -2,7 +2,6 @@
 
 import React from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { Button } from "@/app/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -18,12 +17,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
   const router = useRouter();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm"
-    >
+    <div className="rounded-3xl border border-rose-100 bg-white p-4">
       <div className="relative aspect-square overflow-hidden rounded-xl bg-zinc-100">
         <Button
           onClick={router.back}
@@ -46,7 +40,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -2,7 +2,6 @@ import Image from "next/image";
 import { Product } from "../types/product";
 import { formatCurrency } from "../helpers/formatCurrency";
 import { Badge } from "./ui/badge";
-import { Eye } from "lucide-react";
 import Link from "next/link";
 import { applyDiscount } from "../helpers/applyDiscount";
 
@@ -25,7 +24,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
   const finalPrice = applyDiscount(product.price, product.discount);
 
   return (
-    <li className="group flex flex-1 min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <li className="group flex flex-1 min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-sm">
       <div className="relative h-[210px] w-full overflow-hidden bg-zinc-100">
         <div className="absolute inset-0">
           <Image
@@ -46,7 +45,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
           {product.categories?.[0] && (
             <Badge
               key={product.categories[0].id}
-              className="rounded-full border border-white/70 bg-white/50 px-2 py-0.5 text-[11px] font-medium text-white text-shadow shadow-sm backdrop-blur-sm"
+              className="rounded-full border border-white/70 bg-white/50 px-2 py-0.5 text-[11px] font-medium text-white text-shadow shadow-sm backdrop-blur-sm truncate"
             >
               {product.categories[0].name}
             </Badge>
@@ -79,9 +78,9 @@ const ProductItem = ({ product }: ProductItemProps) => {
         <div className="mt-auto flex flex-col gap-2 pt-4">
           <Link
             href={`/product/${product.id}`}
-            className="flex h-10 w-full items-center justify-center rounded-lg bg-zinc-900 px-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-zinc-700"
+            className="flex h-10 w-full items-center justify-center rounded-lg bg-rose-600 px-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-rose-800"
           >
-            <Eye size={16} className="mr-1" /> Ver detalhes
+            Eu quero
           </Link>
         </div>
       </div>

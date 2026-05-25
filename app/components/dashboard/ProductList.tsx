@@ -14,6 +14,14 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Badge } from "../ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 interface ProductListProps {
   products: Product[];
@@ -50,84 +58,98 @@ const ProductList = ({
   }
 
   return (
-    <div className="space-y-3">
-      {products.map((product) => (
-        <div
-          key={product.id}
-          className="grid grid-cols-1 gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm md:grid-cols-[72px_1fr_auto] md:items-center"
-        >
-          <div className="relative h-[72px] w-[72px] overflow-hidden rounded-lg bg-gray-200">
-            <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-base font-semibold text-zinc-900">{product.name}</h3>
-              <Badge className={product.active ? "bg-emerald-100 text-emerald-800" : "bg-zinc-200 text-zinc-700"}>
-                {product.active ? "Ativo" : "Inativo"}
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {product.categories?.map((category) => (
-                <Badge key={category.id} className="bg-rose-100 text-rose-950">
-                  {category.name}
-                </Badge>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-3 text-sm text-zinc-600">
-              <span>Preço: {formatCurrency(product.price)}</span>
-              <span>
-                Sabores: {(product.maxFlavors ?? 0) > 0
-                  ? `${product.minFlavors ?? 0} a ${product.maxFlavors}`
-                  : "Não configurado"}
-              </span>
-              <span>Criado em: {formatDate(product.createdAt)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 md:justify-end">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    title="Editar produto"
-                    disabled={loading}
-                    onClick={() => onEdit(product)}
-                  >
-                    <Edit size={16} />
-                  </Button>
-                  {onToggleActive && (
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-xl border border-rose-100 bg-white">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[88px]">Imagem</TableHead>
+              <TableHead>Produto</TableHead>
+              <TableHead className="min-w-[180px]">Categorias</TableHead>
+              <TableHead className="w-[120px]">Preço</TableHead>
+              <TableHead className="w-[140px]">Sabores</TableHead>
+              <TableHead className="w-[140px]">Atualizado</TableHead>
+              <TableHead className="w-[170px] text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.map((product) => (
+              <TableRow key={product.id}>
+                <TableCell>
+                  <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-zinc-100">
+                    <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <span className="font-semibold text-zinc-900">{product.name}</span>
+                    <Badge
+                      className={
+                        product.active
+                          ? "w-fit bg-emerald-100 text-emerald-800"
+                          : "w-fit bg-zinc-200 text-zinc-700"
+                      }
+                    >
+                      {product.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {product.categories?.map((category) => (
+                      <Badge key={category.id} className="bg-rose-100 text-rose-950">
+                        {category.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>{formatCurrency(product.price)}</TableCell>
+                <TableCell>
+                  {(product.maxFlavors ?? 0) > 0
+                    ? `${product.minFlavors ?? 0} a ${product.maxFlavors}`
+                    : "-"}
+                </TableCell>
+                <TableCell>{formatDate(product.createdAt)}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
                     <Button
                       size="sm"
                       variant="outline"
+                      title="Editar produto"
                       disabled={loading}
-                      className={
-                        product.active ? "text-green-500" : "text-gray-500"
-                      }
-                      onClick={() => onToggleActive(product)}
-                      title={
-                        product.active ? "Desativar produto" : "Ativar produto"
-                      }
+                      onClick={() => onEdit(product)}
                     >
-                      {product.active ? (
-                        <Eye size={16} />
-                      ) : (
-                        <EyeOff size={16} />
-                      )}
+                      <Edit size={16} />
                     </Button>
-                  )}
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-rose-500"
-              disabled={loading}
-              title="Excluir produto"
-              onClick={() => onDelete(product.id)}
-            >
-              <Trash2 size={16} />
-            </Button>
-          </div>
-        </div>
-      ))}
+                    {onToggleActive && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={loading}
+                        className={product.active ? "text-green-500" : "text-gray-500"}
+                        onClick={() => onToggleActive(product)}
+                        title={product.active ? "Desativar produto" : "Ativar produto"}
+                      >
+                        {product.active ? <Eye size={16} /> : <EyeOff size={16} />}
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-rose-500"
+                      disabled={loading}
+                      title="Excluir produto"
+                      onClick={() => onDelete(product.id)}
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {pagination && pagination.total_pages > 1 && (
         <div className="flex justify-center items-center mt-8 gap-2">

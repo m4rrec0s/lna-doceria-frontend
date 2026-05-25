@@ -1,72 +1,125 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useApi } from '@/app/hooks/useApi';
 import { Category } from '@/app/types/category';
-import { Flavor } from '@/app/types/flavor';
-import CategoryForm from '@/app/components/dashboard/CategoryForm';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/app/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/app/components/ui/table';
+
+type LocalFlavor = {
+  id?: string;
+  name: string;
+  imageUrl?: string;
+  status?: 'new' | 'edited' | 'deleted' | 'clean';
+};
 
 export default function CatalogPage() {
   const {
     categories,
     loading,
     getCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
     createFlavor,
     updateFlavor,
     deleteFlavor,
-    deleteCategory,
   } = useApi();
 
-  const [newFlavorNames, setNewFlavorNames] = useState<Record<string, string>>({});
-  const [editingFlavorId, setEditingFlavorId] = useState<string | null>(null);
-  const [editingFlavorName, setEditingFlavorName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [name, setName] = useState('');
+  const [sellingType, setSellingType] = useState<'package' | 'unit'>('unit');
+  const [packageSizesText, setPackageSizesText] = useState('');
+  const [flavors, setFlavors] = useState<LocalFlavor[]>([]);
+  const [newFlavorName, setNewFlavorName] = useState('');
 
   useEffect(() => {
     getCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleAddFlavor = async (categoryId: string) => {
-    const name = newFlavorNames[categoryId]?.trim();
-    if (!name) {
-      toast.error('Digite um nome para o sabor');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('categoryId', categoryId);
-
-    try {
-      await createFlavor(formData);
-      setNewFlavorNames((prev) => ({ ...prev, [categoryId]: '' }));
-      await getCategories(true);
-      toast.success('Sabor adicionado');
-    } catch {
-      toast.error('Erro ao adicionar sabor');
-    }
+  const openCreateModal = () => {
+    setEditingCategory(null);
+    setName('');
+    setSellingType('unit');
+    setPackageSizesText('');
+    setFlavors([]);
+    setNewFlavorName('');
+    setIsModalOpen(true);
   };
 
-  const handleSaveFlavor = async (flavor: Flavor) => {
-    const value = editingFlavorName.trim();
+  const openEditModal = (category: Category) => {
+    setEditingCategory(category);
+    setName(category.name);
+    setSellingType((category.sellingType as 'package' | 'unit') || 'unit');
+    setPackageSizesText((category.packageSizes || []).join(', '));
+    setFlavors(
+      (category.flavors || []).map((flavor) => ({
+        id: flavor.id,
+        name: flavor.name,
+        imageUrl: flavor.imageUrl,
+        status: 'clean',
+      })),
+    );
+    setNewFlavorName('');
+    setIsModalOpen(true);
+  };
+
+  const packageSizes = useMemo(() => {
+    if (sellingType !== 'package') return null;
+    return packageSizesText
+      .split(',')
+      .map((item) => Number(item.trim()))
+      .filter((item) => !Number.isNaN(item) && item > 0);
+  }, [packageSizesText, sellingType]);
+
+  const addFlavorToDraft = () => {
+    const value = newFlavorName.trim();
     if (!value) return;
-    try {
-      const formData = new FormData();
-      formData.append('name', value);
-      if (flavor.categoryId) formData.append('categoryId', flavor.categoryId);
-      await updateFlavor(flavor.id, formData);
-      setEditingFlavorId(null);
-      setEditingFlavorName('');
-      await getCategories(true);
-      toast.success('Sabor atualizado');
-    } catch {
-      toast.error('Erro ao atualizar sabor');
-    }
+    setFlavors((prev) => [...prev, { name: value, status: 'new' }]);
+    setNewFlavorName('');
+  };
+
+  const updateDraftFlavor = (index: number, value: string) => {
+    setFlavors((prev) =>
+      prev.map((flavor, i) =>
+        i === index
+          ? {
+              ...flavor,
+              name: value,
+              status: flavor.status === 'new' ? 'new' : 'edited',
+            }
+          : flavor,
+      ),
+    );
+  };
+
+  const removeDraftFlavor = (index: number) => {
+    setFlavors((prev) => {
+      const target = prev[index];
+      if (!target?.id) return prev.filter((_, i) => i !== index);
+      return prev.map((flavor, i) => (i === index ? { ...flavor, status: 'deleted' } : flavor));
+    });
   };
 
   const handleDeleteCategory = async (category: Category) => {
@@ -80,103 +133,227 @@ export default function CatalogPage() {
     }
   };
 
-  const handleDeleteFlavor = async (flavorId: string) => {
-    if (!window.confirm('Excluir este sabor?')) return;
+  const handleSaveCategory = async () => {
+    if (!name.trim()) {
+      toast.error('Nome da categoria é obrigatório');
+      return;
+    }
+
     try {
-      await deleteFlavor(flavorId);
+      const payload = {
+        name: name.trim(),
+        sellingType,
+        packageSizes: sellingType === 'package' ? packageSizes : null,
+      };
+
+      let categoryId = editingCategory?.id;
+
+      if (categoryId) {
+        await updateCategory(categoryId, payload);
+      } else {
+        const created = await createCategory(payload as Omit<Category, 'id'>);
+        categoryId = created.id;
+      }
+
+      if (categoryId) {
+        const tasks = flavors
+          .filter((flavor) => flavor.status !== 'clean')
+          .map(async (flavor) => {
+            if (flavor.status === 'deleted' && flavor.id) {
+              await deleteFlavor(flavor.id);
+              return;
+            }
+
+            if (flavor.status === 'new') {
+              const formData = new FormData();
+              formData.append('name', flavor.name.trim());
+              formData.append('categoryId', categoryId);
+              await createFlavor(formData);
+              return;
+            }
+
+            if (flavor.status === 'edited' && flavor.id) {
+              const formData = new FormData();
+              formData.append('name', flavor.name.trim());
+              formData.append('categoryId', categoryId);
+              await updateFlavor(flavor.id, formData);
+            }
+          });
+
+        await Promise.all(tasks);
+      }
+
       await getCategories(true);
-      toast.success('Sabor removido');
+      setIsModalOpen(false);
+      toast.success(editingCategory ? 'Categoria atualizada' : 'Categoria criada');
     } catch {
-      toast.error('Erro ao remover sabor');
+      toast.error('Não foi possível salvar a categoria');
     }
   };
+
+  const visibleFlavors = (category: Category) => category.flavors || [];
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <section className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm sm:p-6">
-        <h1 className="text-2xl font-bold text-zinc-900">Catálogo</h1>
-        <p className="mt-1 text-sm text-zinc-600">Organize categorias e sabores no mesmo fluxo.</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900">Categorias e Sabores</h1>
+            <p className="mt-1 text-sm text-zinc-600">Gestao centralizada com edicao em modal por categoria.</p>
+          </div>
+          <Button className="bg-rose-300 text-rose-950 hover:bg-rose-400" onClick={openCreateModal}>
+            <Plus className="mr-1 h-4 w-4" /> Nova categoria
+          </Button>
+        </div>
       </section>
 
       <section className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Nova Categoria</h2>
-        <CategoryForm onSubmitSuccess={() => getCategories(true)} />
-      </section>
-
-      <section className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-zinc-900">Categorias com Sabores</h2>
-
-        <div className="space-y-4">
-          {categories.map((category) => (
-            <article key={category.id} className="rounded-xl border border-zinc-200 p-4">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <h3 className="font-semibold text-zinc-900">{category.name}</h3>
-                  <p className="text-xs text-zinc-500">
-                    Tipo: {category.sellingType === 'package' ? 'Pacote' : 'Unidade'}
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" className="text-red-500" onClick={() => handleDeleteCategory(category)}>
-                  <Trash2 className="mr-1 h-4 w-4" /> Excluir categoria
-                </Button>
-              </div>
-
-              <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
-                <Input
-                  placeholder="Novo sabor para esta categoria"
-                  value={newFlavorNames[category.id] || ''}
-                  onChange={(e) =>
-                    setNewFlavorNames((prev) => ({ ...prev, [category.id]: e.target.value }))
-                  }
-                />
-                <Button className="bg-rose-300 text-rose-950 hover:bg-rose-400" onClick={() => handleAddFlavor(category.id)}>
-                  <Plus className="mr-1 h-4 w-4" /> Adicionar sabor
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {(category.flavors || []).map((flavor) => (
-                  <div key={flavor.id} className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-2">
-                    {editingFlavorId === flavor.id ? (
-                      <div className="flex w-full items-center gap-2">
-                        <Input value={editingFlavorName} onChange={(e) => setEditingFlavorName(e.target.value)} />
-                        <Button size="sm" onClick={() => handleSaveFlavor(flavor)}>Salvar</Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="relative h-8 w-8 overflow-hidden rounded-full border border-rose-200 bg-rose-50">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Categoria</TableHead>
+              <TableHead className="w-[120px]">Tipo</TableHead>
+              <TableHead className="min-w-[280px]">Sabores</TableHead>
+              <TableHead className="w-[140px] text-right">Acoes</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {categories.map((category) => (
+              <TableRow key={category.id}>
+                <TableCell className="font-medium text-zinc-900">{category.name}</TableCell>
+                <TableCell>{category.sellingType === 'package' ? 'Pacote' : 'Unidade'}</TableCell>
+                <TableCell>
+                  <div className="max-w-[440px] overflow-x-auto whitespace-nowrap pb-1">
+                    <div className="inline-flex gap-2">
+                      {visibleFlavors(category).map((flavor) => (
+                        <div
+                          key={flavor.id}
+                          className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs text-rose-800"
+                        >
+                          <div className="relative h-5 w-5 overflow-hidden rounded-full bg-white">
                             {flavor.imageUrl ? (
                               <Image src={flavor.imageUrl} alt={flavor.name} fill className="object-cover" />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-[10px] text-zinc-500">
+                              <div className="flex h-full w-full items-center justify-center text-[10px]">
                                 {flavor.name.slice(0, 1).toUpperCase()}
                               </div>
                             )}
                           </div>
-                          <span className="text-sm text-zinc-700">{flavor.name}</span>
+                          {flavor.name}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => { setEditingFlavorId(flavor.id); setEditingFlavorName(flavor.name); }}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteFlavor(flavor.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
+                      ))}
+                      {visibleFlavors(category).length === 0 && (
+                        <span className="text-xs text-zinc-500">Sem sabores vinculados</span>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button variant="outline" size="sm" onClick={() => openEditModal(category)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-500"
+                      onClick={() => handleDeleteCategory(category)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {!loading && categories.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-zinc-500">
+                  Nenhuma categoria cadastrada.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </section>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[760px]">
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? 'Editar categoria' : 'Nova categoria'}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <Label className="mb-1 block">Nome</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div>
+                <Label className="mb-1 block">Tipo de venda</Label>
+                <select
+                  value={sellingType}
+                  onChange={(e) => setSellingType(e.target.value as 'package' | 'unit')}
+                  className="h-10 w-full rounded-md border border-zinc-200 bg-white px-3"
+                >
+                  <option value="unit">Unidade</option>
+                  <option value="package">Pacote</option>
+                </select>
+              </div>
+            </div>
+
+            {sellingType === 'package' && (
+              <div>
+                <Label className="mb-1 block">Tamanhos de pacote (separados por virgula)</Label>
+                <Input
+                  value={packageSizesText}
+                  onChange={(e) => setPackageSizesText(e.target.value)}
+                  placeholder="Ex.: 6, 12, 24"
+                />
+              </div>
+            )}
+
+            <div className="rounded-xl border border-rose-100 bg-rose-50/60 p-4">
+              <h3 className="mb-3 text-sm font-semibold text-rose-900">Sabores da categoria</h3>
+              <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]">
+                <Input
+                  placeholder="Adicionar novo sabor"
+                  value={newFlavorName}
+                  onChange={(e) => setNewFlavorName(e.target.value)}
+                />
+                <Button onClick={addFlavorToDraft} className="bg-rose-300 text-rose-950 hover:bg-rose-400">
+                  <Plus className="mr-1 h-4 w-4" /> Adicionar
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                {flavors.filter((flavor) => flavor.status !== 'deleted').map((flavor, index) => (
+                  <div key={`${flavor.id || 'new'}-${index}`} className="flex items-center gap-2">
+                    <Input
+                      value={flavor.name}
+                      onChange={(e) => updateDraftFlavor(index, e.target.value)}
+                    />
+                    <Button variant="outline" size="icon" onClick={() => removeDraftFlavor(index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
-                {(category.flavors || []).length === 0 && (
-                  <p className="text-sm text-zinc-500">Sem sabores vinculados.</p>
+                {flavors.filter((flavor) => flavor.status !== 'deleted').length === 0 && (
+                  <p className="text-sm text-zinc-500">Nenhum sabor na categoria.</p>
                 )}
               </div>
-            </article>
-          ))}
-          {!loading && categories.length === 0 && <p className="text-sm text-zinc-500">Nenhuma categoria cadastrada.</p>}
-        </div>
-      </section>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveCategory} className="bg-zinc-900 text-white hover:bg-zinc-700">
+              Salvar categoria
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

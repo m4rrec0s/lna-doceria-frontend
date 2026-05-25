@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { fadeInUp } from "../../../utils/animations";
 import { formatCurrency } from "../../../helpers/formatCurrency";
 import { applyDiscount } from "../../../helpers/applyDiscount";
 import { Category } from "../../../types/category";
@@ -70,25 +68,9 @@ const ProductInfo = ({
   };
 
   return (
-    <motion.div
-      className="space-y-4 rounded-2xl border border-rose-100 bg-white p-6 shadow-sm"
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: {
-            staggerChildren: 0.2,
-          },
-        },
-      }}
-    >
+    <section className="space-y-4">
       {categories && (
-        <motion.div
-          variants={fadeInUp}
-          className="flex items-center gap-2 flex-wrap"
-        >
+        <div className="flex flex-wrap items-center gap-2">
           {categories.map((category) => (
             <Badge
               key={category.id}
@@ -101,65 +83,42 @@ const ProductInfo = ({
           {hasDiscount && (
             <Badge className="bg-rose-400 text-rose-950">{discount}% OFF</Badge>
           )}
-        </motion.div>
+        </div>
       )}
 
-      <motion.h1
-        variants={fadeInUp}
-        className="flex items-center gap-2 text-3xl font-bold text-zinc-900"
-      >
-        {name}
-        <motion.span
-          role="img"
-          aria-label="sparkles"
-          initial={{ rotate: -10, scale: 0.9 }}
-          animate={{ rotate: [0, 10, 0, -10, 0], scale: [0.9, 1.1, 0.9] }}
-          transition={{
-            duration: 2,
-            delay: 1,
-            repeat: Infinity,
-            repeatDelay: 3,
-          }}
-        >
-          ✨
-        </motion.span>
-      </motion.h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-rose-950 md:text-4xl">{name}</h1>
+        <p className="text-sm text-zinc-600">Doces artesanais com toque premium.</p>
+      </div>
 
       {renderSellingInfo()}
 
-      <motion.div
-        variants={fadeInUp}
-        className="text-2xl font-semibold text-rose-700"
-      >
+      <div className="rounded-2xl border border-rose-100 bg-white p-4">
         {hasDiscount ? (
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="mr-2 text-lg text-zinc-500 line-through">
+            <div className="flex items-center gap-3">
+              <span className="text-lg text-zinc-500 line-through">
                 {formatCurrency(price)}
               </span>
-              <span className="text-2xl font-semibold text-rose-700">
+              <span className="text-3xl font-semibold text-rose-700">
                 {formatCurrency(discountedPrice)}
               </span>
             </div>
             <div className="mt-1 text-sm text-rose-700">
-              Você economiza {formatCurrency(savedAmount)} ({discount}% de
-              desconto)
+              Você economiza {formatCurrency(savedAmount)} ({discount}% de desconto)
             </div>
           </div>
         ) : (
-          <span className="text-2xl font-semibold text-rose-700">
+          <span className="text-3xl font-semibold text-rose-700">
             {formatCurrency(price)}
           </span>
         )}
-      </motion.div>
+      </div>
 
-      <motion.div
-        variants={fadeInUp}
-        className="rounded-lg border border-zinc-200 p-4"
-      >
-        <p className="text-zinc-600">{description}</p>
-      </motion.div>
-    </motion.div>
+      <div className="rounded-2xl border border-rose-100 bg-white p-4">
+        <p className="text-sm text-zinc-600">{description}</p>
+      </div>
+    </section>
   );
 };
 

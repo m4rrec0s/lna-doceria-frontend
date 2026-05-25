@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/app/lib/utils";
 
@@ -58,16 +57,6 @@ export function BannerPanel() {
     return () => clearInterval(interval);
   }, [isHovering]);
 
-  const nextBanner = () => {
-    setActiveIndex((current) => (current + 1) % banners.length);
-  };
-
-  const prevBanner = () => {
-    setActiveIndex(
-      (current) => (current - 1 + banners.length) % banners.length
-    );
-  };
-
   return (
     <section
       className="relative overflow-hidden py-4 md:py-8"
@@ -116,26 +105,6 @@ export function BannerPanel() {
               </div>
             </div>
           ))}
-
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute left-4 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/30 bg-white/80 hover:bg-white"
-            onClick={prevBanner}
-          >
-            <ChevronLeft className="h-6 w-6" />
-            <span className="sr-only">Anterior</span>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="icon"
-            className="absolute right-4 top-1/2 z-20 h-10 w-10 -translate-y-1/2 rounded-full border border-white/30 bg-white/80 hover:bg-white"
-            onClick={nextBanner}
-          >
-            <ChevronRight className="h-6 w-6" />
-            <span className="sr-only">Próximo</span>
-          </Button>
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
             {banners.map((_, index) => (

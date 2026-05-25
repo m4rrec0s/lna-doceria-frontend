@@ -48,7 +48,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="px-4 h-16 flex items-center justify-between w-full max-w-7xl mx-auto">
         <Link href="/" className="flex items-center gap-2 mr-4">
           <Image
             src="/logo.png"
@@ -57,122 +57,99 @@ const Header = ({ showSearch = false }: HeaderProps) => {
             height={30}
             className="object-contain"
           />
-          <span className="text-2xl font-bold text-pink-500">LNA Doceria</span>
+          <h1 className="text-2xl text-pink-500 font-light">
+            <strong>LNA</strong> <span className="italic">Doceria</span>
+          </h1>
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-6">
-          {pathname !== "/" && (
-            <Link
-              href="/"
-              className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
-            >
-              Início
-            </Link>
-          )}
-          <Link
-            href="/about"
-            className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+        <div className="flex items-center md:gap-5 gap-2">
+          <form onSubmit={handleSearch} className="hidden md:block">
+            <div className="hidden md:flex items-center relative max-w-xs w-full mx-4">
+              <Input
+                type="search"
+                placeholder="Buscar doces..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pr-8 border-pink-200 focus-visible:ring-pink-500"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2"
+                aria-label="Pesquisar"
+                title="Pesquisar"
+              >
+                <Search className="h-4 w-4 text-gray-400" />
+              </button>
+            </div>
+          </form>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
           >
-            Sobre Nós
-          </Link>
-          <Link
-            href="/contact"
-            className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+            <Search className="h-5 w-5 text-gray-700" />
+            <span className="sr-only">Buscar</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCartOpen(true)}
+            className="relative"
           >
-            Contato
-          </Link>
-        </nav>
+            <ShoppingCart className="h-5 w-5 text-gray-700" />
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {itemCount}
+              </span>
+            )}
+            <span className="sr-only">Carrinho</span>
+          </Button>
 
-        <form onSubmit={handleSearch} className="hidden md:block">
-          <div className="hidden md:flex items-center relative max-w-xs w-full mx-4">
-            <Input
-              type="search"
-              placeholder="Buscar doces..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-8 border-pink-200 focus-visible:ring-pink-500"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2"
-              aria-label="Pesquisar"
-              title="Pesquisar"
-            >
-              <Search className="h-4 w-4 text-gray-400" />
-            </button>
-          </div>
-        </form>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setIsSearchOpen(!isSearchOpen)}
-        >
-          <Search className="h-5 w-5 text-gray-700" />
-          <span className="sr-only">Buscar</span>
-        </Button>
-
-        {(pathname === "/" || pathname !== "/dashboard") && (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsCartOpen(true)}
-              className="relative"
-            >
-              <ShoppingCart className="h-5 w-5 text-gray-700" />
-              {itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {itemCount}
-                </span>
-              )}
-              <span className="sr-only">Carrinho</span>
-            </Button>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5 text-gray-700" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[350px]">
-                <div className="flex flex-col h-full">
-                  <DialogTitle>Menu</DialogTitle>
-                  <nav className="flex flex-col space-y-4 py-6">
-                    {pathname !== "/" && (
-                      <Link
-                        href="/"
-                        className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
-                      >
-                        Início
-                      </Link>
-                    )}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5 text-gray-700" />
+                <span className="sr-only">Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[350px]">
+              <div className="flex flex-col h-full">
+                <DialogTitle>Menu</DialogTitle>
+                <nav className="flex flex-col space-y-4 py-6">
+                  {pathname !== "/" && (
                     <Link
-                      href="/about"
+                      href="/"
                       className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
                     >
-                      Sobre Nós
+                      Início
                     </Link>
-                    <Link
-                      href="/contact"
-                      className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
-                    >
-                      Contato
-                    </Link>
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-        )}
+                  )}
+                  <Link
+                    href="/about"
+                    className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                  >
+                    Sobre Nós
+                  </Link>
+                  <Link
+                    href="/contact"
+                    className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                  >
+                    Contato
+                  </Link>
+                </nav>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <div
         className={cn(
           "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
-          isSearchOpen ? "h-14 py-2 border-b" : "h-0"
+          isSearchOpen ? "h-14 py-2 border-b" : "h-0",
         )}
       >
         <form onSubmit={handleSearch} className="container mx-auto px-4">

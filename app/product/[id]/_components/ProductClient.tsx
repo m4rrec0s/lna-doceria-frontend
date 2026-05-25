@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { useApi } from "../../../hooks/useApi";
+import { useInView } from "react-intersection-observer";
 import { Product } from "../../../types/product";
 import { Flavor } from "../../../types/flavor";
 import Header from "../../../components/header";
@@ -13,7 +13,6 @@ import RelatedProducts from "./RelatedProducts";
 import Link from "next/link";
 import Image from "next/image";
 import { Category } from "@/app/types/category";
-import { ChevronLeft } from "lucide-react";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { cn } from "@/app/lib/utils";
 
@@ -28,6 +27,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   const [error, setError] = useState<string | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedFlavorIds, setSelectedFlavorIds] = useState<string[]>([]);
+  const { ref: cartAnchorRef, inView: cartAnchorInView } = useInView({
+    threshold: 0.1,
+  });
 
   const { getProductById, getProducts, getFlavors } = useApi();
 
@@ -58,9 +60,10 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           setFlavors(Array.isArray(allFlavors) ? allFlavors : []);
         }
 
-        if (productItem?.category_id) {
+        const categoryId = productItem?.categories?.[0]?.id;
+        if (categoryId) {
           const related = await getProducts({
-            categoryId: productItem.category_id,
+            categoryId,
             per_page: 4,
           });
           setRelatedProducts(
@@ -68,6 +71,8 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               ? related.filter((p) => p.id !== productItem.id)
               : [],
           );
+        } else {
+          setRelatedProducts([]);
         }
       } catch (err) {
         console.error("Erro ao carregar produto ou sabores:", err);
@@ -115,11 +120,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
       <main>
         <Header />
         <div className="container mx-auto px-4 mt-8 py-12 flex justify-center">
-          <motion.div
-            className="w-20 h-20 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
+          <div className="h-12 w-12 rounded-full border-4 border-rose-300 border-t-transparent animate-spin" />
         </div>
       </main>
     );
@@ -137,13 +138,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               {error || "Este produto não está disponível ou não existe."}
             </p>
             <Link href="/">
-              <motion.button
-                className="bg-pink-500 text-white py-2 px-6 rounded-full"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <button className="bg-rose-300 text-rose-950 py-2 px-6 rounded-full">
                 Voltar para a página inicial
-              </motion.button>
+              </button>
             </Link>
           </div>
         </div>
@@ -152,33 +149,29 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 pb-10">
+    <main className="min-h-screen bg-rose-50/40 pb-16">
       <Header />
       <div className="container mx-auto mt-6 px-4 md:mt-8">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm ring-1 ring-zinc-200"
-        >
-          <ChevronLeft size={16} /> Voltar
-        </button>
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="w-full max-w-[520px] justify-self-center lg:max-w-[600px] lg:justify-self-start">
+            <ProductGallery imageUrl={product?.imageUrl} alt={product?.name} />
+          </div>
 
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <ProductGallery imageUrl={product?.imageUrl} alt={product?.name} />
-
-          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-            <ProductInfo
-              name={product?.name}
-              price={product?.price}
-              description={product?.description || "Sem descrição disponível"}
-              categories={product?.categories}
-              discount={product?.discount}
-            />
+          <div className="space-y-6">
+            <div className="rounded-[28px] border border-rose-100 bg-white p-6">
+              <ProductInfo
+                name={product?.name}
+                price={product?.price}
+                description={product?.description || "Sem descrição disponível"}
+                categories={product?.categories}
+                discount={product?.discount}
+              />
+            </div>
 
             {flavors.length > 0 && (
-              <div className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
+              <div className="rounded-[28px] border border-rose-100 bg-white p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
-                  <h2 className="text-lg font-semibold text-zinc-900">
+                  <h2 className="text-lg font-semibold text-rose-950">
                     Escolha seus sabores
                   </h2>
                   <span className="text-xs font-medium text-zinc-600">
@@ -187,9 +180,8 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                   </span>
                 </div>
                 {maxFlavorSelection > 0 && (
-                  <p className="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                    Selecione entre {minFlavorSelection} e {maxFlavorSelection}{" "}
-                    sabores.
+                  <p className="mb-4 rounded-2xl bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                    Selecione entre {minFlavorSelection} e {maxFlavorSelection} sabores.
                   </p>
                 )}
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -197,10 +189,10 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                     <label
                       key={flavor.id}
                       className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2 transition-colors",
+                        "flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2 transition-colors",
                         selectedFlavorIds.includes(flavor.id)
                           ? "border-rose-400 bg-rose-100"
-                          : "border-zinc-200 bg-white hover:border-rose-300",
+                          : "border-rose-100 bg-white hover:border-rose-300",
                       )}
                     >
                       <Checkbox
@@ -234,7 +226,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               </div>
             )}
 
-            <div className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm">
+            <div ref={cartAnchorRef} className="rounded-[28px] border border-rose-100 bg-white p-6">
               <AddToCartButton
                 onClick={handleAddToCart}
                 product={product}
@@ -247,13 +239,31 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 }
               />
             </div>
-          </aside>
-        </section>
 
-        {relatedProducts.length > 0 && (
-          <RelatedProducts products={relatedProducts} />
-        )}
+            {relatedProducts.length > 0 && (
+              <div className="rounded-[28px] border border-rose-100 bg-white p-6">
+                <RelatedProducts products={relatedProducts} />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {!cartAnchorInView && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-rose-100 bg-white/95 p-4 backdrop-blur lg:hidden">
+          <AddToCartButton
+            onClick={handleAddToCart}
+            product={product}
+            selectedFlavors={selectedFlavors}
+            minFlavors={maxFlavorSelection > 0 ? minFlavorSelection : 0}
+            maxFlavors={maxFlavorSelection}
+            disabled={
+              maxFlavorSelection > 0 &&
+              selectedFlavorIds.length < minFlavorSelection
+            }
+          />
+        </div>
+      )}
     </main>
   );
 };

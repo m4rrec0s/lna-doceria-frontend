@@ -162,9 +162,9 @@ const AddToCartButton = ({
         className={`flex w-full items-center justify-center gap-2 rounded-xl p-4 font-medium ${
           disabled
             ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-rose-300 text-rose-950 hover:bg-rose-400"
+            : "bg-rose-600 text-white hover:opacity-50"
         }`}
-        whileHover={{ scale: disabled ? 1 : 1.02 }}
+        whileHover={{ scale: disabled ? 1 : 1.01 }}
         whileTap={{ scale: disabled ? 1 : 0.98 }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

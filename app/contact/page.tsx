@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Instagram, Mail, MapPin, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -31,7 +32,7 @@ export default function ContactPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       toast.success(
-        "Mensagem enviada com sucesso! Entraremos em contato em breve."
+        "Mensagem enviada com sucesso! Entraremos em contato em breve.",
       );
 
       // await fetch('/api/send-email', {
@@ -51,7 +52,7 @@ export default function ContactPage() {
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);
       toast.error(
-        "Não foi possível enviar a mensagem. Por favor, tente novamente ou entre em contato diretamente por WhatsApp."
+        "Não foi possível enviar a mensagem. Por favor, tente novamente ou entre em contato diretamente por WhatsApp.",
       );
     } finally {
       setIsSubmitting(false);
@@ -61,7 +62,7 @@ export default function ContactPage() {
   const createMailtoLink = () => {
     const subject = encodeURIComponent(`Contato pelo site - ${formData.name}`);
     const body = encodeURIComponent(
-      `Nome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\n\nMensagem:\n${formData.message}`
+      `Nome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\n\nMensagem:\n${formData.message}`,
     );
     return `mailto:lizandranascimento699@gmail.com?subject=${subject}&body=${body}`;
   };
@@ -83,7 +84,14 @@ export default function ContactPage() {
               <MessageCircle className="w-6 h-6 text-pink-500 mt-1" />
               <div>
                 <h3 className="font-semibold">WhatsApp</h3>
-                <p className="text-gray-600">(83) 98851-1950</p>
+                <Link
+                  href="https://wa.me/5583988511950"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pink-500"
+                >
+                  Conversar agora
+                </Link>
                 <p className="text-sm text-gray-500">
                   Atendimento: Seg-Sex, 9h-18h
                 </p>
