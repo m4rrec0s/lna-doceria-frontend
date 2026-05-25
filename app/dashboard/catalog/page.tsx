@@ -29,6 +29,7 @@ type LocalFlavor = {
   id?: string;
   name: string;
   imageUrl?: string;
+  imageFile?: File | null;
   status?: 'new' | 'edited' | 'deleted' | 'clean';
 };
 
@@ -52,6 +53,7 @@ export default function CatalogPage() {
   const [packageSizesText, setPackageSizesText] = useState('');
   const [flavors, setFlavors] = useState<LocalFlavor[]>([]);
   const [newFlavorName, setNewFlavorName] = useState('');
+  const [newFlavorImage, setNewFlavorImage] = useState<File | null>(null);
 
   useEffect(() => {
     getCategories();
@@ -65,6 +67,7 @@ export default function CatalogPage() {
     setPackageSizesText('');
     setFlavors([]);
     setNewFlavorName('');
+    setNewFlavorImage(null);
     setIsModalOpen(true);
   };
 
@@ -78,10 +81,12 @@ export default function CatalogPage() {
         id: flavor.id,
         name: flavor.name,
         imageUrl: flavor.imageUrl,
+        imageFile: null,
         status: 'clean',
       })),
     );
     setNewFlavorName('');
+    setNewFlavorImage(null);
     setIsModalOpen(true);
   };
 
@@ -96,8 +101,16 @@ export default function CatalogPage() {
   const addFlavorToDraft = () => {
     const value = newFlavorName.trim();
     if (!value) return;
-    setFlavors((prev) => [...prev, { name: value, status: 'new' }]);
+    if (!newFlavorImage) {
+      toast.error('Envie a imagem do sabor antes de adicionar.');
+      return;
+    }
+    setFlavors((prev) => [
+      ...prev,
+      { name: value, imageFile: newFlavorImage, status: 'new' },
+    ]);
     setNewFlavorName('');
+    setNewFlavorImage(null);
   };
 
   const updateDraftFlavor = (index: number, value: string) => {
@@ -168,6 +181,9 @@ export default function CatalogPage() {
               const formData = new FormData();
               formData.append('name', flavor.name.trim());
               formData.append('categoryId', categoryId);
+              if (flavor.imageFile) {
+                formData.append('image', flavor.imageFile);
+              }
               await createFlavor(formData);
               return;
             }
@@ -277,7 +293,7 @@ export default function CatalogPage() {
       </section>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[760px]">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[760px]">
           <DialogHeader>
             <DialogTitle>{editingCategory ? 'Editar categoria' : 'Nova categoria'}</DialogTitle>
           </DialogHeader>
@@ -319,6 +335,11 @@ export default function CatalogPage() {
                   placeholder="Adicionar novo sabor"
                   value={newFlavorName}
                   onChange={(e) => setNewFlavorName(e.target.value)}
+                />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setNewFlavorImage(e.target.files?.[0] || null)}
                 />
                 <Button onClick={addFlavorToDraft} className="bg-rose-300 text-rose-950 hover:bg-rose-400">
                   <Plus className="mr-1 h-4 w-4" /> Adicionar

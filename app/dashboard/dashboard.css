@@ -350,14 +350,6 @@
 
   .sidebar-nav {
     display: none;
-    flex-direction: column;
-    overflow: visible;
-    padding: 8px 10px 12px;
-    gap: 6px;
-  }
-
-  .sidebar-nav.sidebar-nav-open {
-    display: flex;
   }
 
   .nav-item {
@@ -377,7 +369,7 @@
   }
 
   .mobile-logout {
-    display: flex;
+    display: none;
   }
 
   .dashboard-main {

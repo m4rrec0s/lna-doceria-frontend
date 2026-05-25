@@ -1,18 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Filter, Plus, Search } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
-import { toast } from 'sonner';
-import { useApi } from '@/app/hooks/useApi';
-import { Product } from '../../types/product';
-import ProductForm from '../../components/dashboard/ProductForm';
-import ProductList from '../../components/dashboard/ProductList';
-import { EditProductDialog } from '../../components/dashboard/EditProductDialog';
-import './products.css';
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Filter, Plus, Search } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/components/ui/dialog";
+import { toast } from "sonner";
+import { useApi } from "@/app/hooks/useApi";
+import { Product } from "../../types/product";
+import ProductForm from "../../components/dashboard/ProductForm";
+import ProductList from "../../components/dashboard/ProductList";
+import { EditProductDialog } from "../../components/dashboard/EditProductDialog";
+import "./products.css";
 
 export default function ProductsPage() {
   const {
@@ -27,7 +32,7 @@ export default function ProductsPage() {
     updateProduct,
     updateLocalProductState,
   } = useApi();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -42,18 +47,21 @@ export default function ProductsPage() {
     if (!searchTerm.trim()) return products;
     const term = searchTerm.toLowerCase();
     return products.filter((product) =>
-      product.name?.toLowerCase().includes(term)
+      product.name?.toLowerCase().includes(term),
     );
   }, [products, searchTerm]);
 
   const handleDeleteProduct = async (id: string) => {
     try {
       await deleteProduct(id);
-      await getAllProducts({ page: pagination.page, per_page: pagination.per_page }, true);
-      toast.success('Produto deletado com sucesso!');
+      await getAllProducts(
+        { page: pagination.page, per_page: pagination.per_page },
+        true,
+      );
+      toast.success("Produto deletado com sucesso!");
     } catch (err) {
-      console.error('Erro ao deletar produto:', err);
-      toast.error('Erro ao deletar produto');
+      console.error("Erro ao deletar produto:", err);
+      toast.error("Erro ao deletar produto");
     }
   };
 
@@ -66,9 +74,9 @@ export default function ProductsPage() {
       const updatedActive = !product.active;
       await updateProduct(product.id, { active: updatedActive });
       updateLocalProductState(product.id, { active: updatedActive });
-      toast.success(updatedActive ? 'Produto ativado' : 'Produto desativado');
+      toast.success(updatedActive ? "Produto ativado" : "Produto desativado");
     } catch {
-      toast.error('Não foi possível atualizar o status do produto');
+      toast.error("Não foi possível atualizar o status do produto");
     }
   };
 
@@ -83,7 +91,10 @@ export default function ProductsPage() {
           <h1>Produtos</h1>
           <p>Gerencie seu catálogo de produtos</p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="btn-primary">
+        <Button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="btn-primary"
+        >
           <Plus className="w-4 h-4" />
           Novo Produto
         </Button>
@@ -128,7 +139,7 @@ export default function ProductsPage() {
       </motion.div>
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[700px]">
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>Novo Produto</DialogTitle>
           </DialogHeader>
@@ -148,7 +159,10 @@ export default function ProductsPage() {
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSuccess={() => {
-          getAllProducts({ page: pagination.page, per_page: pagination.per_page }, true);
+          getAllProducts(
+            { page: pagination.page, per_page: pagination.per_page },
+            true,
+          );
           setIsEditDialogOpen(false);
         }}
       />

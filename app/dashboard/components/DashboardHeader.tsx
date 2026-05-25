@@ -1,9 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import Link from 'next/link';
+import { Bell, Menu, Search, User } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetClose,
+} from '@/app/components/ui/sheet';
 
 export function DashboardHeader() {
   const [userName, setUserName] = useState<string>('');
@@ -26,6 +36,53 @@ export function DashboardHeader() {
 
   return (
     <header className="dashboard-header">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="p-6">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Menu</SheetTitle>
+            <SheetDescription>Atalhos do dashboard</SheetDescription>
+          </SheetHeader>
+          <nav className="space-y-2">
+            <SheetClose asChild>
+              <Link
+                className="block rounded-lg border border-rose-100 bg-rose-50 px-4 py-3 font-semibold text-rose-800"
+                href="/dashboard"
+              >
+                Visao Geral
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                className="block rounded-lg border border-rose-100 bg-white px-4 py-3 text-zinc-800"
+                href="/dashboard/products"
+              >
+                Produtos
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                className="block rounded-lg border border-rose-100 bg-white px-4 py-3 text-zinc-800"
+                href="/dashboard/catalog"
+              >
+                Categorias e Sabores
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                className="block rounded-lg border border-rose-100 bg-white px-4 py-3 text-zinc-800"
+                href="/dashboard/showcase"
+              >
+                Sessões
+              </Link>
+            </SheetClose>
+          </nav>
+        </SheetContent>
+      </Sheet>
       <div className="header-search">
         <Search className="search-icon" />
         <Input
