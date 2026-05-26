@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import { Product } from "../../../types/product";
 import { Flavor } from "../../../types/flavor";
@@ -18,6 +18,9 @@ interface AddToCartButtonProps {
   selectedFlavors?: Flavor[];
   minFlavors?: number;
   maxFlavors?: number;
+  selectedGram?: number | null;
+  selectedPackageSize?: number | null;
+  onSelectedPackageSizeChange?: (value: number | null) => void;
 }
 
 const AddToCartButton = ({
@@ -28,29 +31,103 @@ const AddToCartButton = ({
   selectedFlavors,
   minFlavors = 0,
   maxFlavors = 0,
+  selectedGram = null,
+  selectedPackageSize: selectedPackageSizeProp,
+  onSelectedPackageSizeChange,
 }: AddToCartButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
 
-  // Determinar o tipo de venda e tamanhos de pacote
-  const packageCategory = product.categories?.find(
-    (cat) => cat.sellingType === "package",
+  const normalizedPackagePrices = useMemo(() => {
+    if (!Array.isArray(product.packagePrices)) {
+      return [] as { quantity: number; price: number; discount: number | null }[];
+    }
+
+    return product.packagePrices
+      .map((entry) => ({
+        quantity: Number(entry.quantity),
+        price: Number(entry.price),
+        discount:
+          entry.discount === null || entry.discount === undefined
+            ? null
+            : Number(entry.discount),
+      }))
+      .filter(
+        (entry) =>
+          Number.isFinite(entry.quantity) &&
+          Number.isFinite(entry.price) &&
+          entry.quantity > 0 &&
+          entry.price >= 0 &&
+          (entry.discount === null ||
+            (Number.isFinite(entry.discount) &&
+              entry.discount >= 0 &&
+              entry.discount <= 100)),
+      )
+      .sort((a, b) => a.quantity - b.quantity);
+  }, [product.packagePrices]);
+  const normalizedPackageSizes = useMemo(
+    () => normalizedPackagePrices.map((entry) => entry.quantity),
+    [normalizedPackagePrices],
   );
-  const sellingType = packageCategory ? "package" : "unit";
-  let packageSizes: number[] = [];
-  if (packageCategory && packageCategory.packageSizes) {
-    packageSizes =
-      typeof packageCategory.packageSizes === "string"
-        ? JSON.parse(packageCategory.packageSizes)
-        : Array.isArray(packageCategory.packageSizes)
-          ? packageCategory.packageSizes
-          : [];
-  }
+  const sellingType = normalizedPackageSizes.length > 0 ? "package" : "unit";
+  const normalizedGramsPrices = useMemo(() => {
+    if (!Array.isArray(product.gramsPrices)) return [];
+    return product.gramsPrices
+      .map((entry) => ({
+        quantity: Number(entry.quantity),
+        price: Number(entry.price),
+        discount:
+          entry.discount === null || entry.discount === undefined
+            ? null
+            : Number(entry.discount),
+      }))
+      .filter(
+        (entry) =>
+          Number.isFinite(entry.quantity) &&
+          Number.isFinite(entry.price) &&
+          entry.quantity > 0 &&
+          entry.price >= 0 &&
+          (entry.discount === null ||
+            (Number.isFinite(entry.discount) &&
+              entry.discount >= 0 &&
+              entry.discount <= 100)),
+      )
+      .sort((a, b) => a.quantity - b.quantity);
+  }, [product.gramsPrices]);
+
+  const [internalSelectedPackageSize, setInternalSelectedPackageSize] =
+    useState<number | null>(
+      normalizedPackageSizes.length
+        ? normalizedPackageSizes[normalizedPackageSizes.length - 1]
+        : null,
+    );
+  const selectedPackageSize =
+    selectedPackageSizeProp !== undefined
+      ? selectedPackageSizeProp
+      : internalSelectedPackageSize;
+  const setSelectedPackageSize = (value: number | null) => {
+    if (onSelectedPackageSizeChange) {
+      onSelectedPackageSizeChange(value);
+      return;
+    }
+    setInternalSelectedPackageSize(value);
+  };
+
+  useEffect(() => {
+    if (!normalizedPackageSizes.length) {
+      setSelectedPackageSize(null);
+      return;
+    }
+    setSelectedPackageSize(
+      normalizedPackageSizes[normalizedPackageSizes.length - 1],
+    );
+  }, [normalizedPackageSizes]);
 
   const getQuantityText = () => {
-    if (sellingType === "package" && packageSizes.length > 0) {
-      const totalItems = packageSizes[0] * quantity;
+    if (sellingType === "package" && normalizedPackageSizes.length > 0) {
+      const packageSize = selectedPackageSize || normalizedPackageSizes[0];
+      const totalItems = packageSize * quantity;
       return `${quantity} ${
         quantity === 1 ? "pacote" : "pacotes"
       } (${totalItems} unidades)`;
@@ -60,8 +137,34 @@ const AddToCartButton = ({
   };
 
   const getTotalPrice = () => {
-    const unitPrice = Number((product as Product)?.price) || 0;
-    return unitPrice * quantity;
+    const basePrice = Number((product as Product)?.price) || 0;
+    const baseDiscount = Number(product.discount || 0);
+    if (sellingType === "package" && normalizedPackageSizes.length > 0) {
+      const packageSize = selectedPackageSize || normalizedPackageSizes[0];
+      const selectedPackage = normalizedPackagePrices.find(
+        (entry) => entry.quantity === packageSize,
+      );
+      const resolvedPrice =
+        typeof selectedPackage?.price === "number" ? selectedPackage.price : basePrice;
+      const resolvedDiscount =
+        selectedPackage?.discount === null || selectedPackage?.discount === undefined
+          ? baseDiscount
+          : selectedPackage.discount;
+      return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
+    }
+    if (selectedGram && normalizedGramsPrices.length > 0) {
+      const selectedGrams = normalizedGramsPrices.find(
+        (entry) => entry.quantity === selectedGram,
+      );
+      const resolvedPrice =
+        typeof selectedGrams?.price === "number" ? selectedGrams.price : basePrice;
+      const resolvedDiscount =
+        selectedGrams?.discount === null || selectedGrams?.discount === undefined
+          ? baseDiscount
+          : selectedGrams.discount;
+      return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
+    }
+    return basePrice * (1 - baseDiscount / 100) * quantity;
   };
 
   const handleClick = () => {
@@ -80,7 +183,40 @@ const AddToCartButton = ({
 
     setIsLoading(true);
     setTimeout(() => {
-      addItem(product, {
+      const packageSize =
+        sellingType === "package" && normalizedPackageSizes.length
+          ? selectedPackageSize || normalizedPackageSizes[0]
+          : null;
+      const selectedPackagePrice =
+        packageSize !== null
+          ? normalizedPackagePrices.find(
+              (entry) => entry.quantity === packageSize,
+            )?.price
+          : undefined;
+      const selectedGramsPrice =
+        selectedGram !== null
+          ? normalizedGramsPrices.find(
+              (entry) => entry.quantity === selectedGram,
+            )?.price
+          : undefined;
+
+      const resolvedUnitPrice =
+        packageSize !== null
+          ? typeof selectedPackagePrice === "number"
+            ? selectedPackagePrice
+            : Number(product.price) || 0
+          : selectedGram !== null
+            ? typeof selectedGramsPrice === "number"
+              ? selectedGramsPrice
+              : Number(product.price) || 0
+            : Number(product.price) || 0;
+
+      const productForCart = {
+        ...product,
+        price: resolvedUnitPrice,
+      };
+
+      addItem(productForCart, {
         quantity,
         flavorId: selectedFlavorId || undefined,
         selectedFlavors: selectedFlavors,
@@ -92,11 +228,11 @@ const AddToCartButton = ({
               }
             : undefined,
         packageInfo:
-          sellingType === "package" && packageSizes.length
+          packageSize !== null
             ? {
                 quantity: quantity,
-                packageSize: packageSizes[0],
-                totalUnits: quantity * packageSizes[0],
+                packageSize,
+                totalUnits: quantity,
               }
             : undefined,
       });
@@ -107,6 +243,29 @@ const AddToCartButton = ({
 
   return (
     <div className="w-full space-y-4">
+      {sellingType === "package" && normalizedPackageSizes.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-rose-900">
+            Escolha o tamanho do pacote
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {normalizedPackageSizes.map((size) => (
+              <button
+                key={size}
+                type="button"
+                onClick={() => setSelectedPackageSize(size)}
+                className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
+                  selectedPackageSize === size
+                    ? "border-rose-400 bg-rose-100 text-rose-900"
+                    : "border-rose-200 bg-white text-rose-700 hover:border-rose-300"
+                }`}
+              >
+                {size} unidades
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Button
@@ -181,13 +340,6 @@ const AddToCartButton = ({
           </>
         )}
       </motion.button>
-
-      {sellingType === "package" && packageSizes.length > 0 && (
-        <p className="text-center text-sm text-zinc-600">
-          Este produto é vendido em pacote{packageSizes.length > 1 ? "s" : ""}{" "}
-          com {packageSizes.join(", ")} unidades cada.
-        </p>
-      )}
     </div>
   );
 };

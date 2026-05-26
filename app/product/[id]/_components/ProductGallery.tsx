@@ -1,20 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/app/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 interface ProductGalleryProps {
   imageUrl?: string;
+  imageUrls?: string[] | null;
   alt?: string;
 }
 
 const ProductGallery: React.FC<ProductGalleryProps> = ({
   imageUrl,
+  imageUrls,
   alt = "Produto",
 }) => {
   const router = useRouter();
+  const galleryImages = useMemo(() => {
+    const merged = [imageUrl, ...(imageUrls || [])].filter(
+      (value): value is string => typeof value === "string" && value.length > 0
+    );
+    return [...new Set(merged)];
+  }, [imageUrl, imageUrls]);
+  const [selectedImage, setSelectedImage] = useState<string | undefined>(
+    galleryImages[0]
+  );
+  useEffect(() => {
+    setSelectedImage(galleryImages[0]);
+  }, [galleryImages]);
 
   return (
     <div className="rounded-3xl border border-rose-100 bg-white p-4">
@@ -25,9 +39,9 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
         >
           <ChevronLeft size={22} />
         </Button>
-        {imageUrl ? (
+        {selectedImage ? (
           <Image
-            src={imageUrl}
+            src={selectedImage}
             alt={alt}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -40,6 +54,22 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({
           </div>
         )}
       </div>
+      {galleryImages.length > 1 && (
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {galleryImages.map((url) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => setSelectedImage(url)}
+              className={`relative aspect-square overflow-hidden rounded-lg border ${
+                selectedImage === url ? "border-rose-400" : "border-rose-100"
+              }`}
+            >
+              <Image src={url} alt={alt} fill className="object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

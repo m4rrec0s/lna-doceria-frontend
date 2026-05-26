@@ -44,6 +44,13 @@ const EditProductDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [packagePrices, setPackagePrices] = useState<
+    { quantity: number; price: string }[]
+  >([]);
+  const [gramsOptions, setGramsOptions] = useState<number[]>([]);
+  const [gramsInput, setGramsInput] = useState("");
+  const [packageQuantityInput, setPackageQuantityInput] = useState("");
+  const [packagePriceInput, setPackagePriceInput] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -68,9 +75,28 @@ const EditProductDialog = ({
         minFlavors: (product.minFlavors ?? 0).toString(),
         maxFlavors: (product.maxFlavors ?? 0).toString(),
       });
+      setPackagePrices(
+        (product.packagePrices || []).map((entry) => ({
+          quantity: Number(entry.quantity),
+          price: Number(entry.price).toString(),
+        }))
+      );
+      setGramsOptions((product.gramsOptions || []).map((item) => Number(item)));
       setImagePreview(product.imageUrl);
     }
   }, [product]);
+
+  const packageSizeOptions = categories
+    ? categories
+        .filter((category) => formData.categoryIds.includes(category.id))
+        .flatMap((category) =>
+          category.sellingType === "package" && Array.isArray(category.packageSizes)
+            ? category.packageSizes
+            : []
+        )
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .sort((a, b) => a - b)
+    : [];
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -108,6 +134,36 @@ const EditProductDialog = ({
     reader.readAsDataURL(file);
   };
 
+  const addPackagePrice = () => {
+    const quantity = Number(packageQuantityInput);
+    const price = Number(packagePriceInput);
+    if (!quantity || quantity <= 0 || Number.isNaN(price) || price < 0) {
+      return;
+    }
+
+    setPackagePrices((prev) => {
+      const filtered = prev.filter((entry) => entry.quantity !== quantity);
+      return [...filtered, { quantity, price: price.toString() }].sort(
+        (a, b) => a.quantity - b.quantity
+      );
+    });
+    setPackageQuantityInput("");
+    setPackagePriceInput("");
+  };
+
+  const removePackagePrice = (quantity: number) => {
+    setPackagePrices((prev) => prev.filter((entry) => entry.quantity !== quantity));
+  };
+
+  const addGramsOption = () => {
+    const grams = Number(gramsInput);
+    if (!grams || grams <= 0) return;
+    setGramsOptions((prev) =>
+      [...new Set([...prev, Math.floor(grams)])].sort((a, b) => a - b)
+    );
+    setGramsInput("");
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!product) return;
@@ -130,6 +186,11 @@ const EditProductDialog = ({
         categoryIds: formData.categoryIds,
         minFlavors: canEnableFlavorRules ? Number(formData.minFlavors || 0) : 0,
         maxFlavors: canEnableFlavorRules ? Number(formData.maxFlavors || 0) : 0,
+        packagePrices: packagePrices.map((entry) => ({
+          quantity: entry.quantity,
+          price: Number(entry.price),
+        })),
+        gramsOptions,
       };
 
       if (productData.maxFlavors < productData.minFlavors) {
@@ -340,6 +401,102 @@ const EditProductDialog = ({
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {packageSizeOptions.length > 0 && (
+                <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-3">
+                  <p className="text-sm font-medium text-blue-900">
+                    Preço por pacote
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    Quantidades disponíveis: {packageSizeOptions.join(", ")}
+                  </p>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Quantidade"
+                      value={packageQuantityInput}
+                      onChange={(e) => setPackageQuantityInput(e.target.value)}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Preço (R$)"
+                      value={packagePriceInput}
+                      onChange={(e) => setPackagePriceInput(e.target.value)}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                    <button
+                      type="button"
+                      onClick={addPackagePrice}
+                      className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {packagePrices.length > 0 && (
+                    <div className="space-y-1 text-sm text-blue-900">
+                      {packagePrices.map((entry) => (
+                        <div
+                          key={entry.quantity}
+                          className="flex items-center justify-between rounded bg-white px-2 py-1"
+                        >
+                          <span>
+                            Pacote {entry.quantity}: R$ {Number(entry.price).toFixed(2)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removePackagePrice(entry.quantity)}
+                            className="text-xs text-red-600 hover:text-red-700"
+                          >
+                            remover
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2 rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                <p className="text-sm font-medium text-zinc-900">Opções de gramas</p>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Ex.: 250"
+                    value={gramsInput}
+                    onChange={(e) => setGramsInput(e.target.value)}
+                    className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={addGramsOption}
+                    className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-white"
+                  >
+                    +
+                  </button>
+                </div>
+                {gramsOptions.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {gramsOptions.map((grams) => (
+                      <button
+                        key={grams}
+                        type="button"
+                        onClick={() =>
+                          setGramsOptions((prev) => prev.filter((item) => item !== grams))
+                        }
+                        className="rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs text-zinc-700"
+                      >
+                        {grams}g ×
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -18,14 +18,20 @@ import WhatsappIcon from "@/public/whatsappIcon";
 interface DisplaySection {
   id: string;
   title: string;
-  type: "category" | "custom" | "discounted" | "new_arrivals";
+  type:
+    | "category"
+    | "category_grams"
+    | "custom"
+    | "discounted"
+    | "new_arrivals";
   categoryId?: string | null;
-  productIds?: string | null;
+  productIds?: string[] | string | null;
+  gramsOptions?: number[] | string | null;
   active: boolean;
   order: number;
   startDate?: Date | null;
   endDate?: Date | null;
-  tags?: string | null;
+  tags?: string[] | string | null;
   products?: Product[];
   category?: Category | null;
 }
@@ -68,6 +74,17 @@ export default function Home() {
       .flatMap((page) => page.sections)
       .filter((section) => section.active) || [];
 
+  if (isLoading) {
+    return (
+      <main className="w-full overflow-x-hidden bg-rose-50/40">
+        <Header />
+        <div className="mx-auto w-full max-w-screen-2xl px-4 pb-10 pt-6 md:px-6">
+          <ItemsListSkeleton />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="w-full overflow-x-hidden bg-rose-50/40">
       <Header />
@@ -107,7 +124,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="mx-auto grid w-full max-w-screen-2xl gap-6 px-4 pb-10 md:px-6">
+      <div className="mx-auto grid w-full max-w-screen-2xl gap-6 px-0 sm:px-4 pb-10 md:px-6 bg-white">
         {isLoading && <ItemsListSkeleton />}
 
         {sections.length > 0

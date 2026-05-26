@@ -44,7 +44,7 @@ const ProductList = ({
   }
 
   return (
-    <section className="w-full rounded-2xl border border-rose-100 bg-white p-5 shadow-sm md:p-6">
+    <section className="w-full sm:rounded-lg sm:border border-rose-100 bg-white p-5 shadow-sm md:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <h1 className="max-w-[70%] text-xl text-zinc-900 md:text-2xl">
           {(() => {

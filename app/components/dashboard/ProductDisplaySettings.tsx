@@ -41,9 +41,10 @@ import { CSS } from "@dnd-kit/utilities";
 export interface DisplaySection {
   id: string;
   title: string;
-  type: "category" | "custom" | "discounted" | "new_arrivals";
+  type: "category" | "category_grams" | "custom" | "discounted" | "new_arrivals";
   categoryId?: string | null;
   productIds: string[];
+  gramsOptions?: number[];
   active: boolean;
   order: number;
   startDate?: Date | null;
@@ -99,6 +100,8 @@ const SortableItem: React.FC<{
         return "Categoria";
       case "custom":
         return "Produtos Personalizados";
+      case "category_grams":
+        return "Categoria + Gramas";
       case "discounted":
         return "Produtos com Desconto";
       case "new_arrivals":
@@ -229,6 +232,7 @@ const SortableItem: React.FC<{
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="category">Categoria</SelectItem>
+                    <SelectItem value="category_grams">Categoria + Gramas</SelectItem>
                     <SelectItem value="custom">
                       Produtos Personalizados
                     </SelectItem>
@@ -289,7 +293,7 @@ const SortableItem: React.FC<{
                 placeholder="ex: pascoa, sazonal, destaque"
               />
             </div>
-            {section.type === "category" ? (
+            {section.type === "category" || section.type === "category_grams" ? (
               <div className="space-y-2">
                 <Label htmlFor={`category-${section.id}`}>
                   Selecionar Categoria
@@ -311,6 +315,25 @@ const SortableItem: React.FC<{
                     ))}
                   </SelectContent>
                 </Select>
+                {section.type === "category_grams" && (
+                  <div className="mt-2 space-y-2">
+                    <Label htmlFor={`grams-${section.id}`}>
+                      Gramas (separadas por vírgula)
+                    </Label>
+                    <Input
+                      id={`grams-${section.id}`}
+                      value={(section.gramsOptions || []).join(", ")}
+                      onChange={(e) => {
+                        const gramsOptions = e.target.value
+                          .split(",")
+                          .map((item) => Number(item.trim()))
+                          .filter((item) => !Number.isNaN(item) && item > 0);
+                        updateSection(index, { gramsOptions });
+                      }}
+                      placeholder="ex: 100, 250, 500"
+                    />
+                  </div>
+                )}
               </div>
             ) : section.type === "custom" ? (
               <div className="space-y-2">
@@ -379,6 +402,9 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         ...section,
         productIds: Array.isArray(section.productIds) ? section.productIds : [],
         tags: Array.isArray(section.tags) ? section.tags : [],
+        gramsOptions: Array.isArray(section.gramsOptions)
+          ? section.gramsOptions
+          : [],
       }));
 
       if (page === 1) {
@@ -475,6 +501,7 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         active: true,
         productIds: null,
         tags: "[]",
+        gramsOptions: [],
         order: sections.length,
       };
 

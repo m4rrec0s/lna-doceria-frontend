@@ -7,9 +7,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-  Card
-} from "../ui/card";
+import { Card } from "../ui/card";
 import { InfoIcon } from "lucide-react";
 
 interface ProductFormProps {
@@ -23,8 +21,22 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [formError, setFormError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [availableFlavors, setAvailableFlavors] = useState<Flavor[]>([]);
   const [showFlavorSelection, setShowFlavorSelection] = useState(false);
+  const [packagePrices, setPackagePrices] = useState<
+    { quantity: number; price: string; discount: string }[]
+  >([]);
+  const [packageQuantityInput, setPackageQuantityInput] = useState("");
+  const [packagePriceInput, setPackagePriceInput] = useState("");
+  const [packageDiscountInput, setPackageDiscountInput] = useState("");
+  const [gramsPrices, setGramsPrices] = useState<
+    { quantity: number; price: string; discount: string }[]
+  >([]);
+  const [gramsPriceQuantityInput, setGramsPriceQuantityInput] = useState("");
+  const [gramsPriceValueInput, setGramsPriceValueInput] = useState("");
+  const [gramsPriceDiscountInput, setGramsPriceDiscountInput] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -44,7 +56,10 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
   useEffect(() => {
     const mergedFlavors = (selectedCategory || [])
       .flatMap((category) => category.flavors || [])
-      .filter((flavor, index, self) => self.findIndex((f) => f.id === flavor.id) === index);
+      .filter(
+        (flavor, index, self) =>
+          self.findIndex((f) => f.id === flavor.id) === index,
+      );
     const canEnableFlavorRules = mergedFlavors.length > 0;
 
     setAvailableFlavors(mergedFlavors);
@@ -54,7 +69,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
       setFormData((prev) =>
         prev.minFlavors === "0" && prev.maxFlavors === "0"
           ? prev
-          : { ...prev, minFlavors: "0", maxFlavors: "0" }
+          : { ...prev, minFlavors: "0", maxFlavors: "0" },
       );
     }
   }, [selectedCategory]);
@@ -62,7 +77,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -99,6 +114,57 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
     reader.readAsDataURL(file);
   };
 
+  const handleGalleryFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setGalleryFiles((prev) => [...prev, ...files]);
+    e.target.value = "";
+  };
+
+  const removeGalleryFile = (index: number) => {
+    setGalleryFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  useEffect(() => {
+    const objectUrls = galleryFiles.map((file) => URL.createObjectURL(file));
+    if (objectUrls.length > 0) {
+      setGalleryPreviews(objectUrls);
+    }
+    return () => objectUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [galleryFiles]);
+
+  // const addPackagePrice = () => {
+  //   const quantity = Number(packageQuantityInput);
+  //   const price = Number(packagePriceInput);
+  //   const discount = packageDiscountInput ? Number(packageDiscountInput) : 0;
+
+  //   if (
+  //     !quantity ||
+  //     quantity <= 0 ||
+  //     Number.isNaN(price) ||
+  //     price < 0 ||
+  //     Number.isNaN(discount) ||
+  //     discount < 0 ||
+  //     discount > 100
+  //   ) {
+  //     return;
+  //   }
+  //   setPackagePrices((prev) => {
+  //     const filtered = prev.filter((entry) => entry.quantity !== quantity);
+  //     return [...filtered, { quantity, price: price.toString(), discount: String(discount) }].sort(
+  //       (a, b) => a.quantity - b.quantity
+  //     );
+  //   });
+  //   setPackageQuantityInput("");
+  //   setPackagePriceInput("");
+  // };
+
+  const removePackagePrice = (quantity: number) => {
+    setPackagePrices((prev) =>
+      prev.filter((entry) => entry.quantity !== quantity),
+    );
+  };
+  const hasVariablePrices = packagePrices.length > 0 || gramsPrices.length > 0;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -121,7 +187,9 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
       }
 
       if (maxFlavors > availableFlavors.length) {
-        setFormError("O máximo de sabores não pode ultrapassar os sabores disponíveis.");
+        setFormError(
+          "O máximo de sabores não pode ultrapassar os sabores disponíveis.",
+        );
         setIsSubmitting(false);
         return;
       }
@@ -131,9 +199,11 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name.trim());
       formDataToSend.append("description", formData.description.trim());
-      formDataToSend.append("price", formData.price.trim());
+      if (!hasVariablePrices) {
+        formDataToSend.append("price", formData.price.trim());
+      }
 
-      if (formData.discount) {
+      if (!hasVariablePrices && formData.discount) {
         formDataToSend.append("discount", formData.discount.trim());
       }
 
@@ -145,8 +215,39 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         formDataToSend.append("minFlavors", formData.minFlavors || "0");
         formDataToSend.append("maxFlavors", formData.maxFlavors || "0");
       }
+      if (gramsPrices.length > 0) {
+        formDataToSend.append(
+          "gramsOptions",
+          JSON.stringify(gramsPrices.map((entry) => entry.quantity)),
+        );
+        formDataToSend.append(
+          "gramsPrices",
+          JSON.stringify(
+            gramsPrices.map((entry) => ({
+              quantity: entry.quantity,
+              price: Number(entry.price),
+              discount: entry.discount ? Number(entry.discount) : null,
+            })),
+          ),
+        );
+      }
+      if (packagePrices.length > 0) {
+        formDataToSend.append(
+          "packagePrices",
+          JSON.stringify(
+            packagePrices.map((entry) => ({
+              quantity: entry.quantity,
+              price: Number(entry.price),
+              discount: entry.discount ? Number(entry.discount) : null,
+            })),
+          ),
+        );
+      }
 
       formDataToSend.append("image", selectedFile);
+      galleryFiles.forEach((file) => {
+        formDataToSend.append("images", file);
+      });
 
       await createProduct(formDataToSend);
 
@@ -160,9 +261,16 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
         maxFlavors: "0",
       });
       setSelectedFile(null);
+      setGalleryFiles([]);
       setImagePreview("");
       setShowFlavorSelection(false);
       setAvailableFlavors([]);
+      setPackagePrices([]);
+      setPackageQuantityInput("");
+      setPackagePriceInput("");
+      setGramsPrices([]);
+      setGramsPriceQuantityInput("");
+      setGramsPriceValueInput("");
 
       toast.success("Produto adicionado com sucesso!");
 
@@ -171,11 +279,11 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
       console.error("Erro ao salvar produto:", error);
 
       toast.error(
-        "Erro ao salvar produto. Verifique os dados e tente novamente."
+        "Erro ao salvar produto. Verifique os dados e tente novamente.",
       );
 
       setFormError(
-        "Erro ao salvar produto. Verifique os dados e tente novamente."
+        "Erro ao salvar produto. Verifique os dados e tente novamente.",
       );
     } finally {
       setIsSubmitting(false);
@@ -185,11 +293,16 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
   return (
     <motion.form
       onSubmit={handleSubmit}
-      className="space-y-6"
+      className="relative space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {isSubmitting && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-white/70">
+          <span className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-zinc-300 border-t-rose-600" />
+        </div>
+      )}
       {formError && (
         <div className="p-4 rounded border border-red-200 text-red-700 mb-4">
           {formError}
@@ -211,6 +324,99 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               required
               className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
             />
+          </div>
+
+          <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-3">
+            <p className="text-sm font-medium text-blue-900">
+              Preço por pacote (manual)
+            </p>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+              <Input
+                type="number"
+                min="1"
+                placeholder="Quantidade do pacote"
+                value={packageQuantityInput}
+                onChange={(e) => setPackageQuantityInput(e.target.value)}
+              />
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Preço do pacote (R$)"
+                value={packagePriceInput}
+                onChange={(e) => setPackagePriceInput(e.target.value)}
+              />
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                placeholder="Desconto (%)"
+                value={packageDiscountInput}
+                onChange={(e) => setPackageDiscountInput(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const quantity = Number(packageQuantityInput);
+                  const price = Number(packagePriceInput);
+                  const discount = packageDiscountInput
+                    ? Number(packageDiscountInput)
+                    : 0;
+                  if (
+                    !quantity ||
+                    quantity <= 0 ||
+                    Number.isNaN(price) ||
+                    price < 0 ||
+                    Number.isNaN(discount) ||
+                    discount < 0 ||
+                    discount > 100
+                  )
+                    return;
+                  setPackagePrices((prev) => {
+                    const filtered = prev.filter(
+                      (entry) => entry.quantity !== quantity,
+                    );
+                    return [
+                      ...filtered,
+                      {
+                        quantity,
+                        price: String(price),
+                        discount: String(discount),
+                      },
+                    ].sort((a, b) => a.quantity - b.quantity);
+                  });
+                  setPackageQuantityInput("");
+                  setPackagePriceInput("");
+                  setPackageDiscountInput("");
+                }}
+                className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                +
+              </button>
+            </div>
+            {packagePrices.length > 0 && (
+              <div className="space-y-1 text-sm text-blue-900">
+                {packagePrices.map((entry) => (
+                  <div
+                    key={entry.quantity}
+                    className="flex items-center justify-between rounded bg-white px-2 py-1"
+                  >
+                    <span>
+                      Pacote {entry.quantity}: R${" "}
+                      {Number(entry.price).toFixed(2)} (
+                      {Number(entry.discount || 0).toFixed(0)}% off)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removePackagePrice(entry.quantity)}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      remover
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -242,7 +448,8 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
-                required
+                required={!hasVariablePrices}
+                disabled={hasVariablePrices}
                 step="0.01"
                 min="0"
                 className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
@@ -262,6 +469,7 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                 name="discount"
                 value={formData.discount}
                 onChange={handleChange}
+                disabled={hasVariablePrices}
                 min="0"
                 max="100"
                 className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
@@ -289,13 +497,6 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                     className="text-sm"
                   >
                     {category.name}
-                    <span className="text-xs text-gray-500 ml-1">
-                      (
-                      {category.sellingType === "package"
-                        ? "Pacote"
-                        : "Unidade"}
-                      )
-                    </span>
                   </label>
                 </div>
               ))}
@@ -328,7 +529,8 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                         ...prev,
                         minFlavors: e.target.value,
                         maxFlavors:
-                          Number(prev.maxFlavors || 0) < Number(e.target.value || 0)
+                          Number(prev.maxFlavors || 0) <
+                          Number(e.target.value || 0)
                             ? e.target.value
                             : prev.maxFlavors,
                       }))
@@ -346,20 +548,25 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
                     max={String(availableFlavors.length)}
                     value={formData.maxFlavors}
                     onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, maxFlavors: e.target.value }))
+                      setFormData((prev) => ({
+                        ...prev,
+                        maxFlavors: e.target.value,
+                      }))
                     }
                   />
                 </div>
               </div>
               <p className="text-xs text-rose-700">
-                Total de sabores disponíveis nesta categoria: {availableFlavors.length}
+                Total de sabores disponíveis nesta categoria:{" "}
+                {availableFlavors.length}
               </p>
             </div>
           )}
 
           {!showFlavorSelection && formData.categoryIds.length > 0 && (
             <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-600">
-              Regras de sabores ficam ativas apenas para categorias com sabores vinculados.
+              Regras de sabores ficam ativas apenas para categorias com sabores
+              vinculados.
             </div>
           )}
         </div>
@@ -381,6 +588,144 @@ const ProductForm = ({ categories, onSubmitSuccess }: ProductFormProps) => {
               required
               className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="galleryFiles"
+              className="block text-sm font-medium mb-1"
+            >
+              Imagens adicionais (opcional)
+            </label>
+            <Input
+              type="file"
+              id="galleryFiles"
+              name="galleryFiles"
+              multiple
+              accept="image/*"
+              onChange={handleGalleryFilesChange}
+              className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
+            />
+            {galleryPreviews.length > 0 && (
+              <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {galleryPreviews.map((src, index) => (
+                  <div
+                    key={`${src}-${index}`}
+                    className="relative h-[72px] w-[72px]"
+                  >
+                    <Image
+                      src={src}
+                      alt={`Preview adicional ${index + 1}`}
+                      width={72}
+                      height={72}
+                      className="h-[72px] w-[72px] rounded-md border object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryFile(index)}
+                      className="absolute -right-2 -top-2 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] text-white"
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+            <p className="mb-2 text-sm font-medium text-zinc-800">
+              Preço por gramas (opcional)
+            </p>
+            <div className="mt-3 space-y-2">
+              <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="Gramas"
+                  value={gramsPriceQuantityInput}
+                  onChange={(e) => setGramsPriceQuantityInput(e.target.value)}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Preço"
+                  value={gramsPriceValueInput}
+                  onChange={(e) => setGramsPriceValueInput(e.target.value)}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="Desconto (%)"
+                  value={gramsPriceDiscountInput}
+                  onChange={(e) => setGramsPriceDiscountInput(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const quantity = Number(gramsPriceQuantityInput);
+                    const price = Number(gramsPriceValueInput);
+                    const discount = gramsPriceDiscountInput
+                      ? Number(gramsPriceDiscountInput)
+                      : 0;
+                    if (
+                      !quantity ||
+                      quantity <= 0 ||
+                      Number.isNaN(price) ||
+                      price < 0 ||
+                      Number.isNaN(discount) ||
+                      discount < 0 ||
+                      discount > 100
+                    )
+                      return;
+                    setGramsPrices((prev) => [
+                      ...prev.filter((entry) => entry.quantity !== quantity),
+                      {
+                        quantity,
+                        price: String(price),
+                        discount: String(discount),
+                      },
+                    ]);
+                    setGramsPriceQuantityInput("");
+                    setGramsPriceValueInput("");
+                    setGramsPriceDiscountInput("");
+                  }}
+                  className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-white"
+                >
+                  +
+                </button>
+              </div>
+              {gramsPrices.length > 0 && (
+                <div className="space-y-1">
+                  {gramsPrices.map((entry) => (
+                    <div
+                      key={entry.quantity}
+                      className="flex items-center justify-between rounded border px-2 py-1 text-xs"
+                    >
+                      <span>
+                        {entry.quantity}g: R$ {Number(entry.price).toFixed(2)} (
+                        {Number(entry.discount || 0).toFixed(0)}% off)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setGramsPrices((prev) =>
+                            prev.filter(
+                              (item) => item.quantity !== entry.quantity,
+                            ),
+                          )
+                        }
+                        className="text-red-600"
+                      >
+                        remover
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-center items-center border rounded-md h-40 bg-zinc-200 dark:bg-zinc-800">

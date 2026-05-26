@@ -25,7 +25,7 @@ interface PaginatedResponse<T> {
 interface DisplaySection {
   id: string;
   title: string;
-  type: "category" | "custom" | "discounted" | "new_arrivals";
+  type: "category" | "category_grams" | "custom" | "discounted" | "new_arrivals";
   active: boolean;
   categoryId?: string | null;
   productIds?: string | null;
@@ -33,6 +33,7 @@ interface DisplaySection {
   startDate?: Date | null;
   endDate?: Date | null;
   tags?: string | null;
+  gramsOptions?: number[] | string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -40,7 +41,7 @@ interface DisplaySection {
 export interface ProductSection {
   id: string;
   title: string;
-  type: "category" | "custom" | "discounted" | "new_arrivals";
+  type: "category" | "category_grams" | "custom" | "discounted" | "new_arrivals";
   categoryId?: string | null;
   productIds: string[] | string;
   active: boolean;
@@ -48,6 +49,7 @@ export interface ProductSection {
   startDate?: Date | string | null;
   endDate?: Date | string | null;
   tags: string[] | string;
+  gramsOptions?: number[] | string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   category?: string;
@@ -170,7 +172,7 @@ export const useApi = () => {
   const getProductById = async (id: string) => {
     try {
       setLoading(true);
-      const response = await axiosClient.get(`/products?id=${id}`);
+      const response = await axiosClient.get(`/products/${id}`);
       return response.data;
     } catch (error: unknown) {
       setError("Erro ao buscar produto - " + (error as Error).message);
@@ -215,11 +217,14 @@ export const useApi = () => {
 
   const updateProduct = async (
     id: string,
-    productData: Partial<Product> & { categoryIds?: string[] }
+    productData: (Partial<Product> & { categoryIds?: string[] }) | FormData
   ) => {
     setLoading(true);
     try {
-      const response = await axiosClient.put(`/products/${id}`, productData);
+      const isFormData = typeof FormData !== "undefined" && productData instanceof FormData;
+      const response = await axiosClient.put(`/products/${id}`, productData, isFormData
+        ? { headers: { "Content-Type": "multipart/form-data" } }
+        : undefined);
       cache.products.clear();
       return response.data;
     } catch (error: unknown) {
@@ -264,7 +269,7 @@ export const useApi = () => {
     }
   };
 
-  const createCategory = async (categoryData: Omit<Category, "id">) => {
+  const createCategory = async (categoryData: Partial<Category>) => {
     setLoading(true);
     try {
       const response = await axiosClient.post("/categories", categoryData);
@@ -422,11 +427,30 @@ export const useApi = () => {
         params: { page, limit },
       });
 
+      const parseJsonArray = (value: unknown): string[] => {
+        if (Array.isArray(value)) {
+          return value.filter((item): item is string => typeof item === "string");
+        }
+
+        if (typeof value !== "string" || value.trim() === "") {
+          return [];
+        }
+
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed)
+            ? parsed.filter((item): item is string => typeof item === "string")
+            : [];
+        } catch {
+          return [];
+        }
+      };
+
       const processedSections = response.data.sections.map(
         (section: DisplaySection) => ({
           ...section,
-          productIds: section.productIds ? JSON.parse(section.productIds) : [],
-          tags: section.tags ? JSON.parse(section.tags) : [],
+          productIds: parseJsonArray(section.productIds),
+          tags: parseJsonArray(section.tags),
         })
       );
 

@@ -17,11 +17,7 @@ const CartSummary: React.FC = () => {
 
     items.forEach((item, index) => {
       // Cálculo correto do preço baseado no tipo de venda
-      const itemTotal =
-        item.sellingType === "package"
-          ? item.price
-          : item.price *
-            (item.packageInfo ? item.packageInfo.totalUnits : item.quantity);
+      const itemTotal = item.price * item.quantity;
 
       const discountedTotal = item.discount
         ? itemTotal - (itemTotal * item.discount) / 100

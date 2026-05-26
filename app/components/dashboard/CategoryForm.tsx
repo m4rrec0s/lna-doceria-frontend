@@ -1,13 +1,10 @@
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { useApi } from "../../hooks/useApi";
 import { Category } from "../../types/category";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Badge } from "../ui/badge";
-import { X } from "lucide-react";
 
 interface CategoryFormProps {
   category?: Category;
@@ -20,16 +17,37 @@ const CategoryForm = ({
   onSubmitSuccess,
   onCancel,
 }: CategoryFormProps) => {
-  const { createCategory, updateCategory } = useApi();
+  const { createCategory, updateCategory, createFlavor, updateFlavor, deleteFlavor } = useApi();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: category?.name || "",
-    sellingType: category?.sellingType || "package",
-    packageSize: "",
-    packageSizes: category?.packageSizes || [],
   });
+  const [flavorsDraft, setFlavorsDraft] = useState<
+    {
+      id?: string;
+      name: string;
+      imageFile?: File | null;
+      status: "new" | "edited" | "deleted" | "clean";
+    }[]
+  >([]);
+  const [newFlavorName, setNewFlavorName] = useState("");
+  const [newFlavorImage, setNewFlavorImage] = useState<File | null>(null);
+
+  useEffect(() => {
+    setFormData({
+      name: category?.name || "",
+    });
+    setFlavorsDraft(
+      (category?.flavors || []).map((flavor) => ({
+        id: flavor.id,
+        name: flavor.name,
+        imageFile: null,
+        status: "clean" as const,
+      }))
+    );
+  }, [category]);
 
   const showAssociatedFlavors =
     category?.flavors && category.flavors.length > 0;
@@ -41,39 +59,6 @@ const CategoryForm = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSellingTypeChange = (value: "package" | "unit") => {
-    setFormData((prev) => ({ ...prev, sellingType: value }));
-  };
-
-  const addPackageSize = () => {
-    const size = parseInt(formData.packageSize);
-    if (isNaN(size) || size <= 0) return;
-
-    if (!formData.packageSizes.includes(size)) {
-      setFormData((prev) => ({
-        ...prev,
-        packageSizes: [...prev.packageSizes, size].sort((a, b) => a - b),
-        packageSize: "",
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, packageSize: "" }));
-    }
-  };
-
-  const removePackageSize = (size: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      packageSizes: prev.packageSizes.filter((s) => s !== size),
-    }));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addPackageSize();
-    }
-  };
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -82,24 +67,47 @@ const CategoryForm = ({
     try {
       const categoryData = {
         name: formData.name.trim(),
-        sellingType: formData.sellingType as "package" | "unit",
-        packageSizes:
-          formData.sellingType === "package" ? formData.packageSizes : null,
       };
 
       if (category) {
-        await updateCategory(category.id, categoryData);
+        const updated = await updateCategory(category.id, categoryData);
+        const categoryId = updated.id;
+        const changes = flavorsDraft.filter((item) => item.status !== "clean");
+        for (const item of changes) {
+          if (item.status === "new") {
+            const fd = new FormData();
+            fd.append("name", item.name.trim());
+            fd.append("categoryId", categoryId);
+            if (item.imageFile) fd.append("image", item.imageFile);
+            await createFlavor(fd);
+          }
+          if (item.status === "edited" && item.id) {
+            const fd = new FormData();
+            fd.append("name", item.name.trim());
+            fd.append("categoryId", categoryId);
+            if (item.imageFile) fd.append("image", item.imageFile);
+            await updateFlavor(item.id, fd);
+          }
+          if (item.status === "deleted" && item.id) {
+            await deleteFlavor(item.id);
+          }
+        }
         toast.success("Categoria atualizada com sucesso!");
       } else {
-        await createCategory(categoryData);
+        const created = await createCategory(categoryData);
+        const categoryId = created.id;
+        for (const item of flavorsDraft.filter((f) => f.status === "new")) {
+          const fd = new FormData();
+          fd.append("name", item.name.trim());
+          fd.append("categoryId", categoryId);
+          if (item.imageFile) fd.append("image", item.imageFile);
+          await createFlavor(fd);
+        }
         toast.success("Categoria criada com sucesso!");
       }
 
       setFormData({
         name: "",
-        sellingType: "package",
-        packageSize: "",
-        packageSizes: [],
       });
 
       onSubmitSuccess();
@@ -142,74 +150,6 @@ const CategoryForm = ({
         />
       </div>
 
-      <div className="space-y-2">
-        <Label className="block text-sm font-medium">Tipo de Venda *</Label>
-        <RadioGroup
-          value={formData.sellingType}
-          onValueChange={(value: string) =>
-            handleSellingTypeChange(value as "package" | "unit")
-          }
-          className="flex space-x-4"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="package" id="selling-package" />
-            <Label htmlFor="selling-package">Pacote</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="unit" id="selling-unit" />
-            <Label htmlFor="selling-unit">Unidade</Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      {formData.sellingType === "package" && (
-        <div className="space-y-2">
-          <Label htmlFor="packageSize" className="block text-sm font-medium">
-            Tamanhos de Pacote
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              id="packageSize"
-              name="packageSize"
-              value={formData.packageSize}
-              onChange={handleChange}
-              placeholder="Quantidade por pacote"
-              className="flex-grow"
-              min="1"
-              onKeyDown={handleKeyDown}
-            />
-            <button
-              type="button"
-              onClick={addPackageSize}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Adicionar
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-2">
-            {formData.packageSizes.map((size) => (
-              <Badge
-                key={size}
-                variant="secondary"
-                className="flex items-center gap-1"
-              >
-                {size} unidades
-                <button
-                  title="close"
-                  type="button"
-                  onClick={() => removePackageSize(size)}
-                  className="ml-1 hover:text-red-500"
-                >
-                  <X size={14} />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
       {showAssociatedFlavors && (
         <div className="space-y-2">
           <Label className="block text-sm font-medium">
@@ -232,6 +172,94 @@ const CategoryForm = ({
           </div>
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label className="block text-sm font-medium">Sabores da categoria</Label>
+        <div className="flex gap-2">
+          <Input
+            value={newFlavorName}
+            onChange={(e) => setNewFlavorName(e.target.value)}
+            placeholder="Novo sabor"
+          />
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setNewFlavorImage(e.target.files?.[0] || null)}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const value = newFlavorName.trim();
+              if (!value) return;
+              setFlavorsDraft((prev) => [
+                ...prev,
+                { name: value, imageFile: newFlavorImage, status: "new" },
+              ]);
+              setNewFlavorName("");
+              setNewFlavorImage(null);
+            }}
+            className="px-3 py-2 rounded-md bg-zinc-900 text-white text-sm"
+          >
+            +
+          </button>
+        </div>
+        <div className="space-y-2">
+          {flavorsDraft
+            .filter((item) => item.status !== "deleted")
+            .map((item, index) => (
+              <div key={`${item.id || "new"}-${index}`} className="flex gap-2">
+                <Input
+                  value={item.name}
+                  onChange={(e) =>
+                    setFlavorsDraft((prev) =>
+                      prev.map((f, i) =>
+                        i === index
+                          ? {
+                              ...f,
+                              name: e.target.value,
+                              status: f.status === "new" ? "new" : "edited",
+                            }
+                          : f
+                      )
+                    )
+                  }
+                />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFlavorsDraft((prev) =>
+                      prev.map((f, i) =>
+                        i === index
+                          ? {
+                              ...f,
+                              imageFile: e.target.files?.[0] || null,
+                              status: f.status === "new" ? "new" : "edited",
+                            }
+                          : f
+                      )
+                    )
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFlavorsDraft((prev) =>
+                      prev.map((f, i) =>
+                        i === index
+                          ? { ...f, status: f.id ? "deleted" : "deleted" }
+                          : f
+                      )
+                    )
+                  }
+                  className="px-3 py-2 rounded-md border text-red-600"
+                >
+                  x
+                </button>
+              </div>
+            ))}
+        </div>
+      </div>
 
       <div className="flex justify-end space-x-3 pt-2">
         {onCancel && (

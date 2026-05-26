@@ -1,6 +1,12 @@
 import { Category } from "./category";
 import { Flavor } from "./flavor";
 
+export interface PackagePrice {
+  quantity: number;
+  price: number;
+  discount?: number | null;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -17,4 +23,8 @@ export interface Product {
   minFlavors?: number;
   maxFlavors?: number;
   flavor?: Flavor;
+  packagePrices?: PackagePrice[] | null;
+  gramsPrices?: PackagePrice[] | null;
+  gramsOptions?: number[] | null;
+  imageUrls?: string[] | null;
 }

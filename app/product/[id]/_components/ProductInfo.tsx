@@ -4,7 +4,6 @@ import { formatCurrency } from "../../../helpers/formatCurrency";
 import { applyDiscount } from "../../../helpers/applyDiscount";
 import { Category } from "../../../types/category";
 import { Badge } from "../../../components/ui/badge";
-import { Package2, PackageCheck } from "lucide-react";
 
 interface ProductInfoProps {
   name: string;
@@ -21,51 +20,9 @@ const ProductInfo = ({
   categories = [],
   discount = 0,
 }: ProductInfoProps) => {
-  const packageCategory = categories?.find(
-    (cat) => cat.sellingType === "package",
-  );
-  const sellingType = packageCategory ? "package" : "unit";
-  let packageSizes: number[] = [];
-  if (packageCategory && packageCategory.packageSizes) {
-    packageSizes =
-      typeof packageCategory.packageSizes === "string"
-        ? JSON.parse(packageCategory.packageSizes)
-        : Array.isArray(packageCategory.packageSizes)
-          ? packageCategory.packageSizes
-          : [];
-  }
-
   const hasDiscount = discount > 0;
   const discountedPrice = applyDiscount(price, discount);
   const savedAmount = price - discountedPrice;
-
-  const renderSellingInfo = () => {
-    if (sellingType === "package" && packageSizes.length > 0) {
-      return (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-          <PackageCheck className="text-amber-700" size={20} />
-          <span className="text-sm text-amber-900">
-            Este produto é vendido em pacote{packageSizes.length > 1 ? "s" : ""}{" "}
-            de {packageSizes.join(", ")} unidades
-            {packageSizes.length > 1 ? " cada" : ""}
-          </span>
-        </div>
-      );
-    }
-
-    if (sellingType === "unit") {
-      return (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 p-3">
-          <Package2 className="text-sky-700" size={20} />
-          <span className="text-sm text-sky-900">
-            Este produto é vendido por unidade
-          </span>
-        </div>
-      );
-    }
-
-    return null;
-  };
 
   return (
     <section className="space-y-4">
@@ -90,8 +47,6 @@ const ProductInfo = ({
         <h1 className="text-3xl font-bold text-rose-950 md:text-4xl">{name}</h1>
         <p className="text-sm text-zinc-600">Doces artesanais com toque premium.</p>
       </div>
-
-      {renderSellingInfo()}
 
       <div className="rounded-2xl border border-rose-100 bg-white p-4">
         {hasDiscount ? (

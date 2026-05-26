@@ -25,14 +25,14 @@ const banners = [
     color: "from-rose-800/70 via-rose-600/60 to-rose-400/70",
     link: "8e0deb96-5ea9-41f5-8fa6-ff80e24c46cb",
   },
-  {
-    id: "Barras_recheadas",
-    title: "Barras Recheadas",
-    description: "Barras recheadas com chocolate e muito mais",
-    image: "https://drive.google.com/uc?id=1CC6d9La2bydPAfwzZnBYkWPgQ50gO8ZM",
-    color: "from-zinc-900/70 via-rose-800/60 to-rose-500/70",
-    link: "4e912c13-d2d9-451e-a313-e976c1beb4bc",
-  },
+  // {
+  //   id: "Barras_recheadas",
+  //   title: "Barras Recheadas",
+  //   description: "Barras recheadas com chocolate e muito mais",
+  //   image: "https://drive.google.com/uc?id=1CC6d9La2bydPAfwzZnBYkWPgQ50gO8ZM",
+  //   color: "from-zinc-900/70 via-rose-800/60 to-rose-500/70",
+  //   link: "4e912c13-d2d9-451e-a313-e976c1beb4bc",
+  // },
   {
     id: "especiais",
     title: "Doces Finos",
@@ -70,7 +70,7 @@ export function BannerPanel() {
               key={banner.id}
               className={cn(
                 "absolute inset-0 transition-opacity duration-500",
-                index === activeIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+                index === activeIndex ? "opacity-100 z-10" : "opacity-0 z-0",
               )}
             >
               <Image
@@ -81,7 +81,10 @@ export function BannerPanel() {
                 priority={index === 0}
               />
               <div
-                className={cn("absolute inset-0 bg-gradient-to-r", banner.color)}
+                className={cn(
+                  "absolute inset-0 bg-gradient-to-r",
+                  banner.color,
+                )}
               />
               <div className="absolute inset-0 bg-black/20" />
               <div className="absolute inset-0 flex flex-col justify-center p-8 text-white md:p-12">
@@ -112,7 +115,7 @@ export function BannerPanel() {
                 key={index}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all",
-                  index === activeIndex ? "bg-white w-4" : "bg-white/60"
+                  index === activeIndex ? "bg-white w-4" : "bg-white/60",
                 )}
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Go to slide ${index + 1}`}
@@ -121,14 +124,14 @@ export function BannerPanel() {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className={`mt-4 grid gap-2 md:gap-4 grid-cols-${banners.length}`}>
           {banners.map((banner, index) => (
             <Link
               key={banner.id}
               href={`/category/${banner.link}`}
               className={cn(
                 "group relative h-24 overflow-hidden rounded-2xl border border-zinc-200 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:h-32",
-                index === activeIndex && "ring-2 ring-zinc-900"
+                index === activeIndex && "ring-2 ring-zinc-900",
               )}
               onClick={(e) => {
                 e.preventDefault();
@@ -141,7 +144,12 @@ export function BannerPanel() {
                 fill
                 className="object-cover"
               />
-              <div className={cn("absolute inset-0 bg-gradient-to-r", banner.color)} />
+              <div
+                className={cn(
+                  "absolute inset-0 bg-gradient-to-r",
+                  banner.color,
+                )}
+              />
               <div className="absolute inset-0 flex items-center justify-center">
                 <h3 className="text-center text-base font-bold text-white md:text-lg">
                   {banner.title}

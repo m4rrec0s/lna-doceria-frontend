@@ -59,7 +59,83 @@ const ProductList = ({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-xl border border-rose-100 bg-white">
+      <div className="space-y-3 md:hidden">
+        {products.map((product) => (
+          <article
+            key={product.id}
+            className="rounded-xl border border-rose-100 bg-white p-3"
+          >
+            <div className="flex items-start gap-3">
+              <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-zinc-100">
+                <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold text-zinc-900">{product.name}</p>
+                <p className="text-sm text-zinc-600">{formatCurrency(product.price)}</p>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {product.categories?.map((category) => (
+                    <Badge key={category.id} className="bg-rose-100 text-rose-950">
+                      {category.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end gap-1">
+              <Button size="sm" variant="outline" disabled={loading} onClick={() => onEdit(product)}>
+                <Edit size={16} />
+              </Button>
+              {onToggleActive && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loading}
+                  className={product.active ? "text-green-500" : "text-gray-500"}
+                  onClick={() => onToggleActive(product)}
+                >
+                  {product.active ? <Eye size={16} /> : <EyeOff size={16} />}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-rose-500"
+                disabled={loading}
+                onClick={() => onDelete(product.id)}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </div>
+          </article>
+        ))}
+      </div>
+      {pagination && pagination.total_pages > 1 && (
+        <div className="flex items-center justify-between gap-2 md:hidden">
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={pagination.page <= 1}
+            onClick={() => onPageChange && onPageChange(pagination.page - 1)}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Anterior
+          </Button>
+          <span className="text-xs text-zinc-600">
+            {pagination.page}/{pagination.total_pages}
+          </span>
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={pagination.page >= pagination.total_pages}
+            onClick={() => onPageChange && onPageChange(pagination.page + 1)}
+          >
+            Próximo
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      <div className="hidden overflow-hidden rounded-xl border border-rose-100 bg-white md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -152,7 +228,7 @@ const ProductList = ({
       </div>
 
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-center items-center mt-8 gap-2">
+        <div className="mt-8 hidden items-center justify-center gap-2 md:flex">
           <Button
             variant="outline"
             disabled={pagination.page <= 1}

@@ -3,26 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, Plus, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/app/components/ui/dialog";
 import { toast } from "sonner";
 import { useApi } from "@/app/hooks/useApi";
 import { Product } from "../../types/product";
-import ProductForm from "../../components/dashboard/ProductForm";
 import ProductList from "../../components/dashboard/ProductList";
-import { EditProductDialog } from "../../components/dashboard/EditProductDialog";
 import "./products.css";
 
 export default function ProductsPage() {
+  const router = useRouter();
   const {
     products,
-    categories,
     error,
     loading,
     pagination,
@@ -33,9 +26,6 @@ export default function ProductsPage() {
     updateLocalProductState,
   } = useApi();
   const [searchTerm, setSearchTerm] = useState("");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     getAllProducts();
@@ -47,7 +37,7 @@ export default function ProductsPage() {
     if (!searchTerm.trim()) return products;
     const term = searchTerm.toLowerCase();
     return products.filter((product) =>
-      product.name?.toLowerCase().includes(term),
+      product.name?.toLowerCase().includes(term)
     );
   }, [products, searchTerm]);
 
@@ -56,7 +46,7 @@ export default function ProductsPage() {
       await deleteProduct(id);
       await getAllProducts(
         { page: pagination.page, per_page: pagination.per_page },
-        true,
+        true
       );
       toast.success("Produto deletado com sucesso!");
     } catch (err) {
@@ -92,7 +82,7 @@ export default function ProductsPage() {
           <p>Gerencie seu catálogo de produtos</p>
         </div>
         <Button
-          onClick={() => setIsCreateDialogOpen(true)}
+          onClick={() => router.push("/dashboard/products/form")}
           className="btn-primary"
         >
           <Plus className="w-4 h-4" />
@@ -127,45 +117,14 @@ export default function ProductsPage() {
           products={filteredProducts}
           loading={loading}
           error={error || null}
-          onEdit={(product) => {
-            setSelectedProduct(product);
-            setIsEditDialogOpen(true);
-          }}
+          onEdit={(product) => router.push(`/dashboard/products/form?id=${product.id}`)}
           onDelete={handleDeleteProduct}
           onToggleActive={handleToggleActive}
           pagination={searchTerm ? undefined : pagination}
           onPageChange={searchTerm ? undefined : handlePageChange}
         />
       </motion.div>
-
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>Novo Produto</DialogTitle>
-          </DialogHeader>
-          <ProductForm
-            categories={categories ?? []}
-            onSubmitSuccess={() => {
-              getAllProducts({ page: 1, per_page: pagination.per_page }, true);
-              setIsCreateDialogOpen(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <EditProductDialog
-        product={selectedProduct}
-        categories={categories ?? []}
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        onSuccess={() => {
-          getAllProducts(
-            { page: pagination.page, per_page: pagination.per_page },
-            true,
-          );
-          setIsEditDialogOpen(false);
-        }}
-      />
     </div>
   );
 }
+
