@@ -37,7 +37,7 @@ export default function ProductsPage() {
     if (!searchTerm.trim()) return products;
     const term = searchTerm.toLowerCase();
     return products.filter((product) =>
-      product.name?.toLowerCase().includes(term)
+      product.name?.toLowerCase().includes(term),
     );
   }, [products, searchTerm]);
 
@@ -46,7 +46,7 @@ export default function ProductsPage() {
       await deleteProduct(id);
       await getAllProducts(
         { page: pagination.page, per_page: pagination.per_page },
-        true
+        true,
       );
       toast.success("Produto deletado com sucesso!");
     } catch (err) {
@@ -117,7 +117,9 @@ export default function ProductsPage() {
           products={filteredProducts}
           loading={loading}
           error={error || null}
-          onEdit={(product) => router.push(`/dashboard/products/form?id=${product.id}`)}
+          onEdit={(product) =>
+            router.push(`/dashboard/products/form?id=${product.id}`)
+          }
           onDelete={handleDeleteProduct}
           onToggleActive={handleToggleActive}
           pagination={searchTerm ? undefined : pagination}
@@ -127,4 +129,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-

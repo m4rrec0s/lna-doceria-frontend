@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
-import { BadgePercent, CheckCircle, Package, Tags } from 'lucide-react';
-import Link from 'next/link';
-import { useAuth } from '../context/authContext';
-import { useApi } from '../hooks/useApi';
-import { Product } from '../types/product';
-import { Category } from '../types/category';
-import { formatCurrency } from '../helpers/formatCurrency';
-import { formatDate } from '../helpers/formatDate';
-import './page.css';
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { BadgePercent, CheckCircle, Package, Tags } from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "../context/authContext";
+import { useApi } from "../hooks/useApi";
+import { Product } from "../types/product";
+import { Category } from "../types/category";
+import { formatCurrency } from "../helpers/formatCurrency";
+import { formatDate } from "../helpers/formatDate";
 
 interface MetricCard {
   label: string;
@@ -39,8 +38,8 @@ export default function DashboardOverview() {
         setProducts(productData ?? []);
         setCategories(categoryData ?? []);
       } catch (error) {
-        console.error('Erro ao carregar dados do dashboard:', error);
-        setLoadError('Não foi possível carregar os dados do dashboard.');
+        console.error("Erro ao carregar dados do dashboard:", error);
+        setLoadError("Não foi possível carregar os dados do dashboard.");
       } finally {
         setIsLoading(false);
       }
@@ -53,47 +52,47 @@ export default function DashboardOverview() {
   const metrics = useMemo(() => {
     const activeCount = products.filter((product) => product.active).length;
     const discountedCount = products.filter(
-      (product) => (product.discount ?? 0) > 0
+      (product) => (product.discount ?? 0) > 0,
     ).length;
     const inactiveCount = products.length - activeCount;
 
-    const formatCount = (count: number) => (isLoading ? '—' : `${count}`);
+    const formatCount = (count: number) => (isLoading ? "—" : `${count}`);
 
     const details: MetricCard[] = [
       {
-        label: 'Produtos cadastrados',
+        label: "Produtos cadastrados",
         value: formatCount(products.length),
-        detail: isLoading ? 'Carregando...' : `${activeCount} ativos`,
+        detail: isLoading ? "Carregando..." : `${activeCount} ativos`,
         icon: <Package className="w-6 h-6" />,
       },
       {
-        label: 'Categorias cadastradas',
+        label: "Categorias cadastradas",
         value: formatCount(categories.length),
         detail: isLoading
-          ? 'Carregando...'
+          ? "Carregando..."
           : categories.length
-          ? `${categories.length} disponíveis`
-          : 'Nenhuma categoria',
+            ? `${categories.length} disponíveis`
+            : "Nenhuma categoria",
         icon: <Tags className="w-6 h-6" />,
       },
       {
-        label: 'Produtos ativos',
+        label: "Produtos ativos",
         value: formatCount(activeCount),
         detail: isLoading
-          ? 'Carregando...'
+          ? "Carregando..."
           : inactiveCount
-          ? `${inactiveCount} inativos`
-          : 'Nenhum inativo',
+            ? `${inactiveCount} inativos`
+            : "Nenhum inativo",
         icon: <CheckCircle className="w-6 h-6" />,
       },
       {
-        label: 'Produtos com desconto',
+        label: "Produtos com desconto",
         value: formatCount(discountedCount),
         detail: isLoading
-          ? 'Carregando...'
+          ? "Carregando..."
           : discountedCount
-          ? `${discountedCount} com desconto`
-          : 'Nenhum desconto ativo',
+            ? `${discountedCount} com desconto`
+            : "Nenhum desconto ativo",
         icon: <BadgePercent className="w-6 h-6" />,
       },
     ];
@@ -106,7 +105,7 @@ export default function DashboardOverview() {
     return [...products]
       .sort(
         (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
       )
       .slice(0, 3);
   }, [products]);
@@ -132,96 +131,314 @@ export default function DashboardOverview() {
   };
 
   return (
-    <div className="dashboard-page">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="page-header"
-      >
-        <h1>Visão Geral</h1>
-        <p>Bem-vindo ao seu painel de controle, {user?.email || 'Gerenciador'}</p>
-      </motion.div>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="mx-auto max-w-7xl space-y-8 p-6">
+        {/* HEADER */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="
+          flex
+          flex-col
+          gap-4
+          rounded-3xl
+          border
+          border-zinc-200
+          bg-white
+          p-8
+          shadow-sm
+          md:flex-row
+          md:items-center
+          md:justify-between
+        "
+        >
+          <div>
+            <span className="text-sm font-medium text-zinc-500">Dashboard</span>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.35 }}
-        className="quick-links"
-      >
-        <Link href="/dashboard/products" className="quick-link-card">
-          <h3>Produtos</h3>
-          <p>Cadastrar, editar e controlar regras de sabores.</p>
-        </Link>
-        <Link href="/dashboard/catalog" className="quick-link-card">
-          <h3>Catálogo</h3>
-          <p>Organizar categorias e sabores no mesmo fluxo.</p>
-        </Link>
-        <Link href="/dashboard/showcase" className="quick-link-card">
-          <h3>Vitrine</h3>
-          <p>Ajustar feed e distribuição de seções da homepage.</p>
-        </Link>
-      </motion.div>
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-zinc-900">
+              Visão Geral
+            </h1>
 
-      {loadError && <div className="dashboard-error">{loadError}</div>}
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">
+              Bem-vindo de volta,{" "}
+              <span className="font-medium text-zinc-700">
+                {user?.name || "Gerenciador"}
+              </span>
+              . Gerencie produtos, categorias e a vitrine da confeitaria em um
+              só lugar.
+            </p>
+          </div>
 
-      <motion.div
-        className="metrics-grid"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        {metrics.map((metric, idx) => (
-          <motion.div key={metric.label} variants={itemVariants}>
-            <div className="metric-card">
-              <div className="metric-icon-wrapper">
-                <div className={`metric-icon metric-icon-${idx}`}>
+          <div className="flex gap-3">
+            <Link
+              href="/dashboard/products"
+              className="
+              rounded-2xl
+              bg-zinc-900
+              px-5
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              transition-all
+              hover:bg-zinc-800
+            "
+            >
+              Gerenciar Produtos
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* QUICK ACTIONS */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.35 }}
+          className="grid gap-4 md:grid-cols-3"
+        >
+          {[
+            {
+              title: "Produtos",
+              description: "Cadastre, edite e organize seus produtos.",
+              href: "/dashboard/products",
+            },
+            {
+              title: "Categorias",
+              description: "Gerencie categorias, sabores e organização.",
+              href: "/dashboard/catalog",
+            },
+            {
+              title: "Vitrine",
+              description: "Controle seções e destaques da homepage.",
+              href: "/dashboard/showcase",
+            },
+          ].map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="
+              group
+              rounded-3xl
+              border
+              border-zinc-200
+              bg-white
+              p-6
+              shadow-sm
+              transition-all
+              duration-200
+              hover:-translate-y-1
+              hover:border-zinc-300
+              hover:shadow-md
+            "
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-zinc-900">
+                    {item.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+                    {item.description}
+                  </p>
+                </div>
+
+                <div
+                  className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-zinc-100
+                  transition-colors
+                  group-hover:bg-zinc-900
+                  group-hover:text-white
+                "
+                >
+                  →
+                </div>
+              </div>
+            </Link>
+          ))}
+        </motion.div>
+
+        {/* ERROR */}
+        {loadError && (
+          <div
+            className="
+            rounded-2xl
+            border
+            border-red-200
+            bg-red-50
+            px-5
+            py-4
+            text-sm
+            text-red-600
+          "
+          >
+            {loadError}
+          </div>
+        )}
+
+        {/* METRICS */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+        >
+          {metrics.map((metric) => (
+            <motion.div
+              key={metric.label}
+              variants={itemVariants}
+              className="
+              rounded-3xl
+              border
+              border-zinc-200
+              bg-white
+              p-6
+              shadow-sm
+            "
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-zinc-500">
+                    {metric.label}
+                  </p>
+
+                  <h3 className="mt-3 text-4xl font-bold tracking-tight text-zinc-900">
+                    {metric.value}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-zinc-500">{metric.detail}</p>
+                </div>
+
+                <div
+                  className="
+                  flex
+                  h-12
+                  w-12
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  bg-zinc-100
+                  text-zinc-700
+                "
+                >
                   {metric.icon}
                 </div>
               </div>
-              <div className="metric-content">
-                <p className="metric-label">{metric.label}</p>
-                <h3 className="metric-value">{metric.value}</h3>
-                <p className="metric-detail">{metric.detail}</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+            </motion.div>
+          ))}
+        </motion.div>
 
-      <div className="dashboard-section">
+        {/* RECENT PRODUCTS */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="section-card"
+          transition={{ delay: 0.25, duration: 0.35 }}
+          className="
+          rounded-3xl
+          border
+          border-zinc-200
+          bg-white
+          p-7
+          shadow-sm
+        "
         >
-          <div className="section-header">
-            <h2>Produtos atualizados recentemente</h2>
-            <a href="/dashboard/products" className="section-link">
-              Ver catálogo →
-            </a>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-zinc-900">
+                Produtos recentes
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Últimos produtos atualizados no sistema.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/products"
+              className="
+              text-sm
+              font-medium
+              text-zinc-600
+              transition-colors
+              hover:text-zinc-900
+            "
+            >
+              Ver todos
+            </Link>
           </div>
-          <div className="activity-list">
-            {isLoading && <div className="activity-empty">Carregando...</div>}
-            {!isLoading && recentProducts.length === 0 && (
-              <div className="activity-empty">
-                Nenhum produto atualizado ainda.
+
+          <div className="mt-6 space-y-4">
+            {isLoading && (
+              <div className="text-sm text-zinc-500">
+                Carregando produtos...
               </div>
             )}
+
+            {!isLoading && recentProducts.length === 0 && (
+              <div
+                className="
+                rounded-2xl
+                border
+                border-dashed
+                border-zinc-200
+                p-10
+                text-center
+              "
+              >
+                <p className="text-sm text-zinc-500">
+                  Nenhum produto atualizado recentemente.
+                </p>
+              </div>
+            )}
+
             {!isLoading &&
               recentProducts.map((product) => (
-                <div key={product.id} className="activity-item">
-                  <div className="activity-dot"></div>
-                  <div className="activity-content">
-                    <p className="activity-title">{product.name}</p>
-                    <p className="activity-time">
-                      Atualizado em {formatDate(product.updatedAt)}
+                <div
+                  key={product.id}
+                  className="
+                  flex
+                  items-center
+                  justify-between
+                  rounded-2xl
+                  border
+                  border-zinc-100
+                  p-4
+                  transition-colors
+                  hover:bg-zinc-50
+                "
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="
+                      h-3
+                      w-3
+                      rounded-full
+                      bg-emerald-500
+                    "
+                    />
+
+                    <div>
+                      <p className="font-medium text-zinc-900">
+                        {product.name}
+                      </p>
+
+                      <p className="text-sm text-zinc-500">
+                        Atualizado em {formatDate(product.updatedAt)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-semibold text-zinc-900">
+                      {formatCurrency(product.price)}
                     </p>
                   </div>
-                  <span className="activity-amount">
-                    {formatCurrency(product.price)}
-                  </span>
                 </div>
               ))}
           </div>
