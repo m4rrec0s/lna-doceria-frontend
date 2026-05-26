@@ -527,7 +527,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     <main className="min-h-screen bg-rose-50/40 pb-32 lg:pb-16">
       <Header />
 
-      <div className="container mx-auto mt-4 px-4 sm:mt-6 md:mt-8">
+      <div className="max-w-7xl mx-auto mt-4 px-4 sm:mt-6 md:mt-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
           {/* ── Coluna esquerda: galeria ── */}
           <div className="w-full max-w-[540px] justify-self-center lg:max-w-[600px] lg:sticky lg:top-6 lg:self-start lg:justify-self-start">
@@ -768,15 +768,14 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 }
               />
             </div>
-
-            {/* Produtos relacionados */}
-            {relatedProducts.length > 0 && (
-              <div className="rounded-3xl border border-rose-100 bg-white p-5">
-                <RelatedProducts products={relatedProducts} />
-              </div>
-            )}
           </div>
         </div>
+        {/* Produtos relacionados */}
+        {relatedProducts.length > 0 && (
+          <div className="rounded-3xl border border-rose-100 bg-white p-5 my-4">
+            <RelatedProducts products={relatedProducts} />
+          </div>
+        )}
       </div>
 
       {/* ── Bottom bar fixa (mobile, enquanto âncora fora da view) ── */}
