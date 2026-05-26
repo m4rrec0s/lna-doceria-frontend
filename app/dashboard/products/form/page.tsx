@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useApi } from "@/app/hooks/useApi";
@@ -10,6 +10,23 @@ import ProductForm from "@/app/components/dashboard/ProductForm";
 import Image from "next/image";
 
 export default function ProductFormPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto max-w-3xl space-y-4 p-4">
+          <h1 className="text-2xl font-semibold text-zinc-900">Novo produto</h1>
+          <div className="rounded-2xl border border-rose-100 bg-white p-4">
+            <div className="text-sm text-zinc-600">Carregando...</div>
+          </div>
+        </div>
+      }
+    >
+      <ProductFormContent />
+    </Suspense>
+  );
+}
+
+function ProductFormContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("id");
   const router = useRouter();

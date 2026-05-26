@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 import { useApi } from "./hooks/useApi";
@@ -77,7 +77,9 @@ export default function Home() {
   if (isLoading) {
     return (
       <main className="w-full overflow-x-hidden bg-rose-50/40">
-        <Header />
+        <Suspense fallback={null}>
+          <Header />
+        </Suspense>
         <div className="mx-auto w-full max-w-screen-2xl px-4 pb-10 pt-6 md:px-6">
           <ItemsListSkeleton />
         </div>
@@ -87,7 +89,9 @@ export default function Home() {
 
   return (
     <main className="w-full overflow-x-hidden bg-rose-50/40">
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
 
       <section className="mt-6">
         <BannerPanel />
