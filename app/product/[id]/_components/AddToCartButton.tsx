@@ -211,9 +211,30 @@ const AddToCartButton = ({
               : Number(product.price) || 0
             : Number(product.price) || 0;
 
+      const resolvedDiscount = (() => {
+        if (packageSize !== null) {
+          const selectedPkg = normalizedPackagePrices.find(
+            (entry) => entry.quantity === packageSize,
+          );
+          if (selectedPkg?.discount !== null && selectedPkg?.discount !== undefined) {
+            return selectedPkg.discount;
+          }
+        }
+        if (selectedGram !== null) {
+          const selectedGramsEntry = normalizedGramsPrices.find(
+            (entry) => entry.quantity === selectedGram,
+          );
+          if (selectedGramsEntry?.discount !== null && selectedGramsEntry?.discount !== undefined) {
+            return selectedGramsEntry.discount;
+          }
+        }
+        return product.discount || 0;
+      })();
+
       const productForCart = {
         ...product,
         price: resolvedUnitPrice,
+        discount: resolvedDiscount,
       };
 
       addItem(productForCart, {

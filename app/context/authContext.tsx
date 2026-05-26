@@ -10,7 +10,6 @@ import React, {
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { User } from "../types/user";
-import { LoadingDots } from "../components/LoadingDots";
 
 interface AuthContextProps {
   user: User | null;
@@ -35,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  // const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const storedToken =
@@ -47,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(storedToken);
       setUser(JSON.parse(storedUserJson));
     }
-    setIsInitialized(true);
+    // setIsInitialized(true);
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -57,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         {
           email,
           password,
-        }
+        },
       );
       const { token, user } = response.data;
 
@@ -90,14 +89,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
-
-  if (!isInitialized) {
-    return (
-      <section className="flex justify-center items-center h-full">
-        <LoadingDots />
-      </section>
-    );
-  }
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>

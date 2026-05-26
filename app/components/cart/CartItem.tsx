@@ -15,9 +15,10 @@ import { Badge } from "../ui/badge";
 
 interface CartItemProps {
   item: CartItemType;
+  className?: string;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item }) => {
+const CartItem: React.FC<CartItemProps> = ({ item, className }) => {
   const { removeItem, updateItemQuantity } = useCart();
 
   const itemTotal = item.price * item.quantity;
@@ -49,62 +50,6 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     return "Unitário";
   };
 
-  const renderSelectedFlavors = () => {
-    if (!item.selectedFlavors || item.selectedFlavors.length === 0) {
-      return null;
-    }
-
-    return (
-        <div className="mt-2">
-        <div className="flex items-center gap-1 mb-1">
-          <span className="text-xs text-gray-400">Sabores:</span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info size={12} className="text-gray-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Mix de sabores selecionados</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {item.selectedFlavors.map((flavor) => (
-            <div key={flavor.id} className="relative group">
-              <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-700">
-                {isValidImageUrl(flavor.imageUrl) ? (
-                  <Image
-                    src={flavor.imageUrl || "/logo.png"}
-                    alt={flavor.name}
-                    width={32}
-                    height={32}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[8px] text-gray-800 dark:text-gray-200">
-                    {flavor.name.substring(0, 2).toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-pink-500">
-                {flavor.category?.id || 1}
-              </Badge>
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-75 rounded px-1 py-0.5 text-[8px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                {flavor.name}
-              </div>
-            </div>
-          ))}
-        </div>
-        {item.flavorSelectionRules && (
-          <p className="mt-2 text-xs text-gray-400">
-            Regra: {item.flavorSelectionRules.min} a {item.flavorSelectionRules.max} sabores
-          </p>
-        )}
-      </div>
-    );
-  };
-
   const getProductImage = () => {
     if (Array.isArray(item.imageUrl) && item.imageUrl.length > 0) {
       return isValidImageUrl(item.imageUrl[0])
@@ -120,86 +65,211 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   };
 
   return (
-    <div className="flex py-4 border-b border-gray-700">
-      <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-700 relative">
-        <Image
-          src={getProductImage()}
-          alt={item.name}
-          fill
-          className="object-cover"
-        />
-      </div>
+    <div
+      className={`
+      group
+      rounded-3xl
+      border
+      border-zinc-100
+      bg-white
+      p-4
+      shadow-sm
+      transition-all
+      duration-200
+      hover:border-rose-200
+      hover:shadow-md
+      ${className}
+    `}
+    >
+      <div className="flex gap-4">
+        {/* IMAGE */}
+        <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-2xl bg-zinc-100">
+          <Image
+            src={getProductImage()}
+            alt={item.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+          />
 
-      <div className="ml-4 flex flex-1 flex-col">
-        <div className="flex justify-between text-base font-medium">
-          <h3 className="line-clamp-1">{item.name}</h3>
-          <div className="text-right">
-            {item.discount ? (
-              <div className="flex flex-col">
-                <span className="text-gray-400 line-through text-xs">
+          {item.discount && (
+            <div className="absolute left-2 top-2 rounded-full bg-rose-500 px-2 py-1 text-[10px] font-semibold text-white shadow">
+              -{item.discount}%
+            </div>
+          )}
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* TOP */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h3 className="line-clamp-2 text-sm font-semibold leading-5 text-zinc-900">
+                {item.name}
+              </h3>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {item.packageInfo && (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full bg-zinc-100 text-zinc-600"
+                  >
+                    <Package2 className="mr-1 h-3.5 w-3.5" />
+                    {getSellingTypeLabel()}
+                  </Badge>
+                )}
+
+                <Badge
+                  variant="outline"
+                  className="rounded-full border-zinc-200 text-zinc-500"
+                >
+                  {formatCurrency(item.price)} cada
+                </Badge>
+              </div>
+            </div>
+
+            {/* PRICE */}
+            <div className="text-right">
+              {item.discount ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-zinc-400 line-through">
+                    {formatCurrency(itemTotal)}
+                  </span>
+
+                  <span className="text-lg font-bold tracking-tight text-rose-600">
+                    {formatCurrency(discountedTotal)}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-lg font-bold tracking-tight text-zinc-900">
                   {formatCurrency(itemTotal)}
                 </span>
-                <span className="text-pink-400 font-bold">
-                  {formatCurrency(discountedTotal)}
-                </span>
-              </div>
-            ) : (
-              <span>{formatCurrency(itemTotal)}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between text-sm mt-2">
-          <div className="text-gray-400">
-            <div className="flex items-center gap-1">
-              {item.packageInfo && <Package2 className="h-3 w-3" />}
-              {formatCurrency(item.price)} cada
-              {item.sellingType && (
-                <Badge variant="outline" className="text-[10px] py-0 h-4 ml-1">
-                  {getSellingTypeLabel()}
-                </Badge>
               )}
             </div>
-            {item.discount ? (
-              <span className="ml-2 text-xs text-pink-400">
-                ({item.discount}% off)
+          </div>
+
+          {/* FLAVORS */}
+          {item.selectedFlavors && item.selectedFlavors?.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                  Sabores
+                </span>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info size={13} className="cursor-help text-zinc-400" />
+                    </TooltipTrigger>
+
+                    <TooltipContent>Mix de sabores selecionados</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {item.selectedFlavors.map((flavor) => (
+                  <div
+                    key={flavor.id}
+                    className="
+                    flex
+                    items-center
+                    gap-2
+                    rounded-full
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+                    pr-3
+                    overflow-hidden
+                  "
+                  >
+                    <div className="relative h-8 w-8 overflow-hidden rounded-full bg-zinc-200">
+                      {isValidImageUrl(flavor.imageUrl) ? (
+                        <Image
+                          src={flavor.imageUrl || "/logo.png"}
+                          alt={flavor.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-[9px] font-medium text-zinc-600">
+                          {flavor.name.substring(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="max-w-[90px] truncate text-xs font-medium text-zinc-700">
+                      {flavor.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {item.flavorSelectionRules && (
+                <p className="mt-2 text-xs text-zinc-400">
+                  Escolha entre {item.flavorSelectionRules.min} e{" "}
+                  {item.flavorSelectionRules.max} sabores
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <div className="mt-5 flex items-center justify-between border-t border-zinc-100 pt-4">
+            {/* QUANTITY */}
+            <div className="flex items-center rounded-2xl border border-zinc-200 bg-zinc-50 p-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDecrement}
+                disabled={item.quantity <= 1}
+                className="
+                h-8
+                w-8
+                rounded-xl
+                text-zinc-600
+                hover:bg-white
+              "
+              >
+                <Minus size={16} />
+              </Button>
+
+              <span className="w-10 text-center text-sm font-semibold text-zinc-900">
+                {item.quantity}
               </span>
-            ) : null}
-          </div>
-        </div>
 
-        {renderSelectedFlavors()}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleIncrement}
+                className="
+                h-8
+                w-8
+                rounded-xl
+                text-zinc-600
+                hover:bg-white
+              "
+              >
+                <Plus size={16} />
+              </Button>
+            </div>
 
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center border rounded-md">
+            {/* REMOVE */}
             <Button
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={handleDecrement}
-              disabled={item.quantity <= 1}
+              size="sm"
+              onClick={() => removeItem(item.id)}
+              className="
+              gap-2
+              rounded-xl
+              text-zinc-500
+              hover:bg-red-50
+              hover:text-red-500
+            "
             >
-              <Minus size={16} />
-            </Button>
-            <span className="px-2 text-sm">{item.quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={handleIncrement}
-            >
-              <Plus size={16} />
+              <Trash2 size={16} />
+              Remover
             </Button>
           </div>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-pink-500 hover:text-pink-600 hover:bg-pink-500/10"
-            onClick={() => removeItem(item.id)}
-          >
-            <Trash2 size={18} />
-          </Button>
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
-import { Menu, Search, ShoppingBasket, ShoppingCart } from "lucide-react";
+import { Menu, Search, ShoppingBasket, ShoppingCart, X } from "lucide-react";
 import Image from "next/image";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -57,7 +58,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
             height={30}
             className="object-contain"
           />
-          <h1 className="text-2xl text-pink-500 font-light">
+          <h1 className="text-2xl text-rose-500 font-light">
             <strong>LNA</strong> <span className="italic">Doceria</span>
           </h1>
         </Link>
@@ -70,7 +71,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
                 placeholder="Buscar doces..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-8 border-pink-200 focus-visible:ring-pink-500"
+                className="pr-8 border-rose-200 focus-visible:ring-rose-500"
               />
               <button
                 type="submit"
@@ -101,7 +102,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
           >
             <ShoppingCart className="h-5 w-5 text-gray-700" />
             {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                 {itemCount}
               </span>
             )}
@@ -122,20 +123,20 @@ const Header = ({ showSearch = false }: HeaderProps) => {
                   {pathname !== "/" && (
                     <Link
                       href="/"
-                      className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                      className="text-base font-medium text-gray-700 hover:text-rose-500 transition-colors"
                     >
                       Início
                     </Link>
                   )}
                   <Link
                     href="/about"
-                    className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                    className="text-base font-medium text-gray-700 hover:text-rose-500 transition-colors"
                   >
                     Sobre Nós
                   </Link>
                   <Link
                     href="/contact"
-                    className="text-base font-medium text-gray-700 hover:text-pink-500 transition-colors"
+                    className="text-base font-medium text-gray-700 hover:text-rose-500 transition-colors"
                   >
                     Contato
                   </Link>
@@ -159,7 +160,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
               placeholder="Buscar doces..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-8 border-pink-200 focus-visible:ring-pink-500"
+              className="pr-8 border-rose-200 focus-visible:ring-rose-500"
             />
             <button
               type="submit"
@@ -176,39 +177,73 @@ const Header = ({ showSearch = false }: HeaderProps) => {
       <div className="flex items-center gap-4">
         {!isSearchOpen && (
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-            <SheetContent className="w-full max-w-md max-w-sm: sm:max-w-lg flex flex-col h-full p-0">
-              <div className="p-6">
-                <SheetHeader>
-                  <SheetTitle className="flex items-center gap-2">
-                    <ShoppingBasket size={20} />
-                    Meu Carrinho
-                    {itemCount > 0 && (
-                      <span className="text-sm text-gray-400">
-                        ({itemCount} {itemCount === 1 ? "item" : "itens"})
-                      </span>
+            <SheetContent className="flex h-full w-full flex-col border-l border-zinc-200 bg-white p-0 sm:max-w-lg">
+              {/* HEADER */}
+              <div className="sticky top-0 z-10 border-b border-zinc-100 bg-white/95 backdrop-blur">
+                <div className="px-6 py-5">
+                  <SheetHeader>
+                    <SheetTitle className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100">
+                          <ShoppingBasket size={20} className="text-rose-500" />
+                        </div>
+
+                        <div>
+                          <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
+                            Meu Carrinho
+                          </h1>
+
+                          <p className="mt-0.5 text-sm text-zinc-500">
+                            {itemCount > 0 ? (
+                              <>
+                                {itemCount} {itemCount === 1 ? "item" : "itens"}{" "}
+                                no carrinho
+                              </>
+                            ) : (
+                              "Seu carrinho está vazio"
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </SheetTitle>
+
+                    {items.length === 0 && (
+                      <SheetDescription className="mt-8 flex flex-col items-center justify-center text-center">
+                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose-50">
+                          <ShoppingBasket size={32} className="text-rose-300" />
+                        </div>
+
+                        <h2 className="text-base font-medium text-zinc-800">
+                          Nenhum produto adicionado
+                        </h2>
+
+                        <p className="mt-1 max-w-xs text-sm leading-relaxed text-zinc-500">
+                          Adicione produtos ao carrinho para continuar sua
+                          compra.
+                        </p>
+                      </SheetDescription>
                     )}
-                  </SheetTitle>
-                  <SheetDescription className="hidden">
-                    Adicione ou remova itens do seu carrinho.
-                  </SheetDescription>
-                  {items.length === 0 && (
-                    <SheetDescription className="text-center py-10">
-                      Seu carrinho está vazio. Adicione delícias para continuar.
-                    </SheetDescription>
-                  )}
-                </SheetHeader>
+
+                    <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-zinc-100 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-zinc-100">
+                      <span className="sr-only">Fechar</span>
+                      <X className="h-4 w-4" />
+                    </SheetClose>
+                  </SheetHeader>
+                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-6 pb-4">
-                <div className="space-y-2">
+              {/* ITEMS */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="space-y-3">
                   {items.map((item) => (
                     <CartItem key={item.id} item={item} />
                   ))}
                 </div>
               </div>
 
+              {/* FOOTER */}
               {items.length > 0 && (
-                <div className="mt-auto border-t border-gray-700 p-6 bg-background">
+                <div className="sticky bottom-0 border-t border-zinc-100 bg-white/95 backdrop-blur">
                   <CartSummary />
                 </div>
               )}
