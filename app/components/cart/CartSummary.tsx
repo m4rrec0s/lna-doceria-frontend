@@ -16,10 +16,10 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
   const handleFinishPurchase = () => {
     if (items.length === 0) return;
 
-    let message = `🍰 *NOVO PEDIDO - LNA CONFEITARIA*\n\n`;
+    let message = `🍰 *NOVO PEDIDO - LNA DOCERIA*\n\n`;
 
     message += `━━━━━━━━━━━━━━━\n`;
-    message += `🛍️ *ITENS DO PEDIDO*\n`;
+    message += `*ITENS DO PEDIDO*\n`;
     message += `━━━━━━━━━━━━━━━\n\n`;
 
     items.forEach((item, index) => {
@@ -33,14 +33,14 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
 
       // Quantidade
       if (item.packageInfo) {
-        message += `📦 ${item.quantity} pacote(s) • ${item.packageInfo.packageSize} un. cada\n`;
+        message += `${item.quantity} pacote(s) • ${item.packageInfo.packageSize} un. cada\n`;
       } else {
-        message += `📦 ${item.quantity} unidade(s)\n`;
+        message += `${item.quantity} unidade(s)\n`;
       }
 
       // Sabores
       if (item.selectedFlavors && item.selectedFlavors?.length > 0) {
-        message += `🍬 Sabores:\n`;
+        message += `Sabores:\n`;
 
         item.selectedFlavors.forEach((flavor) => {
           message += `   • ${flavor.name}\n`;
@@ -48,7 +48,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
       }
 
       // Preço unitário
-      message += `💵 Unitário: ${formatCurrency(item.price)}\n`;
+      message += `Unitário: ${formatCurrency(item.price)}\n`;
 
       // Desconto
       if (item.discount) {
@@ -56,13 +56,13 @@ const CartSummary: React.FC<CartSummaryProps> = ({ className }) => {
       }
 
       // Total item
-      message += `✨ Total: *${formatCurrency(discountedTotal)}*\n`;
+      message += `Total: *${formatCurrency(discountedTotal)}*\n`;
 
       message += `\n`;
     });
 
     message += `━━━━━━━━━━━━━━━\n`;
-    message += `📄 *RESUMO*\n`;
+    message += `*RESUMO*\n`;
     message += `━━━━━━━━━━━━━━━\n\n`;
 
     message += `Subtotal: ${formatCurrency(subtotal)}\n`;
