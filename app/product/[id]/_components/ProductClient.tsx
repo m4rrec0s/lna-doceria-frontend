@@ -22,9 +22,6 @@ interface ProductClientProps {
   productId: string;
 }
 
-// ---------------------------------------------------------------------------
-// FlavorDrawer — bottom sheet no mobile, painel inline no desktop
-// ---------------------------------------------------------------------------
 interface FlavorDrawerProps {
   open: boolean;
   onClose: () => void;
@@ -64,9 +61,6 @@ const FlavorDrawer = ({
     ? flavors.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
     : flavors;
 
-  const remaining =
-    maxFlavors > 0 ? maxFlavors - selectedFlavorIds.length : null;
-
   return (
     <AnimatePresence>
       {open && (
@@ -100,7 +94,6 @@ const FlavorDrawer = ({
               onToggle={onToggle}
               minFlavors={minFlavors}
               maxFlavors={maxFlavors}
-              remaining={remaining}
               onClose={onClose}
             />
           </motion.div>
@@ -121,7 +114,6 @@ interface DrawerContentProps {
   onToggle: (id: string, checked: boolean) => void;
   minFlavors: number;
   maxFlavors: number;
-  remaining: number | null;
   onClose?: () => void;
   inline?: boolean;
 }
@@ -136,7 +128,6 @@ const DrawerContent = ({
   onToggle,
   minFlavors,
   maxFlavors,
-  remaining,
   onClose,
   inline = false,
 }: DrawerContentProps) => (
@@ -153,12 +144,7 @@ const DrawerContent = ({
           </h3>
           {maxFlavors > 0 && (
             <p className="text-xs text-zinc-500 mt-0.5">
-              {selectedFlavorIds.length} de {maxFlavors} selecionados
-              {remaining !== null && remaining > 0
-                ? ` · faltam ${remaining}`
-                : remaining === 0
-                  ? " · completo!"
-                  : ""}
+              {selectedFlavorIds.length} sabor{selectedFlavorIds.length > 1 ? "es" : ""} selecionado{selectedFlavorIds.length > 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -172,7 +158,6 @@ const DrawerContent = ({
         )}
       </div>
 
-      {/* Progresso */}
       {maxFlavors > 0 && (
         <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-rose-100">
           <motion.div
@@ -185,14 +170,12 @@ const DrawerContent = ({
         </div>
       )}
 
-      {/* Info */}
       {maxFlavors > 0 && minFlavors > 0 && (
         <p className="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-700">
           Selecione entre {minFlavors} e {maxFlavors} sabores
         </p>
       )}
 
-      {/* Busca */}
       {flavors.length > 6 && (
         <div className="relative mb-3">
           <Search
@@ -211,7 +194,6 @@ const DrawerContent = ({
       )}
     </div>
 
-    {/* Lista de sabores */}
     <div className="flex-1 overflow-y-auto px-5 pb-6">
       {filtered.length === 0 ? (
         <p className="py-6 text-center text-sm text-zinc-400">
@@ -277,7 +259,6 @@ const DrawerContent = ({
       )}
     </div>
 
-    {/* Footer com botão confirmar (drawer) */}
     {onClose && !inline && (
       <div className="flex-none border-t border-zinc-100 p-4">
         <button
@@ -294,8 +275,6 @@ const DrawerContent = ({
 );
 
 // ---------------------------------------------------------------------------
-// ProductClient principal
-// ---------------------------------------------------------------------------
 const ProductClient = ({ productId }: ProductClientProps) => {
   const [product, setProduct] = useState<Product | null>(null);
   const [flavors, setFlavors] = useState<Flavor[]>([]);
@@ -308,7 +287,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   const [selectedPackageSize, setSelectedPackageSize] = useState<number | null>(
     null,
   );
-  // Busca inline (desktop)
   const [desktopSearch, setDesktopSearch] = useState("");
 
   const { ref: cartAnchorRef, inView: cartAnchorInView } = useInView({
@@ -525,12 +503,8 @@ const ProductClient = ({ productId }: ProductClientProps) => {
       )
     : flavors;
 
-  const remaining =
-    maxFlavorSelection > 0
-      ? maxFlavorSelection - selectedFlavorIds.length
-      : null;
 
-  // ---------- Loading ----------
+
   if (loading) {
     return (
       <main>
@@ -542,7 +516,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     );
   }
 
-  // ---------- Erro ----------
   if (error || !product) {
     return (
       <main>
@@ -565,14 +538,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     );
   }
 
-  // ---------- Render principal ----------
   return (
     <main className="min-h-screen bg-rose-50/40 pb-32 lg:pb-16">
       <Header />
 
       <div className="max-w-7xl mx-auto mt-4 px-4 sm:mt-6 md:mt-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          {/* ── Coluna esquerda: galeria ── */}
           <div className="w-full max-w-[540px] justify-self-center lg:max-w-[600px] lg:sticky lg:top-6 lg:self-start lg:justify-self-start">
             <ProductGallery
               imageUrl={product?.imageUrl}
@@ -581,9 +552,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
             />
           </div>
 
-          {/* ── Coluna direita: info + opções ── */}
           <div className="space-y-4">
-            {/* Info do produto */}
             <div className="rounded-3xl border border-rose-100 bg-white p-5 sm:p-6">
               <ProductInfo
                 name={product?.name}
@@ -594,7 +563,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               />
             </div>
 
-            {/* Peso */}
             {Array.isArray(product.gramsOptions) &&
               product.gramsOptions.length > 0 && (
                 <div className="rounded-3xl border border-rose-100 bg-white p-5">
@@ -622,10 +590,8 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 </div>
               )}
 
-            {/* ── Sabores ── */}
             {flavors.length > 0 && (
               <div className="rounded-3xl border border-rose-100 bg-white overflow-hidden">
-                {/* Trigger mobile → abre drawer */}
                 <button
                   type="button"
                   onClick={() => setFlavorDrawerOpen(true)}
@@ -653,7 +619,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                   </div>
                 </button>
 
-                {/* Preview dos sabores selecionados (mobile) */}
                 {selectedFlavorIds.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 px-5 pb-4 lg:hidden">
                     {selectedFlavors.map((f, i) => (
@@ -670,7 +635,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                   </div>
                 )}
 
-                {/* Painel inline — apenas desktop */}
                 <div className="hidden lg:block p-5 pt-0">
                   <div className="flex items-center justify-between pb-4 pt-5">
                     <div>
@@ -679,19 +643,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                       </p>
                       {maxFlavorSelection > 0 && (
                         <p className="mt-0.5 text-xs text-zinc-500">
-                          {selectedFlavorIds.length} de {maxFlavorSelection}{" "}
-                          selecionados
-                          {remaining !== null && remaining > 0
-                            ? ` · faltam ${remaining}`
-                            : remaining === 0
-                              ? " · completo!"
-                              : ""}
+                          {selectedFlavorIds.length} sabor{selectedFlavorIds.length > 1 ? "es" : ""} selecionado{selectedFlavorIds.length > 1 ? "s" : ""}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {/* Barra de progresso desktop */}
                   {maxFlavorSelection > 0 && (
                     <div className="mb-4 h-1.5 w-full overflow-hidden rounded-full bg-rose-100">
                       <motion.div
@@ -715,7 +672,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                     </p>
                   )}
 
-                  {/* Busca desktop */}
                   {flavors.length > 6 && (
                     <div className="relative mb-3">
                       <Search
@@ -791,7 +747,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               </div>
             )}
 
-            {/* ── Botão de carrinho (âncora) ── */}
             <div
               ref={cartAnchorRef}
               className="rounded-3xl border border-rose-100 bg-white p-5"
@@ -813,7 +768,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
             </div>
           </div>
         </div>
-        {/* Produtos relacionados */}
         {relatedProducts.length > 0 && (
           <div className="rounded-3xl border border-rose-100 bg-white p-5 my-4">
             <RelatedProducts products={relatedProducts} />
@@ -821,7 +775,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
         )}
       </div>
 
-      {/* ── Bottom bar fixa (mobile, enquanto âncora fora da view) ── */}
       <AnimatePresence>
         {!cartAnchorInView && (
           <motion.div
@@ -832,7 +785,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-40 border-t border-rose-100 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden"
           >
-            {/* Se tem sabores não selecionados, mostra CTA para o drawer */}
             {flavors.length > 0 &&
             selectedFlavorIds.length < minFlavorSelection ? (
               <button
@@ -862,7 +814,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
         )}
       </AnimatePresence>
 
-      {/* ── Drawer de sabores (mobile) ── */}
       <FlavorDrawer
         open={flavorDrawerOpen}
         onClose={() => setFlavorDrawerOpen(false)}

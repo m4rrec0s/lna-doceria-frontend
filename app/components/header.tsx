@@ -179,28 +179,28 @@ const Header = ({ showSearch = false }: HeaderProps) => {
           <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
             <SheetContent className="flex h-full w-full flex-col border-l border-zinc-200 bg-white p-0 sm:max-w-lg">
               {/* HEADER */}
-              <div className="sticky top-0 z-10 border-b border-zinc-100 bg-white/95 backdrop-blur">
-                <div className="px-6 py-5">
+              <div className="sticky top-0 z-10 border-b border-zinc-100 bg-white/95 backdrop-blur-md">
+                <div className="px-4 py-3.5 sm:px-6 sm:py-4">
                   <SheetHeader>
                     <SheetTitle className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100">
-                          <ShoppingBasket size={20} className="text-rose-500" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-500 flex-shrink-0">
+                          <ShoppingBasket size={18} />
                         </div>
 
-                        <div>
-                          <h1 className="text-lg font-semibold tracking-tight text-zinc-900">
+                        <div className="text-left">
+                          <h1 className="text-sm sm:text-base font-bold tracking-tight text-zinc-900">
                             Meu Carrinho
                           </h1>
 
-                          <p className="mt-0.5 text-sm text-zinc-500">
+                          <p className="text-[11px] text-zinc-400 font-medium">
                             {itemCount > 0 ? (
                               <>
                                 {itemCount} {itemCount === 1 ? "item" : "itens"}{" "}
-                                no carrinho
+                                adicionado(s)
                               </>
                             ) : (
-                              "Seu carrinho está vazio"
+                              "Sacola vazia"
                             )}
                           </p>
                         </div>
@@ -209,22 +209,21 @@ const Header = ({ showSearch = false }: HeaderProps) => {
 
                     {items.length === 0 && (
                       <SheetDescription className="mt-8 flex flex-col items-center justify-center text-center">
-                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-rose-50">
-                          <ShoppingBasket size={32} className="text-rose-300" />
+                        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50/70">
+                          <ShoppingBasket size={22} className="text-rose-450" />
                         </div>
 
-                        <h2 className="text-base font-medium text-zinc-800">
-                          Nenhum produto adicionado
+                        <h2 className="text-sm font-semibold text-zinc-800">
+                          Carrinho de doces vazio
                         </h2>
 
-                        <p className="mt-1 max-w-xs text-sm leading-relaxed text-zinc-500">
-                          Adicione produtos ao carrinho para continuar sua
-                          compra.
+                        <p className="mt-1 max-w-xs text-xs leading-relaxed text-zinc-400">
+                          Escolha seus doces favoritos na vitrine para preencher sua sacola.
                         </p>
                       </SheetDescription>
                     )}
 
-                    <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-zinc-100 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-zinc-100">
+                    <SheetClose className="absolute right-4 top-4 rounded-lg p-1 opacity-70 transition-all hover:opacity-100 focus:outline-none hover:bg-zinc-50 disabled:pointer-events-none">
                       <span className="sr-only">Fechar</span>
                       <X className="h-4 w-4" />
                     </SheetClose>
@@ -232,9 +231,9 @@ const Header = ({ showSearch = false }: HeaderProps) => {
                 </div>
               </div>
 
-              {/* ITEMS */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="space-y-3">
+              {/* ITEMS LIST CONTAINER WITH LUXURY FLOAT PADDING */}
+              <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-rose-100">
+                <div className="space-y-2.5">
                   {items.map((item) => (
                     <CartItem key={item.id} item={item} />
                   ))}
@@ -243,7 +242,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
 
               {/* FOOTER */}
               {items.length > 0 && (
-                <div className="sticky bottom-0 border-t border-zinc-100 bg-white/95 backdrop-blur">
+                <div className="sticky bottom-0 z-10">
                   <CartSummary />
                 </div>
               )}

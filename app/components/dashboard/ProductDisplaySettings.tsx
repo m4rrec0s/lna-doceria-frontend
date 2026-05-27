@@ -16,10 +16,28 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Checkbox } from "../../components/ui/checkbox";
-import { GripVertical, Plus, Trash2, RefreshCw } from "lucide-react";
+import { 
+  GripVertical, 
+  Plus, 
+  Trash2, 
+  RefreshCw, 
+  ChevronDown, 
+  ChevronUp, 
+  Calendar, 
+  Tag, 
+  FolderHeart, 
+  Sparkles,
+  Eye,
+  EyeOff,
+  Search,
+  Check,
+  AlertCircle,
+  FolderOpen
+} from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { useApi } from "../../hooks/useApi";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCenter,
@@ -83,9 +101,10 @@ const SortableItem: React.FC<{
   categories,
   products,
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } =
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: section.id });
   const [isExpanded, setIsExpanded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -99,18 +118,35 @@ const SortableItem: React.FC<{
     ? new Date(section.endDate).toISOString().split("T")[0]
     : "";
 
+  const getTypeStyle = (type: string) => {
+    switch (type) {
+      case "category":
+        return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/50";
+      case "custom":
+        return "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/50";
+      case "category_grams":
+        return "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900/50";
+      case "discounted":
+        return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50";
+      case "new_arrivals":
+        return "bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/20 dark:text-teal-400 dark:border-teal-900/50";
+      default:
+        return "bg-zinc-50 text-zinc-700 border-zinc-200";
+    }
+  };
+
   const getTypeLabel = (type: string) => {
     switch (type) {
       case "category":
         return "Categoria";
       case "custom":
-        return "Produtos Personalizados";
+        return "Manual (Custom)";
       case "category_grams":
-        return "Categoria + Gramas";
+        return "Categoria + Peso";
       case "discounted":
-        return "Produtos com Desconto";
+        return "Em Promoção";
       case "new_arrivals":
-        return "Produtos Novos";
+        return "Lançamentos";
       default:
         return type;
     }
@@ -127,300 +163,339 @@ const SortableItem: React.FC<{
     [section.productIds],
   );
 
+  // Filter products by search term for Custom lists
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return products;
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [products, searchTerm]);
+
   return (
-    <Card
+    <div
       ref={setNodeRef}
       style={style}
-      className={`border mb-4 ${
-        !section.active ? "bg-gray-50 dark:bg-gray-900/20" : ""
+      className={`relative rounded-3xl border transition duration-200 ${
+        isDragging 
+          ? "border-rose-300 shadow-xl bg-white dark:bg-zinc-900 z-10 scale-[1.01]" 
+          : !section.active 
+            ? "border-zinc-150 bg-zinc-50/50 opacity-75"
+            : "border-zinc-200 bg-white dark:bg-zinc-900 shadow-sm hover:shadow-md"
       }`}
     >
-      <CardContent className="p-2 sm:p-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+      <div className="p-3 sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Wider touch friendly drag trigger */}
             <div
-              className="cursor-move p-1 flex-shrink-0"
+              className="cursor-grab active:cursor-grabbing p-2.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex-shrink-0"
               {...attributes}
               {...listeners}
             >
-              <GripVertical size={20} className="text-gray-500" />
+              <GripVertical size={18} className="text-zinc-400" />
             </div>
-            <div className="font-medium truncate min-w-0">
-              {section.title || "Sem título"}
-            </div>
-            {!section.active && (
-              <span className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-0.5 rounded-full flex-shrink-0">
-                Inativo
+
+            <div className="min-w-0">
+              <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider mb-1 ${getTypeStyle(section.type)}`}>
+                {getTypeLabel(section.type)}
               </span>
-            )}
+              <h4 className="font-bold text-zinc-900 dark:text-zinc-50 truncate text-sm sm:text-base leading-tight">
+                {section.title || "Seção Sem Nome"}
+              </h4>
+            </div>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
+
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs sm:text-sm px-2"
+              className="h-9 px-3 rounded-xl border border-zinc-200 hover:bg-zinc-50 text-xs font-semibold text-zinc-700 flex items-center gap-1"
             >
-              {isExpanded ? "Recolher" : "Expandir"}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
+              {isExpanded ? (
+                <>
+                  Recolher
+                  <ChevronUp size={14} />
+                </>
+              ) : (
+                <>
+                  Editar
+                  <ChevronDown size={14} />
+                </>
+              )}
+            </button>
+            <button
+              type="button"
               onClick={() => removeSection(index)}
-              className="text-red-500 hover:text-red-700 px-2"
+              className="h-9 w-9 rounded-xl border border-red-100 hover:border-red-200 text-red-500 hover:bg-red-50 flex items-center justify-center transition"
             >
-              <Trash2 size={16} />
-            </Button>
+              <Trash2 size={15} />
+            </button>
           </div>
         </div>
 
+        {/* Collapsed Details Snippet */}
         {!isExpanded && (
-          <div className="mt-2 pl-8 text-sm text-gray-500 space-y-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-2 sm:space-y-0">
-            <div>
-              <strong>Tipo:</strong> {getTypeLabel(section.type)}
-            </div>
+          <div className="mt-3 pl-12 text-xs text-zinc-500 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-zinc-100 pt-2.5">
             {section.type === "category" && (
-              <div className="truncate">
-                <strong>Categoria:</strong>{" "}
-                {getCategoryName(section.categoryId)}
+              <div>
+                <span className="font-bold text-zinc-700">Categoria:</span> {getCategoryName(section.categoryId)}
               </div>
             )}
             {section.type === "custom" && (
               <div>
-                <strong>Produtos:</strong> {selectedProductsCount}
+                <span className="font-bold text-zinc-700">Produtos:</span> {selectedProductsCount} selecionados
               </div>
             )}
-            <div className="flex items-center">
-              <Checkbox
-                id={`active-${section.id}-collapsed`}
-                checked={section.active}
-                onCheckedChange={(checked) =>
-                  updateSection(index, { active: checked === true })
-                }
-                className="mr-2"
-              />
-              <Label htmlFor={`active-${section.id}-collapsed`}>Ativo</Label>
+            {section.tags.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Tag size={12} className="text-zinc-400" />
+                <span>{section.tags.join(", ")}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1 font-semibold">
+              {section.active ? (
+                <span className="text-rose-600 flex items-center gap-0.5">
+                  <Eye size={12} />
+                  Ativo na Loja
+                </span>
+              ) : (
+                <span className="text-zinc-400 flex items-center gap-0.5">
+                  <EyeOff size={12} />
+                  Inativo
+                </span>
+              )}
             </div>
           </div>
         )}
 
-        {isExpanded && (
-          <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4 border-t pt-3 sm:pt-4">
-            <div className="flex items-center gap-3">
-              <Checkbox
-                id={`active-${section.id}`}
-                checked={section.active}
-                onCheckedChange={(checked) =>
-                  updateSection(index, { active: checked === true })
-                }
-              />
-              <Label htmlFor={`active-${section.id}`} className="text-sm">
-                Seção ativa
-              </Label>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor={`title-${section.id}`}
-                  className="text-xs sm:text-sm"
+        {/* Expanded Panel */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-4 pt-4 border-t border-zinc-100 space-y-4 overflow-hidden"
+            >
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateSection(index, { active: !section.active })}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition ${
+                    section.active 
+                      ? "bg-rose-50 border-rose-200 text-rose-800" 
+                      : "bg-zinc-50 border-zinc-200 text-zinc-500"
+                  }`}
                 >
-                  Título da Seção
-                </Label>
-                <Input
-                  id={`title-${section.id}`}
-                  value={section.title}
-                  onChange={(e) =>
-                    updateSection(index, { title: e.target.value })
-                  }
-                  className="text-sm"
-                />
+                  {section.active ? <Eye size={14} /> : <EyeOff size={14} />}
+                  Seção ativa na Loja
+                </button>
               </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor={`type-${section.id}`}
-                  className="text-xs sm:text-sm"
-                >
-                  Tipo de Seção
-                </Label>
-                <Select
-                  value={section.type}
-                  onValueChange={(value) =>
-                    updateSection(index, {
-                      type: value as DisplaySection["type"],
-                    })
-                  }
-                >
-                  <SelectTrigger id={`type-${section.id}`} className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="category">Categoria</SelectItem>
-                    <SelectItem value="category_grams">
-                      Categoria + Gramas
-                    </SelectItem>
-                    <SelectItem value="custom">
-                      Produtos Personalizados
-                    </SelectItem>
-                    <SelectItem value="discounted">
-                      Produtos com Desconto
-                    </SelectItem>
-                    <SelectItem value="new_arrivals">Produtos Novos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor={`start-date-${section.id}`}
-                  className="text-xs sm:text-sm"
-                >
-                  Data de Início
-                </Label>
-                <Input
-                  id={`start-date-${section.id}`}
-                  type="date"
-                  value={formattedStartDate}
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : null;
-                    updateSection(index, { startDate: date });
-                  }}
-                  className="text-sm"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor={`end-date-${section.id}`}
-                  className="text-xs sm:text-sm"
-                >
-                  Data de Término
-                </Label>
-                <Input
-                  id={`end-date-${section.id}`}
-                  type="date"
-                  value={formattedEndDate}
-                  onChange={(e) => {
-                    const date = e.target.value
-                      ? new Date(e.target.value)
-                      : null;
-                    updateSection(index, { endDate: date });
-                  }}
-                  className="text-sm"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label
-                htmlFor={`tags-${section.id}`}
-                className="text-xs sm:text-sm"
-              >
-                Tags (separadas por vírgula)
-              </Label>
-              <Input
-                id={`tags-${section.id}`}
-                value={section.tags.join(", ")}
-                onChange={(e) => {
-                  const tags = e.target.value
-                    .split(",")
-                    .map((tag) => tag.trim())
-                    .filter(Boolean);
-                  updateSection(index, { tags });
-                }}
-                placeholder="ex: pascoa, sazonal, destaque"
-                className="text-sm"
-              />
-            </div>
-            {section.type === "category" ||
-            section.type === "category_grams" ? (
-              <div className="space-y-2">
-                <Label
-                  htmlFor={`category-${section.id}`}
-                  className="text-xs sm:text-sm"
-                >
-                  Selecionar Categoria
-                </Label>
-                <Select
-                  value={section.categoryId || ""}
-                  onValueChange={(value) =>
-                    updateSection(index, { categoryId: value })
-                  }
-                >
-                  <SelectTrigger
-                    id={`category-${section.id}`}
-                    className="text-sm"
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor={`title-${section.id}`} className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    Título de Exibição
+                  </Label>
+                  <Input
+                    id={`title-${section.id}`}
+                    value={section.title}
+                    onChange={(e) => updateSection(index, { title: e.target.value })}
+                    className="rounded-xl h-10 text-xs border-zinc-200 focus:border-rose-400 focus:ring-rose-100"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`type-${section.id}`} className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    Tipo de Seleção
+                  </Label>
+                  <Select
+                    value={section.type}
+                    onValueChange={(value) =>
+                      updateSection(index, {
+                        type: value as DisplaySection["type"],
+                      })
+                    }
                   >
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {section.type === "category_grams" && (
-                  <div className="mt-2 space-y-2">
-                    <Label
-                      htmlFor={`grams-${section.id}`}
-                      className="text-xs sm:text-sm"
-                    >
-                      Gramas (separadas por vírgula)
-                    </Label>
-                    <Input
-                      id={`grams-${section.id}`}
-                      value={(section.gramsOptions || []).join(", ")}
-                      onChange={(e) => {
-                        const gramsOptions = e.target.value
-                          .split(",")
-                          .map((item) => Number(item.trim()))
-                          .filter((item) => !Number.isNaN(item) && item > 0);
-                        updateSection(index, { gramsOptions });
-                      }}
-                      placeholder="ex: 100, 250, 500"
-                      className="text-sm"
-                    />
-                  </div>
-                )}
-              </div>
-            ) : section.type === "custom" ? (
-              <div className="space-y-2">
-                <Label className="flex items-center justify-between text-xs sm:text-sm">
-                  Selecionar Produtos
-                  <span className="text-xs text-gray-500">
-                    {selectedProductsCount} selecionado(s)
-                  </span>
-                </Label>
-                <div className="border rounded-md p-2 max-h-60 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-                  <div className="space-y-2">
-                    {products.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center space-x-2 p-2 hover:bg-white dark:hover:bg-gray-800 rounded transition-colors"
-                      >
-                        <Checkbox
-                          id={`product-${section.id}-${product.id}`}
-                          checked={section.productIds.includes(product.id)}
-                          onCheckedChange={() =>
-                            toggleProductSelection(index, product.id)
-                          }
-                        />
-                        <Label
-                          htmlFor={`product-${section.id}-${product.id}`}
-                          className="text-xs sm:text-sm cursor-pointer flex-grow truncate"
-                        >
-                          {product.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                    <SelectTrigger id={`type-${section.id}`} className="rounded-xl h-10 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="category">Filtrar por Categoria</SelectItem>
+                      <SelectItem value="category_grams">Categoria + Peso</SelectItem>
+                      <SelectItem value="custom">Produtos Escolhidos Manualmente</SelectItem>
+                      <SelectItem value="discounted">Produtos com Desconto</SelectItem>
+                      <SelectItem value="new_arrivals">Lançamentos / Recentes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`start-date-${section.id}`} className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar size={13} />
+                    Data de Início
+                  </Label>
+                  <Input
+                    id={`start-date-${section.id}`}
+                    type="date"
+                    value={formattedStartDate}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      updateSection(index, { startDate: date });
+                    }}
+                    className="rounded-xl h-10 text-xs border-zinc-200"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor={`end-date-${section.id}`} className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                    <Calendar size={13} />
+                    Data de Término
+                  </Label>
+                  <Input
+                    id={`end-date-${section.id}`}
+                    type="date"
+                    value={formattedEndDate}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      updateSection(index, { endDate: date });
+                    }}
+                    className="rounded-xl h-10 text-xs border-zinc-200"
+                  />
                 </div>
               </div>
-            ) : null}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+
+              <div className="space-y-1.5">
+                <Label htmlFor={`tags-${section.id}`} className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  Marcadores (Separados por vírgula)
+                </Label>
+                <Input
+                  id={`tags-${section.id}`}
+                  value={section.tags.join(", ")}
+                  onChange={(e) => {
+                    const tags = e.target.value
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter(Boolean);
+                    updateSection(index, { tags });
+                  }}
+                  placeholder="ex: pascoa, sazonal, destaque"
+                  className="rounded-xl h-10 text-xs"
+                />
+              </div>
+
+              {/* Dynamic Sub-sections based on type */}
+              {(section.type === "category" || section.type === "category_grams") && (
+                <div className="rounded-3xl border border-zinc-100 bg-zinc-50/50 p-4 space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor={`category-${section.id}`} className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                      Selecione a Categoria Fonte
+                    </Label>
+                    <Select
+                      value={section.categoryId || ""}
+                      onValueChange={(value) => updateSection(index, { categoryId: value })}
+                    >
+                      <SelectTrigger id={`category-${section.id}`} className="rounded-xl h-10 text-xs bg-white">
+                        <SelectValue placeholder="Escolha uma categoria..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {section.type === "category_grams" && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`grams-${section.id}`} className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                        Opções de Peso (Gramas separadas por vírgula)
+                      </Label>
+                      <Input
+                        id={`grams-${section.id}`}
+                        value={(section.gramsOptions || []).join(", ")}
+                        onChange={(e) => {
+                          const gramsOptions = e.target.value
+                            .split(",")
+                            .map((item) => Number(item.trim()))
+                            .filter((item) => !Number.isNaN(item) && item > 0);
+                          updateSection(index, { gramsOptions });
+                        }}
+                        placeholder="ex: 100, 250, 500"
+                        className="rounded-xl h-10 text-xs bg-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {section.type === "custom" && (
+                <div className="rounded-3xl border border-zinc-100 bg-zinc-50/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                      Vincular Doces a esta Vitrine
+                    </Label>
+                    <span className="text-[10px] font-bold bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full text-rose-700">
+                      {selectedProductsCount} selecionados
+                    </span>
+                  </div>
+
+                  {/* search input for filtering products */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" size={13} />
+                    <Input
+                      type="text"
+                      placeholder="Pesquisar doce..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8.5 rounded-xl h-9 text-xs bg-white border-zinc-200"
+                    />
+                  </div>
+
+                  {/* List container */}
+                  <div className="border border-zinc-150 rounded-2xl p-2.5 max-h-56 overflow-y-auto bg-white scrollbar-thin">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                      {filteredProducts.map((product) => {
+                        const isSelected = section.productIds.includes(product.id);
+                        return (
+                          <button
+                            key={product.id}
+                            type="button"
+                            onClick={() => toggleProductSelection(index, product.id)}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl border text-left text-xs transition duration-150 ${
+                              isSelected
+                                ? "bg-rose-50/50 border-rose-200 text-rose-800 font-semibold"
+                                : "bg-white border-zinc-100 hover:bg-zinc-50 text-zinc-600"
+                            }`}
+                          >
+                            <span className="truncate pr-2">{product.name}</span>
+                            <span className={`h-4.5 w-4.5 rounded-full border flex-shrink-0 flex items-center justify-center transition-all ${
+                              isSelected 
+                                ? "bg-rose-500 border-rose-500 text-white" 
+                                : "border-zinc-300"
+                            }`}>
+                              {isSelected && <Check size={10} className="stroke-[4px]" />}
+                            </span>
+                          </button>
+                        );
+                      })}
+
+                      {filteredProducts.length === 0 && (
+                        <p className="text-xs text-zinc-400 italic py-4 text-center col-span-2">
+                          Nenhum doce encontrado para &quot;{searchTerm}&quot;.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
   );
 };
 
@@ -445,7 +520,6 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
     try {
       const response = await getDisplaySettings({ page, limit: 20 });
 
-      // Normalize sections so productIds and tags are always arrays
       const normalizedSections = response.sections.map((section) => ({
         ...section,
         productIds: Array.isArray(section.productIds) ? section.productIds : [],
@@ -461,12 +535,8 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         setSections((prev) => [...prev, ...normalizedSections]);
       }
 
-      // Determina se há mais seções:
-      // Se recebeu menos de 20 (limite), significa que chegou ao final
       const hasMoreSections = normalizedSections.length >= 20;
       setHasMore(hasMoreSections);
-
-      // O total é a quantidade real de seções carregadas
       setTotalSections(sections.length + normalizedSections.length);
       setCurrentPage(page);
     } catch (error) {
@@ -532,10 +602,8 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over.id);
 
-        // Atualiza a ordem das seções
         const reorderedItems = arrayMove(items, oldIndex, newIndex);
 
-        // Atualiza o campo "order" de cada seção
         return reorderedItems.map((item, index) => ({
           ...item,
           order: index,
@@ -549,7 +617,7 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
       setLoading(true);
 
       const newSection = {
-        title: "Nova Seção",
+        title: "Nova Seção de Vitrine",
         type: "category" as const,
         active: true,
         productIds: null,
@@ -568,7 +636,7 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         },
       ]);
 
-      toast.success("Nova seção criada com sucesso");
+      toast.success("Nova vitrine criada com sucesso!");
     } catch (error) {
       toast.error("Erro ao criar seção: " + (error as Error).message);
     } finally {
@@ -581,7 +649,6 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
       setLoading(true);
 
       const sectionsWithOrder = sections.map((section, index) => {
-        // Extract all properties except category and products which cause type conflicts
         const { category, products, ...sectionData } = section;
 
         return {
@@ -591,7 +658,7 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
       });
 
       await updateAllSectionsApi(sectionsWithOrder);
-      toast.success("Seções atualizadas com sucesso");
+      toast.success("Vitrine salva com sucesso!");
     } catch (error) {
       toast.error("Erro ao atualizar seções: " + (error as Error).message);
     } finally {
@@ -605,10 +672,6 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
     }
   };
 
-  const refreshSections = () => {
-    loadSettings(1);
-  };
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -617,56 +680,68 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
   );
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-4 bg-white dark:bg-gray-950 overflow-x-hidden">
-      <div className="flex flex-col gap-3 sm:gap-4 border-b pb-3 sm:pb-4">
-        <div className="min-w-0">
-          <h3 className="text-base sm:text-lg font-medium truncate">
-            Seções da Página Inicial
+    <div className="space-y-6 p-4 rounded-3xl border border-zinc-150 bg-white dark:bg-zinc-950 relative overflow-hidden">
+      {/* Overlay feedback */}
+      <AnimatePresence>
+        {loading && sections.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.8 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-40 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-[1px] flex flex-col items-center justify-center"
+          >
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-rose-500 mb-2"></div>
+            <p className="text-xs font-semibold text-zinc-650">Atualizando vitrine...</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-zinc-100 pb-4">
+        <div>
+          <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-rose-500" />
+            Seções da Vitrine Inicial
           </h3>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Configure as seções de produtos que serão exibidas na página
-            inicial.
+          <p className="text-xs text-zinc-450 mt-1">
+            Reordene segurando o marcador de arrasto, crie novos filtros dinâmicos ou escolha produtos específicos.
           </p>
-          {totalSections > 0 && (
-            <p className="text-xs text-gray-500 mt-1">
-              Total: {sections.length}{" "}
-              {sections.length === 1 ? "seção" : "seções"}
-            </p>
-          )}
         </div>
-        <div className="flex flex-wrap gap-2 justify-start">
+        
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <Button
             variant="outline"
-            onClick={refreshSections}
+            onClick={() => loadSettings(1)}
             disabled={loading}
             size="sm"
-            className="text-xs"
+            className="h-10 rounded-xl text-xs border-zinc-250 font-semibold"
           >
-            <RefreshCw size={14} className="mr-1" />
-            Att.
+            <RefreshCw size={13} className="mr-1" />
+            Atualizar
           </Button>
           <Button
             onClick={addNewSection}
             disabled={loading}
             size="sm"
-            className="text-xs"
+            className="h-10 rounded-xl text-xs bg-zinc-900 hover:bg-zinc-800 text-white font-semibold"
           >
             <Plus size={14} className="mr-1" />
-            Adicionar
+            Nova Seção
           </Button>
         </div>
       </div>
 
       {loading && sections.length === 0 ? (
-        <div className="py-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          <p className="mt-2 text-gray-500">Carregando seções...</p>
+        <div className="py-16 text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-zinc-100 border-t-rose-500"></div>
+          <p className="mt-3 text-xs font-semibold text-zinc-600">Buscando vitrines...</p>
         </div>
       ) : sections.length === 0 ? (
-        <div className="py-12 text-center border rounded-lg">
-          <p className="text-gray-500">Nenhuma seção encontrada</p>
-          <Button onClick={addNewSection} className="mt-4">
-            <Plus size={16} className="mr-2" /> Criar primeira seção
+        <div className="py-16 text-center border-2 border-dashed border-zinc-200 rounded-3xl bg-zinc-50/50">
+          <FolderOpen className="h-12 w-12 text-zinc-300 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-zinc-700">Nenhuma seção cadastrada</p>
+          <p className="text-xs text-zinc-400 mt-1">Sua página inicial está vazia. Comece criando uma seção.</p>
+          <Button onClick={addNewSection} className="mt-4 bg-rose-600 hover:bg-rose-500">
+            <Plus size={16} className="mr-2" /> Criar Primeira Seção
           </Button>
         </div>
       ) : (
@@ -679,7 +754,7 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
             items={sections.map((s) => s.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-4">
+            <div className="space-y-3">
               {sections.map((section, index) => (
                 <SortableItem
                   key={section.id}
@@ -698,25 +773,27 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
       )}
 
       {hasMore && (
-        <div className="text-center pt-3 sm:pt-4">
+        <div className="text-center pt-2">
           <Button
             variant="outline"
             onClick={loadMoreSections}
             disabled={loading}
             size="sm"
-            className="text-xs sm:text-sm"
+            className="rounded-xl"
           >
-            {loading ? "Carregando..." : "Carregar mais seções"}
+            {loading ? "Carregando..." : "Carregar Mais Seções"}
           </Button>
         </div>
       )}
 
-      <div className="flex justify-center sm:justify-end pt-3 sm:pt-4 border-t">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-zinc-100">
+        <p className="text-xs text-zinc-450 text-center sm:text-left">
+          Lembre-se de salvar para persistir a nova ordem ou as configurações alteradas.
+        </p>
         <Button
           onClick={saveAllSections}
           disabled={loading || sections.length === 0}
-          size="sm"
-          className="px-3 sm:px-8 w-full sm:w-auto text-xs sm:text-sm"
+          className="w-full sm:w-auto h-12 px-8 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-600/10"
         >
           {loading ? "Salvando..." : "Salvar Todas as Seções"}
         </Button>

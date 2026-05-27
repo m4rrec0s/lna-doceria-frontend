@@ -74,18 +74,7 @@ export default function Home() {
       .flatMap((page) => page.sections)
       .filter((section) => section.active) || [];
 
-  if (isLoading) {
-    return (
-      <main className="w-full overflow-x-hidden bg-rose-50/40">
-        <Suspense fallback={null}>
-          <Header />
-        </Suspense>
-        <div className="mx-auto w-full max-w-screen-2xl px-4 pb-10 pt-6 md:px-6">
-          <ItemsListSkeleton />
-        </div>
-      </main>
-    );
-  }
+
 
   return (
     <main className="w-full overflow-x-hidden bg-rose-50/40">

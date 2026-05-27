@@ -317,6 +317,9 @@
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   .dashboard-sidebar {
@@ -330,6 +333,8 @@
     border-right: none;
     border-bottom: 1px solid var(--dashboard-border);
     background: #161b29;
+    z-index: 50;
+    animation: none;
   }
 
   .sidebar-header {
@@ -375,7 +380,7 @@
   .dashboard-main {
     margin-left: 0;
     height: auto;
-    min-height: calc(100vh - 64px);
+    min-height: auto;
   }
 
   .dashboard-header {
@@ -398,6 +403,9 @@
 
   .dashboard-content {
     padding: 12px;
+    overflow-y: visible;
+    height: auto;
+    flex: none;
   }
 }
 
