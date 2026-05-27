@@ -41,7 +41,11 @@ const AddToCartButton = ({
 
   const normalizedPackagePrices = useMemo(() => {
     if (!Array.isArray(product.packagePrices)) {
-      return [] as { quantity: number; price: number; discount: number | null }[];
+      return [] as {
+        quantity: number;
+        price: number;
+        discount: number | null;
+      }[];
     }
 
     return product.packagePrices
@@ -64,7 +68,7 @@ const AddToCartButton = ({
               entry.discount >= 0 &&
               entry.discount <= 100)),
       )
-      .sort((a, b) => a.quantity - b.quantity);
+      .sort((a, b) => b.quantity - a.quantity);
   }, [product.packagePrices]);
   const normalizedPackageSizes = useMemo(
     () => normalizedPackagePrices.map((entry) => entry.quantity),
@@ -93,13 +97,13 @@ const AddToCartButton = ({
               entry.discount >= 0 &&
               entry.discount <= 100)),
       )
-      .sort((a, b) => a.quantity - b.quantity);
+      .sort((a, b) => b.quantity - a.quantity);
   }, [product.gramsPrices]);
 
   const [internalSelectedPackageSize, setInternalSelectedPackageSize] =
     useState<number | null>(
       normalizedPackageSizes.length
-        ? normalizedPackageSizes[normalizedPackageSizes.length - 1]
+        ? normalizedPackageSizes[0]
         : null,
     );
   const selectedPackageSize =
@@ -114,15 +118,29 @@ const AddToCartButton = ({
     setInternalSelectedPackageSize(value);
   };
 
+  const [internalSelectedGram, setInternalSelectedGram] = useState<number | null>(
+    normalizedGramsPrices.length
+      ? normalizedGramsPrices[0].quantity
+      : null,
+  );
+  const effectiveSelectedGram =
+    selectedGram !== null ? selectedGram : internalSelectedGram;
+
   useEffect(() => {
     if (!normalizedPackageSizes.length) {
       setSelectedPackageSize(null);
       return;
     }
-    setSelectedPackageSize(
-      normalizedPackageSizes[normalizedPackageSizes.length - 1],
-    );
+    setSelectedPackageSize(normalizedPackageSizes[0]);
   }, [normalizedPackageSizes]);
+
+  useEffect(() => {
+    if (!normalizedGramsPrices.length) {
+      setInternalSelectedGram(null);
+      return;
+    }
+    setInternalSelectedGram(normalizedGramsPrices[0].quantity);
+  }, [normalizedGramsPrices]);
 
   const getQuantityText = () => {
     if (sellingType === "package" && normalizedPackageSizes.length > 0) {
@@ -145,21 +163,27 @@ const AddToCartButton = ({
         (entry) => entry.quantity === packageSize,
       );
       const resolvedPrice =
-        typeof selectedPackage?.price === "number" ? selectedPackage.price : basePrice;
+        typeof selectedPackage?.price === "number"
+          ? selectedPackage.price
+          : basePrice;
       const resolvedDiscount =
-        selectedPackage?.discount === null || selectedPackage?.discount === undefined
+        selectedPackage?.discount === null ||
+        selectedPackage?.discount === undefined
           ? baseDiscount
           : selectedPackage.discount;
       return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
     }
-    if (selectedGram && normalizedGramsPrices.length > 0) {
+    if (effectiveSelectedGram && normalizedGramsPrices.length > 0) {
       const selectedGrams = normalizedGramsPrices.find(
-        (entry) => entry.quantity === selectedGram,
+        (entry) => entry.quantity === effectiveSelectedGram,
       );
       const resolvedPrice =
-        typeof selectedGrams?.price === "number" ? selectedGrams.price : basePrice;
+        typeof selectedGrams?.price === "number"
+          ? selectedGrams.price
+          : basePrice;
       const resolvedDiscount =
-        selectedGrams?.discount === null || selectedGrams?.discount === undefined
+        selectedGrams?.discount === null ||
+        selectedGrams?.discount === undefined
           ? baseDiscount
           : selectedGrams.discount;
       return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
@@ -194,9 +218,9 @@ const AddToCartButton = ({
             )?.price
           : undefined;
       const selectedGramsPrice =
-        selectedGram !== null
+        effectiveSelectedGram !== null
           ? normalizedGramsPrices.find(
-              (entry) => entry.quantity === selectedGram,
+              (entry) => entry.quantity === effectiveSelectedGram,
             )?.price
           : undefined;
 
@@ -205,7 +229,7 @@ const AddToCartButton = ({
           ? typeof selectedPackagePrice === "number"
             ? selectedPackagePrice
             : Number(product.price) || 0
-          : selectedGram !== null
+          : effectiveSelectedGram !== null
             ? typeof selectedGramsPrice === "number"
               ? selectedGramsPrice
               : Number(product.price) || 0
@@ -216,15 +240,21 @@ const AddToCartButton = ({
           const selectedPkg = normalizedPackagePrices.find(
             (entry) => entry.quantity === packageSize,
           );
-          if (selectedPkg?.discount !== null && selectedPkg?.discount !== undefined) {
+          if (
+            selectedPkg?.discount !== null &&
+            selectedPkg?.discount !== undefined
+          ) {
             return selectedPkg.discount;
           }
         }
-        if (selectedGram !== null) {
+        if (effectiveSelectedGram !== null) {
           const selectedGramsEntry = normalizedGramsPrices.find(
-            (entry) => entry.quantity === selectedGram,
+            (entry) => entry.quantity === effectiveSelectedGram,
           );
-          if (selectedGramsEntry?.discount !== null && selectedGramsEntry?.discount !== undefined) {
+          if (
+            selectedGramsEntry?.discount !== null &&
+            selectedGramsEntry?.discount !== undefined
+          ) {
             return selectedGramsEntry.discount;
           }
         }

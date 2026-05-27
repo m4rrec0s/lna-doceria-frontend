@@ -370,10 +370,53 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   useEffect(() => {
     setSelectedFlavorIds([]);
     setFlavorDrawerOpen(false);
-    setSelectedGram(null);
-    setSelectedPackageSize(null);
+    
+    // Inicializar selectedPackageSize com o maior
+    if (product?.packagePrices) {
+      try {
+        const packages = Array.isArray(product.packagePrices)
+          ? product.packagePrices
+          : JSON.parse(product.packagePrices);
+        if (Array.isArray(packages) && packages.length > 0) {
+          const sorted = packages
+            .map((entry) => ({ quantity: Number(entry.quantity) }))
+            .filter((entry) => Number.isFinite(entry.quantity) && entry.quantity > 0)
+            .sort((a, b) => b.quantity - a.quantity);
+          setSelectedPackageSize(sorted.length > 0 ? sorted[0].quantity : null);
+        } else {
+          setSelectedPackageSize(null);
+        }
+      } catch {
+        setSelectedPackageSize(null);
+      }
+    } else {
+      setSelectedPackageSize(null);
+    }
+    
+    // Inicializar selectedGram com o maior
+    if (product?.gramsPrices) {
+      try {
+        const grams = Array.isArray(product.gramsPrices)
+          ? product.gramsPrices
+          : JSON.parse(product.gramsPrices);
+        if (Array.isArray(grams) && grams.length > 0) {
+          const sorted = grams
+            .map((entry) => ({ quantity: Number(entry.quantity) }))
+            .filter((entry) => Number.isFinite(entry.quantity) && entry.quantity > 0)
+            .sort((a, b) => b.quantity - a.quantity);
+          setSelectedGram(sorted.length > 0 ? sorted[0].quantity : null);
+        } else {
+          setSelectedGram(null);
+        }
+      } catch {
+        setSelectedGram(null);
+      }
+    } else {
+      setSelectedGram(null);
+    }
+    
     setDesktopSearch("");
-  }, [productId]);
+  }, [productId, product]);
 
   const dynamicPricing = useMemo(() => {
     if (!product) return { price: 0, discount: 0 };
@@ -431,7 +474,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
               entry.quantity > 0 &&
               entry.price >= 0,
           )
-          .sort((a, b) => a.quantity - b.quantity)
+          .sort((a, b) => b.quantity - a.quantity)
       : [];
 
     if (selectedGram !== null && normalizedGramsPrices.length > 0) {
@@ -559,7 +602,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                     Escolha o peso
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {product.gramsOptions.map((grams) => (
+                    {[...product.gramsOptions].sort((a, b) => b - a).map((grams) => (
                       <button
                         key={grams}
                         type="button"

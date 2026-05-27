@@ -461,11 +461,11 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
         setSections((prev) => [...prev, ...normalizedSections]);
       }
 
-      // Determina se há mais seções: 
+      // Determina se há mais seções:
       // Se recebeu menos de 20 (limite), significa que chegou ao final
       const hasMoreSections = normalizedSections.length >= 20;
       setHasMore(hasMoreSections);
-      
+
       // O total é a quantidade real de seções carregadas
       setTotalSections(sections.length + normalizedSections.length);
       setCurrentPage(page);
@@ -629,7 +629,8 @@ const ProductDisplaySettings: React.FC<ProductDisplaySettingsProps> = ({
           </p>
           {totalSections > 0 && (
             <p className="text-xs text-gray-500 mt-1">
-              Total: {sections.length} {sections.length === 1 ? "seção" : "seções"}
+              Total: {sections.length}{" "}
+              {sections.length === 1 ? "seção" : "seções"}
             </p>
           )}
         </div>
