@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import {
+  hasPackagingOptions,
+  getProductOptions,
+} from "../../helpers/getProductPricingType";
+import {
   Table,
   TableBody,
   TableCell,
@@ -67,14 +71,43 @@ const ProductList = ({
           >
             <div className="flex items-start gap-3">
               <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-zinc-100">
-                <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-zinc-900">{product.name}</p>
-                <p className="text-sm text-zinc-600">{formatCurrency(product.price)}</p>
+                <p className="truncate font-semibold text-zinc-900">
+                  {product.name}
+                </p>
+                {hasPackagingOptions(product) ? (
+                  <div className="my-2 flex gap-2 items-center">
+                    <p className="text-xs text-zinc-600 mb-1">Opções:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {getProductOptions(product).map((option, idx) => (
+                        <Badge
+                          key={idx}
+                          variant="outline"
+                          className="bg-rose-50 border-rose-200 text-rose-700 text-xs"
+                        >
+                          {option}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-zinc-600">
+                    {formatCurrency(product.price)}
+                  </p>
+                )}
                 <div className="mt-1 flex flex-wrap gap-1">
                   {product.categories?.map((category) => (
-                    <Badge key={category.id} className="bg-rose-100 text-rose-950">
+                    <Badge
+                      key={category.id}
+                      className="bg-rose-100 text-rose-950 hover:bg-rose-200 cursor-pointer"
+                    >
                       {category.name}
                     </Badge>
                   ))}
@@ -82,7 +115,12 @@ const ProductList = ({
               </div>
             </div>
             <div className="mt-3 flex justify-end gap-1">
-              <Button size="sm" variant="outline" disabled={loading} onClick={() => onEdit(product)}>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={loading}
+                onClick={() => onEdit(product)}
+              >
                 <Edit size={16} />
               </Button>
               {onToggleActive && (
@@ -90,7 +128,9 @@ const ProductList = ({
                   size="sm"
                   variant="outline"
                   disabled={loading}
-                  className={product.active ? "text-green-500" : "text-gray-500"}
+                  className={
+                    product.active ? "text-green-500" : "text-gray-500"
+                  }
                   onClick={() => onToggleActive(product)}
                 >
                   {product.active ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -153,12 +193,19 @@ const ProductList = ({
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="relative h-14 w-14 overflow-hidden rounded-lg bg-zinc-100">
-                    <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
-                    <span className="font-semibold text-zinc-900">{product.name}</span>
+                    <span className="font-semibold text-zinc-900">
+                      {product.name}
+                    </span>
                     <Badge
                       className={
                         product.active
@@ -173,13 +220,35 @@ const ProductList = ({
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {product.categories?.map((category) => (
-                      <Badge key={category.id} className="bg-rose-100 text-rose-950">
+                      <Badge
+                        key={category.id}
+                        className="bg-rose-100 text-rose-950"
+                      >
                         {category.name}
                       </Badge>
                     ))}
                   </div>
                 </TableCell>
-                <TableCell>{formatCurrency(product.price)}</TableCell>
+                <TableCell>
+                  {hasPackagingOptions(product) ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-600">Opções:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {getProductOptions(product).map((option, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="outline"
+                            className="bg-rose-50 border-rose-200 text-rose-700 text-xs"
+                          >
+                            {option}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    formatCurrency(product.price)
+                  )}
+                </TableCell>
                 <TableCell>
                   {(product.maxFlavors ?? 0) > 0
                     ? `${product.minFlavors ?? 0} a ${product.maxFlavors}`
@@ -202,11 +271,21 @@ const ProductList = ({
                         size="sm"
                         variant="outline"
                         disabled={loading}
-                        className={product.active ? "text-green-500" : "text-gray-500"}
+                        className={
+                          product.active ? "text-green-500" : "text-gray-500"
+                        }
                         onClick={() => onToggleActive(product)}
-                        title={product.active ? "Desativar produto" : "Ativar produto"}
+                        title={
+                          product.active
+                            ? "Desativar produto"
+                            : "Ativar produto"
+                        }
                       >
-                        {product.active ? <Eye size={16} /> : <EyeOff size={16} />}
+                        {product.active ? (
+                          <Eye size={16} />
+                        ) : (
+                          <EyeOff size={16} />
+                        )}
                       </Button>
                     )}
                     <Button

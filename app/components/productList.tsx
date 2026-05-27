@@ -29,7 +29,6 @@ const ProductList = ({
   loading,
   error,
   sectionId,
-  category,
 }: ProductListProps) => {
   if (loading) {
     return (
@@ -58,11 +57,6 @@ const ProductList = ({
               </>
             );
           })()}
-          {category && category.sellingType === "package" && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 sm:ml-2">
-              Pacote com {category.packageSizes} unidades
-            </span>
-          )}
         </h1>
         {sectionId && products.length > 6 && (
           <Link
@@ -76,7 +70,7 @@ const ProductList = ({
       </div>
       <div>
         {products && products.length > 0 ? (
-          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-6">
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {products.slice(0, 6).map((product: Product) => (
               <ProductItem
                 key={`${sectionId}-${product.id}`}

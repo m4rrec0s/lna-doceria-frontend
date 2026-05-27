@@ -4,6 +4,10 @@ import { formatCurrency } from "../helpers/formatCurrency";
 import { Badge } from "./ui/badge";
 import Link from "next/link";
 import { applyDiscount } from "../helpers/applyDiscount";
+import {
+  hasPackagingOptions,
+  getProductOptions,
+} from "../helpers/getProductPricingType";
 
 interface ProductItemProps {
   product: Product;
@@ -13,10 +17,11 @@ const ProductItem = ({ product }: ProductItemProps) => {
   const imageUrl = product.imageUrl || "/placeholder-image.jpg";
   const hasDiscount = Boolean(product.discount && product.discount > 0);
   const finalPrice = applyDiscount(product.price, product.discount);
+  const hasOptions = hasPackagingOptions(product);
+  const options = hasOptions ? getProductOptions(product) : [];
 
   return (
-    <li className="group flex flex-1 min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-sm">
-      {/* Imagem responsiva: menor em mobile, maior em telas maiores */}
+    <li className="group flex flex-1 min-w-0 md:min-w-[200px] xl:min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-sm">
       <div className="relative h-[160px] sm:h-[210px] w-full overflow-hidden bg-zinc-100">
         <div className="absolute inset-0">
           <Image
@@ -37,20 +42,38 @@ const ProductItem = ({ product }: ProductItemProps) => {
       </div>
 
       <div className="flex flex-grow flex-col p-3 sm:p-4">
-        {/* Nome sem truncate — quebra linha normalmente */}
         <h2 className="mb-2 line-clamp-2 min-h-[2.75rem] text-sm sm:text-base font-semibold text-zinc-900">
           {product.name}
         </h2>
 
         <div className="flex flex-col">
-          {hasDiscount && (
-            <div className="text-xs sm:text-sm text-zinc-500 line-through">
-              {formatCurrency(product.price)}
+          {hasOptions ? (
+            <div className="space-y-2">
+              <p className="text-xs text-zinc-600">Opções disponíveis:</p>
+              <div className="flex flex-wrap gap-2">
+                {options.map((option, idx) => (
+                  <Badge
+                    key={idx}
+                    variant="outline"
+                    className="bg-rose-50 border-rose-200 text-rose-700 text-xs"
+                  >
+                    {option}
+                  </Badge>
+                ))}
+              </div>
             </div>
+          ) : (
+            <>
+              {hasDiscount && (
+                <div className="text-xs sm:text-sm text-zinc-500 line-through">
+                  {formatCurrency(product.price)}
+                </div>
+              )}
+              <div className="text-lg sm:text-xl font-bold text-emerald-700">
+                {formatCurrency(finalPrice)}
+              </div>
+            </>
           )}
-          <div className="text-lg sm:text-xl font-bold text-emerald-700">
-            {formatCurrency(finalPrice)}
-          </div>
         </div>
 
         <div className="mt-auto flex flex-col gap-2 pt-3 sm:pt-4">
