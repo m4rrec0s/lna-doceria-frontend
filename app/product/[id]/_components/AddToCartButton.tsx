@@ -21,6 +21,8 @@ interface AddToCartButtonProps {
   selectedGram?: number | null;
   selectedPackageSize?: number | null;
   onSelectedPackageSizeChange?: (value: number | null) => void;
+  useSpecificQuantity?: boolean;
+  specificQuantity?: number;
 }
 
 const AddToCartButton = ({
@@ -34,6 +36,8 @@ const AddToCartButton = ({
   selectedGram = null,
   selectedPackageSize: selectedPackageSizeProp,
   onSelectedPackageSizeChange,
+  useSpecificQuantity = false,
+  specificQuantity = 1,
 }: AddToCartButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -143,6 +147,10 @@ const AddToCartButton = ({
   }, [normalizedGramsPrices]);
 
   const getQuantityText = () => {
+    if (useSpecificQuantity) {
+      return `${specificQuantity} ${specificQuantity === 1 ? "unidade" : "unidades"} (quantidade específica)`;
+    }
+
     if (sellingType === "package" && normalizedPackageSizes.length > 0) {
       const packageSize = selectedPackageSize || normalizedPackageSizes[0];
       const totalItems = packageSize * quantity;
@@ -154,9 +162,27 @@ const AddToCartButton = ({
     return `${quantity} ${quantity === 1 ? "unidade" : "unidades"}`;
   };
 
+  const getUnitPriceForSpecificQuantity = () => {
+    if (!useSpecificQuantity) return null;
+    const matchedPackage = normalizedPackagePrices.find(
+      (pkg) => pkg.quantity === specificQuantity,
+    );
+    return matchedPackage ?? null;
+  };
+
   const getTotalPrice = () => {
     const basePrice = Number((product as Product)?.price) || 0;
     const baseDiscount = Number(product.discount || 0);
+
+    if (useSpecificQuantity && basePrice > 0) {
+      const matchedPkg = getUnitPriceForSpecificQuantity();
+      if (matchedPkg) {
+        const discount = matchedPkg.discount ?? baseDiscount;
+        return matchedPkg.price * (1 - discount / 100);
+      }
+      return basePrice * (1 - baseDiscount / 100) * specificQuantity;
+    }
+
     if (sellingType === "package" && normalizedPackageSizes.length > 0) {
       const packageSize = selectedPackageSize || normalizedPackageSizes[0];
       const selectedPackage = normalizedPackagePrices.find(
@@ -224,18 +250,29 @@ const AddToCartButton = ({
             )?.price
           : undefined;
 
-      const resolvedUnitPrice =
-        packageSize !== null
-          ? typeof selectedPackagePrice === "number"
-            ? selectedPackagePrice
-            : Number(product.price) || 0
-          : effectiveSelectedGram !== null
-            ? typeof selectedGramsPrice === "number"
-              ? selectedGramsPrice
-              : Number(product.price) || 0
-            : Number(product.price) || 0;
+      let resolvedUnitPrice: number;
+      if (useSpecificQuantity) {
+        const matchedPkg = getUnitPriceForSpecificQuantity();
+        resolvedUnitPrice = matchedPkg ? matchedPkg.price : (Number(product.price) || 0);
+      } else if (packageSize !== null) {
+        resolvedUnitPrice = typeof selectedPackagePrice === "number"
+          ? selectedPackagePrice
+          : Number(product.price) || 0;
+      } else if (effectiveSelectedGram !== null) {
+        resolvedUnitPrice = typeof selectedGramsPrice === "number"
+          ? selectedGramsPrice
+          : Number(product.price) || 0;
+      } else {
+        resolvedUnitPrice = Number(product.price) || 0;
+      }
 
       const resolvedDiscount = (() => {
+        if (useSpecificQuantity) {
+          const matchedPkg = getUnitPriceForSpecificQuantity();
+          return matchedPkg?.discount !== null && matchedPkg?.discount !== undefined
+            ? matchedPkg.discount
+            : (product.discount || 0);
+        }
         if (packageSize !== null) {
           const selectedPkg = normalizedPackagePrices.find(
             (entry) => entry.quantity === packageSize,
@@ -268,7 +305,7 @@ const AddToCartButton = ({
       };
 
       addItem(productForCart, {
-        quantity,
+        quantity: useSpecificQuantity ? specificQuantity : quantity,
         flavorId: selectedFlavorId || undefined,
         selectedFlavors: selectedFlavors,
         flavorSelectionRules:
@@ -285,7 +322,14 @@ const AddToCartButton = ({
                 packageSize,
                 totalUnits: quantity,
               }
-            : undefined,
+            : useSpecificQuantity
+              ? {
+                  quantity: specificQuantity,
+                  packageSize: specificQuantity,
+                  totalUnits: specificQuantity,
+                }
+              : undefined,
+        isSpecificQuantity: useSpecificQuantity,
       });
       onClick();
       setIsLoading(false);
@@ -317,32 +361,41 @@ const AddToCartButton = ({
           </div>
         </div>
       )}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Button
-            onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-            className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
-            disabled={quantity <= 1}
-          >
-            <MinusCircle size={24} />
-          </Button>
-
-          <span className="min-w-10 text-center text-xl font-semibold text-zinc-900">
-            {quantity}
+      {useSpecificQuantity ? (
+        <div className="flex items-center justify-center gap-2 py-3 bg-amber-50/50 rounded-2xl border border-amber-100">
+          <span className="text-sm font-semibold text-amber-800">
+            {specificQuantity} {specificQuantity === 1 ? "unidade" : "unidades"}
           </span>
-
-          <Button
-            onClick={() => setQuantity((prev) => prev + 1)}
-            className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
-          >
-            <PlusCircle size={24} />
-          </Button>
+          <span className="text-xs text-amber-600">(quantidade específica)</span>
         </div>
+      ) : (
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
+              disabled={quantity <= 1}
+            >
+              <MinusCircle size={24} />
+            </Button>
 
-        <div className="text-right text-sm text-zinc-600">
-          {getQuantityText()}
+            <span className="min-w-10 text-center text-xl font-semibold text-zinc-900">
+              {quantity}
+            </span>
+
+            <Button
+              onClick={() => setQuantity((prev) => prev + 1)}
+              className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
+            >
+              <PlusCircle size={24} />
+            </Button>
+          </div>
+
+          <div className="text-right text-sm text-zinc-600">
+            {getQuantityText()}
+          </div>
         </div>
-      </div>
+      )}
 
       {selectedFlavors && selectedFlavors.length > 0 && (
         <div className="p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">

@@ -14,8 +14,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Category } from "@/app/types/category";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import { Input } from "@/app/components/ui/input";
 import { cn } from "@/app/lib/utils";
 import { ChevronRight, Search, X } from "lucide-react";
+import { formatCurrency } from "@/app/utils/format";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProductClientProps {
@@ -287,7 +289,10 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   const [selectedPackageSize, setSelectedPackageSize] = useState<number | null>(
     null,
   );
+  const [useSpecificQuantity, setUseSpecificQuantity] = useState(false);
+  const [specificQuantity, setSpecificQuantity] = useState(1);
   const [desktopSearch, setDesktopSearch] = useState("");
+  const initProductRef = useRef<string | null>(null);
 
   const { ref: cartAnchorRef, inView: cartAnchorInView } = useInView({
     threshold: 0.1,
@@ -346,10 +351,13 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   }, [productId]);
 
   useEffect(() => {
+    if (!product) return;
+    if (initProductRef.current === productId) return;
+    initProductRef.current = productId;
+
     setSelectedFlavorIds([]);
     setFlavorDrawerOpen(false);
     
-    // Inicializar selectedPackageSize com o maior
     if (product?.packagePrices) {
       try {
         const packages = Array.isArray(product.packagePrices)
@@ -371,7 +379,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
       setSelectedPackageSize(null);
     }
     
-    // Inicializar selectedGram com o maior
     if (product?.gramsPrices) {
       try {
         const grams = Array.isArray(product.gramsPrices)
@@ -590,6 +597,89 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 </div>
               )}
 
+            {product.unitMinQuantity && product.price > 0 && (
+              <div className="rounded-3xl border border-rose-100 bg-white p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-rose-800">
+                    Quantidade específica
+                  </p>
+                  {!useSpecificQuantity && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseSpecificQuantity(true);
+                        setSpecificQuantity(product.unitMinQuantity ?? 1);
+                        setSelectedPackageSize(null);
+                        setSelectedGram(null);
+                      }}
+                      className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
+                    >
+                      + Especificar
+                    </button>
+                  )}
+                </div>
+                {useSpecificQuantity && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <Input
+                          type="number"
+                          min={product.unitMinQuantity ?? 1}
+                          max={product.unitMaxQuantity ?? undefined}
+                          value={specificQuantity}
+                          onChange={(e) => {
+                            setSpecificQuantity(Number(e.target.value));
+                          }}
+                          onBlur={() => {
+                            const min = product.unitMinQuantity ?? 1;
+                            const max = product.unitMaxQuantity;
+                            let adjusted = specificQuantity;
+                            if (adjusted < min) adjusted = min;
+                            if (max !== null && max !== undefined && adjusted > max) adjusted = max;
+                            setSpecificQuantity(adjusted);
+                          }}
+                          className="rounded-2xl h-11 border-zinc-200 focus:border-amber-400 focus:ring-amber-100 text-sm"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUseSpecificQuantity(false)}
+                        className="text-xs text-zinc-500 hover:text-zinc-700 font-semibold px-3 py-1.5"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
+                        Mín: {product.unitMinQuantity} unid.
+                      </span>
+                      {product.unitMaxQuantity && (
+                        <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
+                          Máx: {product.unitMaxQuantity} unid.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {useSpecificQuantity && (
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+                    Valor total
+                  </p>
+                  <p className="text-xs text-amber-600 mt-0.5">
+                    {specificQuantity} {specificQuantity === 1 ? "unidade" : "unidades"} × R$ {Number(product.price).toFixed(2)}
+                  </p>
+                </div>
+                <span className="text-xl font-bold text-amber-900">
+                  {formatCurrency(Number(product.price) * specificQuantity)}
+                </span>
+              </div>
+            )}
+
             {flavors.length > 0 && (
               <div className="rounded-3xl border border-rose-100 bg-white overflow-hidden">
                 <button
@@ -759,7 +849,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 maxFlavors={maxFlavorSelection}
                 selectedGram={selectedGram}
                 selectedPackageSize={selectedPackageSize}
-                onSelectedPackageSizeChange={setSelectedPackageSize}
+                onSelectedPackageSizeChange={(size) => {
+                  setSelectedPackageSize(size);
+                  if (size !== null) setUseSpecificQuantity(false);
+                }}
+                useSpecificQuantity={useSpecificQuantity}
+                specificQuantity={specificQuantity}
                 disabled={
                   maxFlavorSelection > 0 &&
                   selectedFlavorIds.length < minFlavorSelection
@@ -803,7 +898,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 maxFlavors={maxFlavorSelection}
                 selectedGram={selectedGram}
                 selectedPackageSize={selectedPackageSize}
-                onSelectedPackageSizeChange={setSelectedPackageSize}
+                onSelectedPackageSizeChange={(size) => {
+                  setSelectedPackageSize(size);
+                  if (size !== null) setUseSpecificQuantity(false);
+                }}
+                useSpecificQuantity={useSpecificQuantity}
+                specificQuantity={specificQuantity}
                 disabled={
                   maxFlavorSelection > 0 &&
                   selectedFlavorIds.length < minFlavorSelection

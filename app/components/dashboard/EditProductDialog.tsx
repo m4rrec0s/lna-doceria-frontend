@@ -61,6 +61,8 @@ const EditProductDialog = ({
     categoryIds: [] as string[],
     minFlavors: "0",
     maxFlavors: "0",
+    unitMinQuantity: "",
+    unitMaxQuantity: "",
   });
 
   useEffect(() => {
@@ -74,6 +76,8 @@ const EditProductDialog = ({
         categoryIds: product.categories?.map((cat) => cat.id) ?? [],
         minFlavors: (product.minFlavors ?? 0).toString(),
         maxFlavors: (product.maxFlavors ?? 0).toString(),
+        unitMinQuantity: product.unitMinQuantity ? String(product.unitMinQuantity) : "",
+        unitMaxQuantity: product.unitMaxQuantity ? String(product.unitMaxQuantity) : "",
       });
       setPackagePrices(
         (product.packagePrices || []).map((entry) => ({
@@ -186,6 +190,8 @@ const EditProductDialog = ({
         categoryIds: formData.categoryIds,
         minFlavors: canEnableFlavorRules ? Number(formData.minFlavors || 0) : 0,
         maxFlavors: canEnableFlavorRules ? Number(formData.maxFlavors || 0) : 0,
+        unitMinQuantity: formData.unitMinQuantity ? Number(formData.unitMinQuantity) : undefined,
+        unitMaxQuantity: formData.unitMaxQuantity ? Number(formData.unitMaxQuantity) : undefined,
         packagePrices: packagePrices.map((entry) => ({
           quantity: entry.quantity,
           price: Number(entry.price),
@@ -272,7 +278,7 @@ const EditProductDialog = ({
                     htmlFor="edit-price"
                     className="block text-sm font-medium mb-1"
                   >
-                    Preço (R$) *
+                    Preço (R$)
                   </label>
                   <input
                     type="number"
@@ -280,11 +286,13 @@ const EditProductDialog = ({
                     name="price"
                     value={formData.price}
                     onChange={handleChange}
-                    required
                     step="0.01"
                     min="0"
                     className="w-full px-3 py-2 border rounded-md dark:bg-zinc-900"
                   />
+                  {packagePrices.length > 0 && (
+                    <p className="text-[10px] text-zinc-500 mt-0.5">Valor unitário (opcional)</p>
+                  )}
                 </div>
 
                 <div>
@@ -306,6 +314,34 @@ const EditProductDialog = ({
                   />
                 </div>
               </div>
+
+              {formData.price && Number(formData.price) > 0 && (
+                <div className="grid grid-cols-2 gap-4 rounded-md border border-amber-200 bg-amber-50 p-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Mín. unidades</label>
+                    <input
+                      type="number"
+                      name="unitMinQuantity"
+                      min="1"
+                      value={formData.unitMinQuantity}
+                      onChange={handleChange}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Máx. unidades</label>
+                    <input
+                      type="number"
+                      name="unitMaxQuantity"
+                      min={formData.unitMinQuantity || "1"}
+                      value={formData.unitMaxQuantity}
+                      onChange={handleChange}
+                      className="w-full rounded-md border px-3 py-2 dark:bg-zinc-900"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-0.5">Vazio = ilimitado</p>
+                  </div>
+                </div>
+              )}
 
               {hasFlavorEnabledCategory(formData.categoryIds, categories) ? (
                 <div className="grid grid-cols-2 gap-4 rounded-md border border-rose-200 bg-rose-50 p-3">

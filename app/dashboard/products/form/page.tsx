@@ -64,6 +64,8 @@ function ProductFormContent() {
     categoryIds: [] as string[],
     minFlavors: "0",
     maxFlavors: "0",
+    unitMinQuantity: "",
+    unitMaxQuantity: "",
     packagePrices: [] as {
       quantity: number;
       price: string;
@@ -132,6 +134,8 @@ function ProductFormContent() {
           ),
           minFlavors: String(product.minFlavors ?? 0),
           maxFlavors: String(product.maxFlavors ?? 0),
+          unitMinQuantity: product.unitMinQuantity ? String(product.unitMinQuantity) : "",
+          unitMaxQuantity: product.unitMaxQuantity ? String(product.unitMaxQuantity) : "",
           packagePrices: (product.packagePrices || []).map(
             (entry: {
               quantity: number;
@@ -271,11 +275,17 @@ function ProductFormContent() {
       payload.append("name", formData.name.trim());
       payload.append("description", formData.description.trim());
       
-      if (!hasVariablePrices) {
+      if (formData.price) {
         payload.append("price", String(Number(formData.price)));
       }
-      if (!hasVariablePrices && formData.discount) {
+      if (formData.discount) {
         payload.append("discount", String(Number(formData.discount)));
+      }
+      if (formData.unitMinQuantity) {
+        payload.append("unitMinQuantity", formData.unitMinQuantity);
+      }
+      if (formData.unitMaxQuantity) {
+        payload.append("unitMaxQuantity", formData.unitMaxQuantity);
       }
       
       payload.append("minFlavors", String(Number(formData.minFlavors || 0)));
@@ -468,10 +478,10 @@ function ProductFormContent() {
                     </div>
                   )}
 
-                  {/* Preço Fixo e Desconto */}
+                  {/* Preço Unitário e Desconto */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="price" className="text-xs font-bold uppercase tracking-wider text-zinc-500">Preço Regular (R$)</Label>
+                      <Label htmlFor="price" className="text-xs font-bold uppercase tracking-wider text-zinc-500">{hasVariablePrices ? "Preço Unitário (R$)" : "Preço Regular (R$)"}</Label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-zinc-400 font-bold">R$</span>
                         <Input
@@ -483,12 +493,13 @@ function ProductFormContent() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, price: e.target.value }))
                           }
-                          required={!hasVariablePrices}
-                          disabled={hasVariablePrices}
                           placeholder="0.00"
-                          className="pl-8 w-full rounded-2xl h-11 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 disabled:bg-zinc-50 text-sm"
+                          className="pl-8 w-full rounded-2xl h-11 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 text-sm"
                         />
                       </div>
+                      {hasVariablePrices && (
+                        <p className="text-[10px] text-zinc-400 mt-1">Valor unitário opcional.</p>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
@@ -504,13 +515,57 @@ function ProductFormContent() {
                           onChange={(e) =>
                             setFormData((prev) => ({ ...prev, discount: e.target.value }))
                           }
-                          disabled={hasVariablePrices}
                           placeholder="Ex: 10"
-                          className="w-full rounded-2xl h-11 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 disabled:bg-zinc-50 text-sm"
+                          className="w-full rounded-2xl h-11 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 text-sm"
                         />
                       </div>
                     </div>
                   </div>
+
+                  {/* Unit Quantity Range */}
+                  {formData.price && Number(formData.price) > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="border-t border-zinc-100 pt-4 space-y-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Info className="h-3.5 w-3.5 text-amber-600" />
+                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Quantidade por Unidade</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="unitMinQuantity" className="text-[10px] font-bold text-zinc-500">Mínimo de Unidades</Label>
+                          <Input
+                            id="unitMinQuantity"
+                            type="number"
+                            min="1"
+                            value={formData.unitMinQuantity}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, unitMinQuantity: e.target.value }))
+                            }
+                            placeholder="Ex: 5"
+                            className="w-full rounded-2xl h-10 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="unitMaxQuantity" className="text-[10px] font-bold text-zinc-500">Máximo de Unidades</Label>
+                          <Input
+                            id="unitMaxQuantity"
+                            type="number"
+                            min={formData.unitMinQuantity || "1"}
+                            value={formData.unitMaxQuantity}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, unitMaxQuantity: e.target.value }))
+                            }
+                            placeholder="Ex: 100 (vazio = ilimitado)"
+                            className="w-full rounded-2xl h-10 border-zinc-200 focus:border-rose-400 focus:ring-rose-100 text-sm"
+                          />
+                          <p className="text-[10px] text-zinc-400">Deixe em branco para sem limite máximo.</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {/* Preços Especiais por Pacote */}
                   <div className="border-t border-zinc-100 pt-6 space-y-4">

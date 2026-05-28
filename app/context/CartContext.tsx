@@ -20,6 +20,7 @@ export interface CartItem extends Product {
     totalUnits: number;
   };
   sellingType?: string;
+  isSpecificQuantity?: boolean;
 }
 
 interface CartContextType {
@@ -39,6 +40,7 @@ interface CartContextType {
         packageSize: number;
         totalUnits: number;
       };
+      isSpecificQuantity?: boolean;
     }
   ) => void;
   removeItem: (productId: string) => void;
@@ -97,6 +99,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       selectedFlavors,
       flavorSelectionRules,
       packageInfo,
+      isSpecificQuantity,
     }: {
       quantity: number;
       flavorId?: string;
@@ -110,6 +113,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         packageSize: number;
         totalUnits: number;
       };
+      isSpecificQuantity?: boolean;
     }
   ) => {
     setItems((prevItems) => {
@@ -125,6 +129,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               selectedFlavors,
               flavorSelectionRules,
               packageInfo,
+              isSpecificQuantity,
             },
         ];
       } else if (existingItem) {
@@ -137,6 +142,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
                 flavorId,
                 flavorSelectionRules,
                 packageInfo,
+                isSpecificQuantity,
               }
             : i
         );
@@ -151,6 +157,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               flavorId,
               flavorSelectionRules,
               packageInfo,
+              isSpecificQuantity,
             },
         ];
       }

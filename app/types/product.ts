@@ -24,6 +24,8 @@ export interface Product {
   maxFlavors?: number;
   flavor?: Flavor;
   packagePrices?: PackagePrice[] | null;
+  unitMinQuantity?: number | null;
+  unitMaxQuantity?: number | null;
   gramsPrices?: PackagePrice[] | null;
   gramsOptions?: number[] | null;
   imageUrls?: string[] | null;
