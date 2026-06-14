@@ -5,7 +5,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useInView } from "react-intersection-observer";
 import { useApi } from "./hooks/useApi";
 import ProductList, { ItemsListSkeleton } from "./components/productList";
-import { BannerPanel } from "./components/bannerPanel";
+// import { BannerPanel } from "./components/bannerPanel";
 import Link from "next/link";
 import { Instagram } from "lucide-react";
 import { WhatsAppButton } from "./components/whatsappButton";
@@ -74,17 +74,15 @@ export default function Home() {
       .flatMap((page) => page.sections)
       .filter((section) => section.active) || [];
 
-
-
   return (
     <main className="w-full overflow-x-hidden bg-rose-50/40">
       <Suspense fallback={null}>
         <Header />
       </Suspense>
 
-      <section className="mt-6">
+      {/* <section className="mt-6">
         <BannerPanel />
-      </section>
+      </section> */}
 
       <section className="mx-auto my-5 w-full max-w-screen-2xl md:px-6">
         <div className="rpx-5 py-4 ">
