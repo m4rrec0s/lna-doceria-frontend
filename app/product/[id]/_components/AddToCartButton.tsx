@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useCart } from "../../../context/CartContext";
 import { Product } from "../../../types/product";
 import { Flavor } from "../../../types/flavor";
@@ -23,427 +22,182 @@ interface AddToCartButtonProps {
   onSelectedPackageSizeChange?: (value: number | null) => void;
   useSpecificQuantity?: boolean;
   specificQuantity?: number;
+  quantity?: number;
+  onQuantityChange?: (value: number) => void;
 }
 
 const AddToCartButton = ({
   onClick,
   product,
   disabled,
-  selectedFlavorId,
   selectedFlavors,
   minFlavors = 0,
   maxFlavors = 0,
-  selectedGram = null,
   selectedPackageSize: selectedPackageSizeProp,
-  onSelectedPackageSizeChange,
   useSpecificQuantity = false,
   specificQuantity = 1,
+  quantity: quantityProp,
+  onQuantityChange,
 }: AddToCartButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [internalQuantity, setInternalQuantity] = useState(1);
   const { addItem } = useCart();
 
-  const normalizedPackagePrices = useMemo(() => {
-    if (!Array.isArray(product.packagePrices)) {
-      return [] as {
-        quantity: number;
-        price: number;
-        discount: number | null;
-      }[];
-    }
+  const hasPackageSelected =
+    selectedPackageSizeProp !== null &&
+    selectedPackageSizeProp !== undefined &&
+    !useSpecificQuantity;
 
-    return product.packagePrices
-      .map((entry) => ({
-        quantity: Number(entry.quantity),
-        price: Number(entry.price),
-        discount:
-          entry.discount === null || entry.discount === undefined
-            ? null
-            : Number(entry.discount),
-      }))
-      .filter(
-        (entry) =>
-          Number.isFinite(entry.quantity) &&
-          Number.isFinite(entry.price) &&
-          entry.quantity > 0 &&
-          entry.price >= 0 &&
-          (entry.discount === null ||
-            (Number.isFinite(entry.discount) &&
-              entry.discount >= 0 &&
-              entry.discount <= 100)),
-      )
-      .sort((a, b) => b.quantity - a.quantity);
-  }, [product.packagePrices]);
-  const normalizedPackageSizes = useMemo(
-    () => normalizedPackagePrices.map((entry) => entry.quantity),
-    [normalizedPackagePrices],
-  );
-  const sellingType = normalizedPackageSizes.length > 0 ? "package" : "unit";
-  const normalizedGramsPrices = useMemo(() => {
-    if (!Array.isArray(product.gramsPrices)) return [];
-    return product.gramsPrices
-      .map((entry) => ({
-        quantity: Number(entry.quantity),
-        price: Number(entry.price),
-        discount:
-          entry.discount === null || entry.discount === undefined
-            ? null
-            : Number(entry.discount),
-      }))
-      .filter(
-        (entry) =>
-          Number.isFinite(entry.quantity) &&
-          Number.isFinite(entry.price) &&
-          entry.quantity > 0 &&
-          entry.price >= 0 &&
-          (entry.discount === null ||
-            (Number.isFinite(entry.discount) &&
-              entry.discount >= 0 &&
-              entry.discount <= 100)),
-      )
-      .sort((a, b) => b.quantity - a.quantity);
-  }, [product.gramsPrices]);
+  const quantity = useSpecificQuantity
+    ? 1
+    : hasPackageSelected
+      ? 1
+      : quantityProp !== undefined
+        ? quantityProp
+        : internalQuantity;
 
-  const [internalSelectedPackageSize, setInternalSelectedPackageSize] =
-    useState<number | null>(
-      normalizedPackageSizes.length
-        ? normalizedPackageSizes[0]
-        : null,
-    );
-  const selectedPackageSize =
-    selectedPackageSizeProp !== undefined
-      ? selectedPackageSizeProp
-      : internalSelectedPackageSize;
-  const setSelectedPackageSize = (value: number | null) => {
-    if (onSelectedPackageSizeChange) {
-      onSelectedPackageSizeChange(value);
+  const setQuantity = (value: number | ((prev: number) => number)) => {
+    const nextValue = typeof value === "function" ? value(quantity) : value;
+    if (onQuantityChange) {
+      onQuantityChange(nextValue);
       return;
     }
-    setInternalSelectedPackageSize(value);
+    setInternalQuantity(nextValue);
   };
 
-  const [internalSelectedGram, setInternalSelectedGram] = useState<number | null>(
-    normalizedGramsPrices.length
-      ? normalizedGramsPrices[0].quantity
-      : null,
-  );
-  const effectiveSelectedGram =
-    selectedGram !== null ? selectedGram : internalSelectedGram;
+  // Get package price from product.packagePrices
+  const packagePrice = hasPackageSelected
+    ? (() => {
+        const packages = Array.isArray(product.packagePrices)
+          ? product.packagePrices
+          : [];
+        const found = packages.find(
+          (p) => Number(p.quantity) === selectedPackageSizeProp,
+        );
+        return found ? Number(found.price) : null;
+      })()
+    : null;
 
-  useEffect(() => {
-    if (!normalizedPackageSizes.length) {
-      setSelectedPackageSize(null);
-      return;
-    }
-    setSelectedPackageSize(normalizedPackageSizes[0]);
-  }, [normalizedPackageSizes]);
+  const displayPrice = useSpecificQuantity
+    ? Number(product.price || 0) * specificQuantity
+    : hasPackageSelected && packagePrice !== null
+      ? packagePrice
+      : Number(product.price || 0) * quantity;
 
-  useEffect(() => {
-    if (!normalizedGramsPrices.length) {
-      setInternalSelectedGram(null);
-      return;
-    }
-    setInternalSelectedGram(normalizedGramsPrices[0].quantity);
-  }, [normalizedGramsPrices]);
-
-  const getQuantityText = () => {
-    if (useSpecificQuantity) {
-      return `${specificQuantity} ${specificQuantity === 1 ? "unidade" : "unidades"} (quantidade específica)`;
-    }
-
-    if (sellingType === "package" && normalizedPackageSizes.length > 0) {
-      const packageSize = selectedPackageSize || normalizedPackageSizes[0];
-      const totalItems = packageSize * quantity;
-      return `${quantity} ${
-        quantity === 1 ? "pacote" : "pacotes"
-      } (${totalItems} unidades)`;
-    }
-
-    return `${quantity} ${quantity === 1 ? "unidade" : "unidades"}`;
-  };
-
-  const getUnitPriceForSpecificQuantity = () => {
-    if (!useSpecificQuantity) return null;
-    const matchedPackage = normalizedPackagePrices.find(
-      (pkg) => pkg.quantity === specificQuantity,
-    );
-    return matchedPackage ?? null;
-  };
-
-  const getTotalPrice = () => {
-    const basePrice = Number((product as Product)?.price) || 0;
-    const baseDiscount = Number(product.discount || 0);
-
-    if (useSpecificQuantity && basePrice > 0) {
-      const matchedPkg = getUnitPriceForSpecificQuantity();
-      if (matchedPkg) {
-        const discount = matchedPkg.discount ?? baseDiscount;
-        return matchedPkg.price * (1 - discount / 100);
-      }
-      return basePrice * (1 - baseDiscount / 100) * specificQuantity;
-    }
-
-    if (sellingType === "package" && normalizedPackageSizes.length > 0) {
-      const packageSize = selectedPackageSize || normalizedPackageSizes[0];
-      const selectedPackage = normalizedPackagePrices.find(
-        (entry) => entry.quantity === packageSize,
+  const handleAddToCart = async () => {
+    if (disabled || isLoading) return;
+    if (
+      minFlavors > 0 &&
+      (!selectedFlavors || selectedFlavors.length < minFlavors)
+    ) {
+      toast.error(
+        `Selecione pelo menos ${minFlavors} sabor${minFlavors > 1 ? "es" : ""}.`,
       );
-      const resolvedPrice =
-        typeof selectedPackage?.price === "number"
-          ? selectedPackage.price
-          : basePrice;
-      const resolvedDiscount =
-        selectedPackage?.discount === null ||
-        selectedPackage?.discount === undefined
-          ? baseDiscount
-          : selectedPackage.discount;
-      return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
+      return;
     }
-    if (effectiveSelectedGram && normalizedGramsPrices.length > 0) {
-      const selectedGrams = normalizedGramsPrices.find(
-        (entry) => entry.quantity === effectiveSelectedGram,
-      );
-      const resolvedPrice =
-        typeof selectedGrams?.price === "number"
-          ? selectedGrams.price
-          : basePrice;
-      const resolvedDiscount =
-        selectedGrams?.discount === null ||
-        selectedGrams?.discount === undefined
-          ? baseDiscount
-          : selectedGrams.discount;
-      return resolvedPrice * (1 - resolvedDiscount / 100) * quantity;
+    if (
+      useSpecificQuantity &&
+      product.unitMinQuantity &&
+      specificQuantity < product.unitMinQuantity
+    ) {
+      toast.error(`Quantidade mínima: ${product.unitMinQuantity} unidades.`);
+      return;
     }
-    return basePrice * (1 - baseDiscount / 100) * quantity;
-  };
-
-  const handleClick = () => {
-    const selectedCount = selectedFlavors?.length || 0;
-    if (maxFlavors > 0) {
-      if (selectedCount < minFlavors) {
-        toast.error(`Selecione pelo menos ${minFlavors} sabores.`);
-        return;
-      }
-
-      if (selectedCount > maxFlavors) {
-        toast.error(`Você pode selecionar no máximo ${maxFlavors} sabores.`);
-        return;
-      }
-    }
-
     setIsLoading(true);
-    setTimeout(() => {
-      const packageSize =
-        sellingType === "package" && normalizedPackageSizes.length
-          ? selectedPackageSize || normalizedPackageSizes[0]
-          : null;
-      const selectedPackagePrice =
-        packageSize !== null
-          ? normalizedPackagePrices.find(
-              (entry) => entry.quantity === packageSize,
-            )?.price
-          : undefined;
-      const selectedGramsPrice =
-        effectiveSelectedGram !== null
-          ? normalizedGramsPrices.find(
-              (entry) => entry.quantity === effectiveSelectedGram,
-            )?.price
-          : undefined;
 
-      let resolvedUnitPrice: number;
-      if (useSpecificQuantity) {
-        const matchedPkg = getUnitPriceForSpecificQuantity();
-        resolvedUnitPrice = matchedPkg ? matchedPkg.price : (Number(product.price) || 0);
-      } else if (packageSize !== null) {
-        resolvedUnitPrice = typeof selectedPackagePrice === "number"
-          ? selectedPackagePrice
-          : Number(product.price) || 0;
-      } else if (effectiveSelectedGram !== null) {
-        resolvedUnitPrice = typeof selectedGramsPrice === "number"
-          ? selectedGramsPrice
-          : Number(product.price) || 0;
-      } else {
-        resolvedUnitPrice = Number(product.price) || 0;
-      }
-
-      const resolvedDiscount = (() => {
-        if (useSpecificQuantity) {
-          const matchedPkg = getUnitPriceForSpecificQuantity();
-          return matchedPkg?.discount !== null && matchedPkg?.discount !== undefined
-            ? matchedPkg.discount
-            : (product.discount || 0);
-        }
-        if (packageSize !== null) {
-          const selectedPkg = normalizedPackagePrices.find(
-            (entry) => entry.quantity === packageSize,
-          );
-          if (
-            selectedPkg?.discount !== null &&
-            selectedPkg?.discount !== undefined
-          ) {
-            return selectedPkg.discount;
-          }
-        }
-        if (effectiveSelectedGram !== null) {
-          const selectedGramsEntry = normalizedGramsPrices.find(
-            (entry) => entry.quantity === effectiveSelectedGram,
-          );
-          if (
-            selectedGramsEntry?.discount !== null &&
-            selectedGramsEntry?.discount !== undefined
-          ) {
-            return selectedGramsEntry.discount;
-          }
-        }
-        return product.discount || 0;
-      })();
-
-      const productForCart = {
-        ...product,
-        price: resolvedUnitPrice,
-        discount: resolvedDiscount,
-      };
-
-      addItem(productForCart, {
-        quantity: useSpecificQuantity ? specificQuantity : quantity,
-        flavorId: selectedFlavorId || undefined,
-        selectedFlavors: selectedFlavors,
+    try {
+      addItem(product, {
+        quantity: hasPackageSelected ? 1 : useSpecificQuantity ? 1 : quantity,
+        selectedFlavors:
+          selectedFlavors && selectedFlavors.length > 0
+            ? selectedFlavors
+            : undefined,
         flavorSelectionRules:
-          maxFlavors > 0
+          minFlavors > 0 || maxFlavors > 0
+            ? { min: minFlavors, max: maxFlavors }
+            : undefined,
+        packageInfo: hasPackageSelected
+          ? {
+              quantity: 1,
+              packageSize: selectedPackageSizeProp,
+              totalUnits: selectedPackageSizeProp,
+            }
+          : useSpecificQuantity
             ? {
-                min: minFlavors,
-                max: maxFlavors,
+                quantity: 1,
+                packageSize: specificQuantity,
+                totalUnits: specificQuantity,
               }
             : undefined,
-        packageInfo:
-          packageSize !== null
-            ? {
-                quantity: quantity,
-                packageSize,
-                totalUnits: quantity,
-              }
-            : useSpecificQuantity
-              ? {
-                  quantity: specificQuantity,
-                  packageSize: specificQuantity,
-                  totalUnits: specificQuantity,
-                }
-              : undefined,
         isSpecificQuantity: useSpecificQuantity,
       });
-      onClick();
+
+      onClick?.();
+      toast.success(`${product.name} adicionado ao carrinho!`);
+    } catch {
+      toast.error("Erro ao adicionar ao carrinho");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
-    <div className="w-full space-y-4">
-      {sellingType === "package" && normalizedPackageSizes.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-rose-900">
-            Escolha o tamanho do pacote
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {normalizedPackageSizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setSelectedPackageSize(size)}
-                className={`rounded-full border px-3 py-1 text-sm font-medium transition ${
-                  selectedPackageSize === size
-                    ? "border-rose-400 bg-rose-100 text-rose-900"
-                    : "border-rose-200 bg-white text-rose-700 hover:border-rose-300"
-                }`}
-              >
-                {size} unidades
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {useSpecificQuantity ? (
-        <div className="flex items-center justify-center gap-2 py-3 bg-amber-50/50 rounded-2xl border border-amber-100">
-          <span className="text-sm font-semibold text-amber-800">
-            {specificQuantity} {specificQuantity === 1 ? "unidade" : "unidades"}
+    <div className="flex flex-col gap-3">
+      {!hasPackageSelected && !useSpecificQuantity && (
+        <div className="flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            disabled={quantity <= 1}
+            className="text-rose-400 hover:text-rose-600 disabled:opacity-30 transition-colors"
+          >
+            <MinusCircle size={28} />
+          </button>
+          <span className="min-w-[2.5rem] text-center text-lg font-bold text-rose-950">
+            {quantity}
           </span>
-          <span className="text-xs text-amber-600">(quantidade específica)</span>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-              className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
-              disabled={quantity <= 1}
-            >
-              <MinusCircle size={24} />
-            </Button>
-
-            <span className="min-w-10 text-center text-xl font-semibold text-zinc-900">
-              {quantity}
-            </span>
-
-            <Button
-              onClick={() => setQuantity((prev) => prev + 1)}
-              className="h-10 w-10 rounded-full border border-rose-200 bg-white p-0 text-rose-600 hover:bg-rose-50"
-            >
-              <PlusCircle size={24} />
-            </Button>
-          </div>
-
-          <div className="text-right text-sm text-zinc-600">
-            {getQuantityText()}
-          </div>
+          <button
+            type="button"
+            onClick={() => setQuantity((q) => q + 1)}
+            className="text-rose-400 hover:text-rose-600 transition-colors"
+          >
+            <PlusCircle size={28} />
+          </button>
         </div>
       )}
 
-      {selectedFlavors && selectedFlavors.length > 0 && (
-        <div className="p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-          <p className="text-sm font-medium mb-2">
-            Sabores selecionados ({selectedFlavors.length}
-            {maxFlavors > 0 ? `/${maxFlavors}` : ""}):
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {selectedFlavors.map((flavor, index) => (
-              <div
-                key={flavor.id}
-                className="flex items-center gap-1 bg-white dark:bg-gray-800 px-2 py-1 rounded-full text-xs"
-              >
-                <span className="w-3 h-3 rounded-full bg-pink-500 flex items-center justify-center text-[8px] text-white font-bold">
-                  {index + 1}
-                </span>
-                {flavor.name}
-              </div>
-            ))}
-          </div>
-        </div>
+      {hasPackageSelected && (
+        <p className="text-center text-sm text-zinc-500">
+          Pacote com{" "}
+          <span className="font-bold text-rose-700">
+            {selectedPackageSizeProp}
+          </span>{" "}
+          unidades
+        </p>
       )}
 
-      <motion.button
-        onClick={handleClick}
-        disabled={isLoading || disabled}
-        className={`flex w-full items-center justify-center gap-2 rounded-xl p-4 font-medium ${
-          disabled
-            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-            : "bg-rose-600 text-white hover:opacity-50"
-        }`}
-        whileHover={{ scale: disabled ? 1 : 1.01 }}
-        whileTap={{ scale: disabled ? 1 : 0.98 }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+      {useSpecificQuantity && (
+        <p className="text-center text-sm text-zinc-500">
+          1 pacote com{" "}
+          <span className="font-bold text-amber-700">{specificQuantity}</span>{" "}
+          {specificQuantity === 1 ? "unidade" : "unidades"}
+        </p>
+      )}
+
+      <Button
+        onClick={handleAddToCart}
+        disabled={disabled || isLoading}
+        className="w-full rounded-2xl bg-rose-500 py-6 text-sm font-bold text-white hover:bg-rose-600 transition-colors disabled:opacity-50"
       >
         {isLoading ? (
-          <span className="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <div className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
         ) : (
-          <>
-            <span>
-              <ShoppingCart />
-            </span>
-            <span>Adicionar por {formatCurrency(getTotalPrice())}</span>
-          </>
+          <span className="flex items-center justify-center gap-2">
+            <ShoppingCart size={18} />
+            Adicionar — {formatCurrency(displayPrice)}
+          </span>
         )}
-      </motion.button>
+      </Button>
     </div>
   );
 };

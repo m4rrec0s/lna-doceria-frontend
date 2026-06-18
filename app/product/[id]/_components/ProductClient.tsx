@@ -146,7 +146,9 @@ const DrawerContent = ({
           </h3>
           {maxFlavors > 0 && (
             <p className="text-xs text-zinc-500 mt-0.5">
-              {selectedFlavorIds.length} sabor{selectedFlavorIds.length > 1 ? "es" : ""} selecionado{selectedFlavorIds.length > 1 ? "s" : ""}
+              {selectedFlavorIds.length} sabor
+              {selectedFlavorIds.length > 1 ? "es" : ""} selecionado
+              {selectedFlavorIds.length > 1 ? "s" : ""}
             </p>
           )}
         </div>
@@ -291,6 +293,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
   );
   const [useSpecificQuantity, setUseSpecificQuantity] = useState(false);
   const [specificQuantity, setSpecificQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(1);
   const [desktopSearch, setDesktopSearch] = useState("");
   const initProductRef = useRef<string | null>(null);
 
@@ -357,7 +360,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
 
     setSelectedFlavorIds([]);
     setFlavorDrawerOpen(false);
-    
+
     if (product?.packagePrices) {
       try {
         const packages = Array.isArray(product.packagePrices)
@@ -366,7 +369,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
         if (Array.isArray(packages) && packages.length > 0) {
           const sorted = packages
             .map((entry) => ({ quantity: Number(entry.quantity) }))
-            .filter((entry) => Number.isFinite(entry.quantity) && entry.quantity > 0)
+            .filter(
+              (entry) => Number.isFinite(entry.quantity) && entry.quantity > 0,
+            )
             .sort((a, b) => b.quantity - a.quantity);
           setSelectedPackageSize(sorted.length > 0 ? sorted[0].quantity : null);
         } else {
@@ -378,7 +383,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     } else {
       setSelectedPackageSize(null);
     }
-    
+
     if (product?.gramsPrices) {
       try {
         const grams = Array.isArray(product.gramsPrices)
@@ -387,7 +392,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
         if (Array.isArray(grams) && grams.length > 0) {
           const sorted = grams
             .map((entry) => ({ quantity: Number(entry.quantity) }))
-            .filter((entry) => Number.isFinite(entry.quantity) && entry.quantity > 0)
+            .filter(
+              (entry) => Number.isFinite(entry.quantity) && entry.quantity > 0,
+            )
             .sort((a, b) => b.quantity - a.quantity);
           setSelectedGram(sorted.length > 0 ? sorted[0].quantity : null);
         } else {
@@ -399,7 +406,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     } else {
       setSelectedGram(null);
     }
-    
+
     setDesktopSearch("");
   }, [productId, product]);
 
@@ -407,6 +414,13 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     if (!product) return { price: 0, discount: 0 };
     const basePrice = Number(product.price || 0);
     const baseDiscount = Number(product.discount || 0);
+
+    if (useSpecificQuantity) {
+      return { 
+        price: basePrice * specificQuantity, 
+        discount: baseDiscount 
+      };
+    }
 
     const normalizedPackagePrices = Array.isArray(product.packagePrices)
       ? product.packagePrices
@@ -428,7 +442,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
           .sort((a, b) => a.quantity - b.quantity)
       : [];
 
-    if (normalizedPackagePrices.length > 0) {
+    if (normalizedPackagePrices.length > 0 && selectedPackageSize !== null) {
       const selected =
         normalizedPackagePrices.find(
           (entry) => entry.quantity === selectedPackageSize,
@@ -478,7 +492,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
     }
 
     return { price: basePrice, discount: baseDiscount };
-  }, [product, selectedGram, selectedPackageSize]);
+  }, [product, selectedGram, selectedPackageSize, useSpecificQuantity, specificQuantity]);
 
   const handleAddToCart = () => {
     console.log(`Adicionando produto ${productId} ao carrinho`);
@@ -509,8 +523,6 @@ const ProductClient = ({ productId }: ProductClientProps) => {
         f.name.toLowerCase().includes(desktopSearch.toLowerCase()),
       )
     : flavors;
-
-
 
   if (loading) {
     return (
@@ -569,115 +581,111 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 discount={dynamicPricing.discount}
               />
             </div>
-
-            {Array.isArray(product.gramsOptions) &&
-              product.gramsOptions.length > 0 && (
+            {(Array.isArray(product.packagePrices) && product.packagePrices.length > 0) && (
                 <div className="rounded-3xl border border-rose-100 bg-white p-5">
                   <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-rose-800">
-                    Escolha o peso
+                    Escolha o pacote
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {[...product.gramsOptions].sort((a, b) => b - a).map((grams) => (
+                    {[...product.packagePrices]
+                      .sort((a, b) => Number(b.quantity) - Number(a.quantity))
+                      .map((pkg) => {
+                        const qty = Number(pkg.quantity);
+                        return (
+                          <button
+                            key={qty}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPackageSize(qty);
+                              setUseSpecificQuantity(false);
+                            }}
+                            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                              !useSpecificQuantity && selectedPackageSize === qty
+                                ? "border-rose-500 bg-rose-500 text-white shadow-sm"
+                                : "border-rose-200 bg-white text-rose-700 hover:border-rose-300"
+                            }`}
+                          >
+                            {qty} unid. — {formatCurrency(Number(pkg.price))}
+                          </button>
+                        );
+                      })}
+                    {product.unitMinQuantity && product.price > 0 && (
                       <button
-                        key={grams}
                         type="button"
-                        onClick={() =>
-                          setSelectedGram(grams === selectedGram ? null : grams)
-                        }
+                        onClick={() => {
+                          setUseSpecificQuantity(true);
+                          setSpecificQuantity(product.unitMinQuantity ?? 1);
+                          setSelectedPackageSize(null);
+                        }}
                         className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
-                          selectedGram === grams
-                            ? "border-rose-500 bg-rose-500 text-white shadow-sm"
-                            : "border-rose-200 bg-white text-rose-700 hover:border-rose-300"
+                          useSpecificQuantity
+                            ? "border-amber-500 bg-amber-500 text-white shadow-sm"
+                            : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
                         }`}
                       >
-                        {grams}g
+                        Qtd. específica
                       </button>
-                    ))}
+                    )}
                   </div>
-                </div>
-              )}
 
-            {product.unitMinQuantity && product.price > 0 && (
-              <div className="rounded-3xl border border-rose-100 bg-white p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-rose-800">
-                    Quantidade específica
-                  </p>
-                  {!useSpecificQuantity && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUseSpecificQuantity(true);
-                        setSpecificQuantity(product.unitMinQuantity ?? 1);
-                        setSelectedPackageSize(null);
-                        setSelectedGram(null);
-                      }}
-                      className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition"
-                    >
-                      + Especificar
-                    </button>
+                  {useSpecificQuantity && (
+                    <div className="mt-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-1">
+                          <Input
+                            type="number"
+                            min={product.unitMinQuantity ?? 1}
+                            max={product.unitMaxQuantity ?? undefined}
+                            value={specificQuantity}
+                            onChange={(e) => setSpecificQuantity(Number(e.target.value))}
+                            onBlur={() => {
+                              const min = product.unitMinQuantity ?? 1;
+                              const max = product.unitMaxQuantity;
+                              let adjusted = specificQuantity;
+                              if (adjusted < min) adjusted = min;
+                              if (max !== null && max !== undefined && adjusted > max) adjusted = max;
+                              setSpecificQuantity(adjusted);
+                            }}
+                            className="rounded-2xl h-11 border-zinc-200 focus:border-amber-400 focus:ring-amber-100 text-sm"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUseSpecificQuantity(false);
+                            const packages = Array.isArray(product.packagePrices) ? product.packagePrices : [];
+                            const sorted = packages
+                              .map((e) => Number(e.quantity))
+                              .filter((q) => Number.isFinite(q) && q > 0)
+                              .sort((a, b) => b - a);
+                            setSelectedPackageSize(sorted[0] ?? null);
+                          }}
+                          className="text-xs text-zinc-500 hover:text-zinc-700 font-semibold px-3 py-1.5"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
+                          Mín: {product.unitMinQuantity} unid.
+                        </span>
+                        {product.unitMaxQuantity && (
+                          <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
+                            Máx: {product.unitMaxQuantity} unid.
+                          </span>
+                        )}
+                      </div>
+                      <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
+                        <p className="text-xs text-amber-600">
+                          {specificQuantity} {specificQuantity === 1 ? "unidade" : "unidades"} × R$ {Number(product.price).toFixed(2)}
+                        </p>
+                        <span className="text-base font-bold text-amber-900">
+                          {formatCurrency(Number(product.price) * specificQuantity)}
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
-                {useSpecificQuantity && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex-1">
-                        <Input
-                          type="number"
-                          min={product.unitMinQuantity ?? 1}
-                          max={product.unitMaxQuantity ?? undefined}
-                          value={specificQuantity}
-                          onChange={(e) => {
-                            setSpecificQuantity(Number(e.target.value));
-                          }}
-                          onBlur={() => {
-                            const min = product.unitMinQuantity ?? 1;
-                            const max = product.unitMaxQuantity;
-                            let adjusted = specificQuantity;
-                            if (adjusted < min) adjusted = min;
-                            if (max !== null && max !== undefined && adjusted > max) adjusted = max;
-                            setSpecificQuantity(adjusted);
-                          }}
-                          className="rounded-2xl h-11 border-zinc-200 focus:border-amber-400 focus:ring-amber-100 text-sm"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setUseSpecificQuantity(false)}
-                        className="text-xs text-zinc-500 hover:text-zinc-700 font-semibold px-3 py-1.5"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
-                        Mín: {product.unitMinQuantity} unid.
-                      </span>
-                      {product.unitMaxQuantity && (
-                        <span className="bg-amber-50 border border-amber-200 text-[10px] px-2 py-0.5 rounded-full text-amber-700 font-semibold">
-                          Máx: {product.unitMaxQuantity} unid.
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {useSpecificQuantity && (
-              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
-                    Valor total
-                  </p>
-                  <p className="text-xs text-amber-600 mt-0.5">
-                    {specificQuantity} {specificQuantity === 1 ? "unidade" : "unidades"} × R$ {Number(product.price).toFixed(2)}
-                  </p>
-                </div>
-                <span className="text-xl font-bold text-amber-900">
-                  {formatCurrency(Number(product.price) * specificQuantity)}
-                </span>
-              </div>
             )}
 
             {flavors.length > 0 && (
@@ -733,7 +741,9 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                       </p>
                       {maxFlavorSelection > 0 && (
                         <p className="mt-0.5 text-xs text-zinc-500">
-                          {selectedFlavorIds.length} sabor{selectedFlavorIds.length > 1 ? "es" : ""} selecionado{selectedFlavorIds.length > 1 ? "s" : ""}
+                          {selectedFlavorIds.length} sabor
+                          {selectedFlavorIds.length > 1 ? "es" : ""} selecionado
+                          {selectedFlavorIds.length > 1 ? "s" : ""}
                         </p>
                       )}
                     </div>
@@ -855,9 +865,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 }}
                 useSpecificQuantity={useSpecificQuantity}
                 specificQuantity={specificQuantity}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
                 disabled={
-                  maxFlavorSelection > 0 &&
-                  selectedFlavorIds.length < minFlavorSelection
+                  (maxFlavorSelection > 0 && selectedFlavorIds.length < minFlavorSelection) ||
+                  (useSpecificQuantity && product.unitMinQuantity != null && specificQuantity < product.unitMinQuantity) ||
+                  (useSpecificQuantity && product.unitMaxQuantity != null && specificQuantity > product.unitMaxQuantity)
                 }
               />
             </div>
@@ -904,9 +917,12 @@ const ProductClient = ({ productId }: ProductClientProps) => {
                 }}
                 useSpecificQuantity={useSpecificQuantity}
                 specificQuantity={specificQuantity}
+                quantity={quantity}
+                onQuantityChange={setQuantity}
                 disabled={
-                  maxFlavorSelection > 0 &&
-                  selectedFlavorIds.length < minFlavorSelection
+                  (maxFlavorSelection > 0 && selectedFlavorIds.length < minFlavorSelection) ||
+                  (useSpecificQuantity && product.unitMinQuantity != null && specificQuantity < product.unitMinQuantity) ||
+                  (useSpecificQuantity && product.unitMaxQuantity != null && specificQuantity > product.unitMaxQuantity)
                 }
               />
             )}

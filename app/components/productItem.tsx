@@ -47,7 +47,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
         </h2>
 
         <div className="flex flex-col">
-          {product.unitMinQuantity && product.price > 0 ? (
+          {product.unitMinQuantity && product.price > 0 && hasOptions ? (
             <div className="space-y-1">
               <p className="text-xs text-zinc-500">escolha a quantidade</p>
               <p className="text-xs font-semibold text-amber-700">

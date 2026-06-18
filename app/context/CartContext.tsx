@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Flavor } from "../types/flavor";
 
 export interface CartItem extends Product {
+  cartItemId: string;
   discount?: number;
   quantity: number;
   flavorId?: string;
@@ -43,8 +44,8 @@ interface CartContextType {
       isSpecificQuantity?: boolean;
     }
   ) => void;
-  removeItem: (productId: string) => void;
-  updateItemQuantity: (productId: string, newQuantity: number) => void;
+  removeItem: (cartItemId: string) => void;
+  updateItemQuantity: (cartItemId: string, newQuantity: number) => void;
   clearCart: () => void;
   subtotal: number;
   totalDiscount: number;
@@ -116,26 +117,56 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       isSpecificQuantity?: boolean;
     }
   ) => {
+    const generateCartItemId = () => {
+      const base = product.id;
+      const packageKey = packageInfo ? `-pkg-${packageInfo.packageSize}` : '';
+      const flavorsKey = selectedFlavors?.length 
+        ? `-flavors-${selectedFlavors.map(f => f.id).sort().join('-')}` 
+        : '';
+      const specificKey = isSpecificQuantity ? `-specific-${packageInfo?.packageSize || quantity}` : '';
+      return `${base}${packageKey}${flavorsKey}${specificKey}`;
+    };
+
+    const cartItemId = generateCartItemId();
+
+    // Calculate correct price
+    let itemPrice = Number(product.price || 0);
+    
+    if (isSpecificQuantity && packageInfo) {
+      // For specific quantity: total price = unitPrice * quantity
+      itemPrice = itemPrice * packageInfo.packageSize;
+    } else if (packageInfo && Array.isArray(product.packagePrices)) {
+      // For package: get package price from packagePrices
+      const packageData = product.packagePrices.find(
+        (p) => Number(p.quantity) === packageInfo.packageSize
+      );
+      if (packageData) {
+        itemPrice = Number(packageData.price);
+      }
+    }
+
     setItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === product.id);
+      const existingItem = prevItems.find((i) => i.cartItemId === cartItemId);
 
       if (selectedFlavors && selectedFlavors.length > 0) {
         setIsCartOpen(true);
         return [
           ...prevItems,
-            {
-              ...product,
-              quantity,
-              selectedFlavors,
-              flavorSelectionRules,
-              packageInfo,
-              isSpecificQuantity,
-            },
+          {
+            ...product,
+            cartItemId,
+            price: itemPrice,
+            quantity,
+            selectedFlavors,
+            flavorSelectionRules,
+            packageInfo,
+            isSpecificQuantity,
+          },
         ];
       } else if (existingItem) {
         setIsCartOpen(true);
         return prevItems.map((i) =>
-          i.id === product.id
+          i.cartItemId === cartItemId
             ? {
                 ...i,
                 quantity: i.quantity + quantity,
@@ -153,41 +184,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           ...prevItems,
           {
             ...product,
-              quantity,
-              flavorId,
-              flavorSelectionRules,
-              packageInfo,
-              isSpecificQuantity,
-            },
+            cartItemId,
+            price: itemPrice,
+            quantity,
+            flavorId,
+            flavorSelectionRules,
+            packageInfo,
+            isSpecificQuantity,
+          },
         ];
       }
     });
   };
 
-  const updateItemQuantity = (productId: string, newQuantity: number) => {
+  const updateItemQuantity = (cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
 
     setItems((prevItems) => {
       const updatedItems = prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
+        item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
       );
-
-      // const updatedItem = updatedItems.find((item) => item.id === productId);
-      // if (updatedItem) {
-      //   toast.success(`Quantidade atualizada: ${updatedItem.name}`);
-      // }
 
       return updatedItems;
     });
   };
 
-  const removeItem = (productId: string) => {
+  const removeItem = (cartItemId: string) => {
     setItems((prevItems) => {
-      const itemToRemove = prevItems.find((item) => item.id === productId);
+      const itemToRemove = prevItems.find((item) => item.cartItemId === cartItemId);
       if (itemToRemove) {
         toast.info(`Removido do carrinho: ${itemToRemove.name}`);
       }
-      return prevItems.filter((item) => item.id !== productId);
+      return prevItems.filter((item) => item.cartItemId !== cartItemId);
     });
   };
 

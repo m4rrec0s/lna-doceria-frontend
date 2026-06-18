@@ -19,12 +19,12 @@ const CartItem: React.FC<CartItemProps> = ({ item, className }) => {
     : itemTotal;
 
   const handleIncrement = () => {
-    updateItemQuantity(item.id, item.quantity + 1);
+    updateItemQuantity(item.cartItemId, item.quantity + 1);
   };
 
   const handleDecrement = () => {
     if (item.quantity > 1) {
-      updateItemQuantity(item.id, item.quantity - 1);
+      updateItemQuantity(item.cartItemId, item.quantity - 1);
     }
   };
 
@@ -171,7 +171,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, className }) => {
             {/* QUICK TRASH ACTION */}
             <button
               type="button"
-              onClick={() => removeItem(item.id)}
+              onClick={() => removeItem(item.cartItemId)}
               className="h-7 px-2 rounded-lg text-[10px] font-semibold text-zinc-400 hover:text-red-500 hover:bg-red-50/40 flex items-center gap-1 transition"
             >
               <Trash2 size={12} />

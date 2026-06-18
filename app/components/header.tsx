@@ -235,7 +235,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
               <div className="flex-1 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-rose-100">
                 <div className="space-y-2.5">
                   {items.map((item) => (
-                    <CartItem key={item.id} item={item} />
+                    <CartItem key={item.cartItemId} item={item} />
                   ))}
                 </div>
               </div>

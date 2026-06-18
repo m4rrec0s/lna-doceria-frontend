@@ -281,46 +281,38 @@ function ProductFormContent() {
       if (formData.discount) {
         payload.append("discount", String(Number(formData.discount)));
       }
-      if (formData.unitMinQuantity) {
-        payload.append("unitMinQuantity", formData.unitMinQuantity);
-      }
-      if (formData.unitMaxQuantity) {
-        payload.append("unitMaxQuantity", formData.unitMaxQuantity);
-      }
+      payload.append("unitMinQuantity", formData.unitMinQuantity || "");
+      payload.append("unitMaxQuantity", formData.unitMaxQuantity || "");
       
       payload.append("minFlavors", String(Number(formData.minFlavors || 0)));
       payload.append("maxFlavors", String(Number(formData.maxFlavors || 0)));
       formData.categoryIds.forEach((id) => payload.append("categoryIds", id));
       
-      if (formData.packagePrices.length > 0) {
-        payload.append(
-          "packagePrices",
-          JSON.stringify(
-            formData.packagePrices.map((entry) => ({
-              quantity: entry.quantity,
-              price: Number(entry.price),
-              discount: entry.discount ? Number(entry.discount) : null,
-            })),
-          ),
-        );
-      }
+      payload.append(
+        "packagePrices",
+        JSON.stringify(
+          formData.packagePrices.map((entry) => ({
+            quantity: entry.quantity,
+            price: Number(entry.price),
+            discount: entry.discount ? Number(entry.discount) : null,
+          })),
+        ),
+      );
       
-      if (formData.gramsPrices.length > 0) {
-        payload.append(
-          "gramsOptions",
-          JSON.stringify(formData.gramsPrices.map((entry) => entry.quantity)),
-        );
-        payload.append(
-          "gramsPrices",
-          JSON.stringify(
-            formData.gramsPrices.map((entry) => ({
-              quantity: entry.quantity,
-              price: Number(entry.price),
-              discount: entry.discount ? Number(entry.discount) : null,
-            })),
-          ),
-        );
-      }
+      payload.append(
+        "gramsOptions",
+        JSON.stringify(formData.gramsPrices.map((entry) => entry.quantity)),
+      );
+      payload.append(
+        "gramsPrices",
+        JSON.stringify(
+          formData.gramsPrices.map((entry) => ({
+            quantity: entry.quantity,
+            price: Number(entry.price),
+            discount: entry.discount ? Number(entry.discount) : null,
+          })),
+        ),
+      );
       
       if (selectedFile) payload.append("image", selectedFile);
       payload.append("imageUrls", JSON.stringify(existingGalleryUrls));
@@ -522,8 +514,8 @@ function ProductFormContent() {
                     </div>
                   </div>
 
-                  {/* Unit Quantity Range */}
-                  {formData.price && Number(formData.price) > 0 && (
+                  {/* Unit Quantity Range - only when packages exist */}
+                  {formData.price && Number(formData.price) > 0 && formData.packagePrices.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
@@ -661,10 +653,14 @@ function ProductFormContent() {
                             <button
                               type="button"
                               onClick={() =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  packagePrices: prev.packagePrices.filter((item) => item.quantity !== entry.quantity),
-                                }))
+                                setFormData((prev) => {
+                                  const newPackages = prev.packagePrices.filter((item) => item.quantity !== entry.quantity);
+                                  return {
+                                    ...prev,
+                                    packagePrices: newPackages,
+                                    ...(newPackages.length === 0 ? { unitMinQuantity: "", unitMaxQuantity: "" } : {}),
+                                  };
+                                })
                               }
                               className="text-zinc-400 hover:text-red-500 p-1.5 rounded hover:bg-red-55 transition"
                             >
