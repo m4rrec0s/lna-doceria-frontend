@@ -6,7 +6,7 @@ import Link from "next/link";
 import { applyDiscount } from "../helpers/applyDiscount";
 import {
   hasPackagingOptions,
-  getProductOptions,
+  // getProductOptions,
 } from "../helpers/getProductPricingType";
 
 interface ProductItemProps {
@@ -18,7 +18,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
   const hasDiscount = Boolean(product.discount && product.discount > 0);
   const finalPrice = applyDiscount(product.price, product.discount);
   const hasOptions = hasPackagingOptions(product);
-  const options = hasOptions ? getProductOptions(product) : [];
+  // const options = hasOptions ? getProductOptions(product) : [];
 
   return (
     <li className="group flex flex-1 min-w-0 md:min-w-[200px] xl:min-w-0 w-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 hover:shadow-sm">
@@ -47,14 +47,35 @@ const ProductItem = ({ product }: ProductItemProps) => {
         </h2>
 
         <div className="flex flex-col">
-          {product.unitMinQuantity && product.price > 0 && hasOptions ? (
-            <div className="space-y-1">
-              <p className="text-xs text-zinc-500">escolha a quantidade</p>
-              <p className="text-xs font-semibold text-amber-700">
-                no mínimo {product.unitMinQuantity} un.
-              </p>
+          <>
+            {hasDiscount && (
+              <div className="text-xs sm:text-sm text-zinc-500 line-through">
+                {formatCurrency(product.price)}
+              </div>
+            )}
+            <div className="text-lg sm:text-xl font-bold text-emerald-700">
+              {formatCurrency(finalPrice)}
             </div>
-          ) : hasOptions ? (
+            {product.unitMinQuantity && product.price > 0 && hasOptions && (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-gray-400">
+                  no mínimo {product.unitMinQuantity} un.
+                </p>
+              </div>
+            )}
+          </>
+        </div>
+
+        <div className="mt-auto flex flex-col gap-2 pt-3 sm:pt-4">
+          <Link
+            href={`/product/${product.id}`}
+            className="flex h-9 sm:h-10 w-full items-center justify-center rounded-lg bg-rose-600 px-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-rose-800"
+          >
+            Eu quero
+          </Link>
+        </div>
+      </div>
+      {/* hasOptions ? (
             <div className="space-y-2">
               <p className="text-xs text-zinc-600">Opções disponíveis:</p>
               <div className="flex flex-wrap gap-2">
@@ -69,29 +90,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
                 ))}
               </div>
             </div>
-          ) : (
-            <>
-              {hasDiscount && (
-                <div className="text-xs sm:text-sm text-zinc-500 line-through">
-                  {formatCurrency(product.price)}
-                </div>
-              )}
-              <div className="text-lg sm:text-xl font-bold text-emerald-700">
-                {formatCurrency(finalPrice)}
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="mt-auto flex flex-col gap-2 pt-3 sm:pt-4">
-          <Link
-            href={`/product/${product.id}`}
-            className="flex h-9 sm:h-10 w-full items-center justify-center rounded-lg bg-rose-600 px-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-rose-800"
-          >
-            Eu quero
-          </Link>
-        </div>
-      </div>
+          ) */}
     </li>
   );
 };
