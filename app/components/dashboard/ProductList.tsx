@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  Package2,
 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import {
@@ -82,26 +83,25 @@ const ProductList = ({
                 <p className="truncate font-semibold text-zinc-900">
                   {product.name}
                 </p>
-                {hasPackagingOptions(product) ? (
-                  <div className="my-2 flex gap-2 items-center">
-                    <p className="text-xs text-zinc-600 mb-1">Opções:</p>
-                    <div className="flex flex-wrap gap-1">
+                <div className="my-1 flex flex-col gap-1">
+                  <p className="text-sm font-semibold text-zinc-900">
+                    {formatCurrency(product.price)}
+                  </p>
+                  {hasPackagingOptions(product) && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Package2 size={11} className="text-rose-500" />
                       {getProductOptions(product).map((option, idx) => (
                         <Badge
                           key={idx}
                           variant="outline"
-                          className="bg-rose-50 border-rose-200 text-rose-700 text-xs"
+                          className="bg-rose-50 border-rose-200 text-rose-700 text-[10px] px-1.5 py-0"
                         >
                           {option}
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-zinc-600">
-                    {formatCurrency(product.price)}
-                  </p>
-                )}
+                  )}
+                </div>
                 <div className="mt-1 flex flex-wrap gap-1">
                   {product.categories?.map((category) => (
                     <Badge
@@ -230,24 +230,25 @@ const ProductList = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  {hasPackagingOptions(product) ? (
-                    <div className="space-y-2">
-                      <p className="text-xs text-zinc-600">Opções:</p>
-                      <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="font-semibold text-zinc-900">
+                      {formatCurrency(product.price)}
+                    </span>
+                    {hasPackagingOptions(product) && (
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Package2 size={12} className="text-rose-500" />
                         {getProductOptions(product).map((option, idx) => (
                           <Badge
                             key={idx}
                             variant="outline"
-                            className="bg-rose-50 border-rose-200 text-rose-700 text-xs"
+                            className="bg-rose-50 border-rose-200 text-rose-700 text-[10px] px-1.5 py-0"
                           >
                             {option}
                           </Badge>
                         ))}
                       </div>
-                    </div>
-                  ) : (
-                    formatCurrency(product.price)
-                  )}
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>
                   {(product.maxFlavors ?? 0) > 0
