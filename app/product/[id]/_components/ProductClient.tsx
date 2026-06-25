@@ -891,7 +891,7 @@ const ProductClient = ({ productId }: ProductClientProps) => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-40 border-t border-rose-100 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden"
+            className="fixed bottom-0 left-0 right-0 z-40 border-t border-rose-100 bg-white/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-md lg:hidden"
           >
             {flavors.length > 0 &&
             selectedFlavorIds.length < minFlavorSelection ? (

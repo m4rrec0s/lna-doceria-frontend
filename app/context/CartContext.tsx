@@ -124,7 +124,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         ? `-flavors-${selectedFlavors.map(f => f.id).sort().join('-')}` 
         : '';
       const specificKey = isSpecificQuantity ? `-specific-${packageInfo?.packageSize || quantity}` : '';
-      return `${base}${packageKey}${flavorsKey}${specificKey}`;
+      const uniqueKey = `${base}${packageKey}${flavorsKey}${specificKey}`;
+      // For items without flavors/specific quantities, each add creates a separate entry
+      if (!selectedFlavors?.length && !isSpecificQuantity) {
+        return `${uniqueKey}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+      return uniqueKey;
     };
 
     const cartItemId = generateCartItemId();
@@ -179,7 +184,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       } else {
         setIsCartOpen(true);
-        toast.success(`Adicionado ao carrinho: ${product.name}`);
         return [
           ...prevItems,
           {

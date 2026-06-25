@@ -80,12 +80,26 @@ html,
 body {
   max-width: 100%;
   overflow-x: hidden;
+  height: 100dvh;
+}
+
+:root {
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
+body {
+  padding-top: var(--sat);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
 }
 
 .theme-toggle {
   position: fixed;
   right: 10px;
-  bottom: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
   z-index: 40;
   background-color: hsl(330 85% 65%);
   color: white;

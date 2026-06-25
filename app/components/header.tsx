@@ -242,7 +242,7 @@ const Header = ({ showSearch = false }: HeaderProps) => {
 
               {/* FOOTER */}
               {items.length > 0 && (
-                <div className="sticky bottom-0 z-10">
+                <div className="sticky bottom-0 z-10 pb-[env(safe-area-inset-bottom)]">
                   <CartSummary />
                 </div>
               )}
